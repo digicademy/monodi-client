@@ -1,19 +1,20 @@
-<!DOCTYPE html>
-<html class="no-js" ng-app="monodi">
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<title>mono:di</title>
-		<meta name="description" content="">
-		<meta name="viewport" content="width=device-width">
+		
+		<link rel="stylesheet" href="../public/css/main.css" />
+		<script type="text/javascript" src="../public/js/vendor/modernizr.js"></script>
+        <script type="text/javascript" src="../public/js/vendor/angular.js"></script>
+        <script type="text/javascript" src="../public/js/controllers.js"></script>
+        <script type="text/javascript" src="../public/js/modules.js"></script>
 
-		<link rel="stylesheet" href="../public/css/main.css">
-		<script src="../public/js/vendor/modernizr.js"></script>
-        <script src="../public/js/vendor/angular.js"></script>
-        <script src="../public/js/controllers.js"></script>
-        <script src="../public/js/modules.js"></script>
+        <style type="text/css" id="staticStyle"></style>
+        <style type="text/css" id="dynamicStyle"></style>
 	</head>
-	<body>
+	<body ng-app="monodi">
 
 		<div class="navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-inner">
@@ -35,7 +36,7 @@
                                         <li><button class="btn btn-link">Eigenschaften</button></li>
                                         <li class="divider"></li>
                                         <li><button class="btn btn-link">Neu</button></li>
-                                        <li><button class="open btn btn-link">Ã–ffnen</button></li>
+                                        <li><button class="open btn btn-link">Öffnen</button></li>
                                     </ul>
                                 </div>
                             </li>
@@ -50,11 +51,11 @@
 
         <div class="views">
             <div class="main container">
-                <img src="img/placeholder.gif" alt="placeholder">
+                <div id="musicContainer"></div>
             </div>
 
             <div class="files container" ng-controller="DocumentListCtrl">
-                <div class="row">
+                <div class="row-fluid">
                     <div class="fileviewToggle btn-group span4 offset8">
                         <button class="btn active"><i class="icon-align-left"></i> Ordnerstruktur</button>
                         <button class="btn"><i class="icon-th-list"></i> Reine Liste</button>
@@ -65,9 +66,9 @@
                         <button class="btn dropdown-toggle btn-block" data-toggle="dropdown">Batchfunktionen <span class="caret"></span></button>
                         <ul class="dropdown-menu">
                             <li><button class="btn btn-link">Drucken</button></li>
-                            <li><button class="btn btn-link">LÃ¶schen</button></li>
+                            <li><button class="btn btn-link">Löschen</button></li>
                             <li><button class="btn btn-link">Lokal speichern</button></li>
-                            <li><button class="btn btn-link">Lokal lÃ¶schen</button></li>
+                            <li><button class="btn btn-link">Lokal löschen</button></li>
                         </ul>
                     </div>
 
@@ -81,7 +82,7 @@
                                                 <li><button class="btn btn-link"><i class="icon-folder-close"></i> Aa13</button>
                                                     <ul>
                                                         <li>
-                                                            <input type="checkbox"><button class="btn btn-link">Dokument 1</button>
+                                                            <input type="checkbox" /><button class="btn btn-link">Dokument 1</button>
                                                             <div class="actions btn-group">
                                                                 <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
                                                                 <button class="btn btn-inverse"><i class="icon-print icon-white"></i></button>
@@ -90,12 +91,13 @@
                                                             </div>
                                                         </li>
                                                         <li>
-                                                            <input type="checkbox"><button class="btn btn-link">Dokument 2</button>
+                                                            <input type="checkbox" /><button class="btn btn-link">Dokument 2</button>
                                                             <div class="actions btn-group">
                                                                 <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
                                                                 <button class="btn btn-inverse"><i class="icon-print icon-white"></i></button>
                                                                 <button class="btn btn-warning"><i class="icon-remove icon-white"></i></button>
                                                                 <button class="btn btn-primary"><i class="icon-info-sign icon-white"></i></button>
+                                                            </div>
                                                         </li>
                                                     </ul>
                                                 </li>
@@ -112,14 +114,16 @@
                         <div class="fileList clearfix">
                             <table class="table table-bordered table-striped span12">
                                 <thead>
-                                    <th class="span1"><input type="checkbox"></th>
-                                    <th class="span6">Struktur</th>
-                                    <th class="span4">Name</th>
-                                    <th>Funktionen</th>
+                                    <tr>
+                                        <th class="span1"><input type="checkbox" /></th>
+                                        <th class="span6">Struktur</th>
+                                        <th class="span4">Name</th>
+                                        <th>Funktionen</th>
+                                    </tr>
                                 </thead>
                                 <tbody class="table-hover">
                                     <tr ng-repeat="document in documents">
-                                        <td><input type="checkbox" name="{{document.id}}"></td>
+                                        <td><input type="checkbox" name="{{document.id}}" /></td>
                                         <td>{{document.filename|formatPath}}</td>
                                         <td>{{document.filename|formatName}}</td>
                                         <td>
@@ -181,12 +185,12 @@
         <!-- login -->
         <div id="login" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
-            <h3 id="myModalLabel">Login</h3>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3>Login</h3>
           </div>
           <div class="modal-body">
-            <p><input type="text" id="loginname" placeholder="Benutzername"></p>
-            <p><input type="password" id="loginpass" placeholder="Passwort"></p>
+            <p><input type="text" id="loginname" placeholder="Benutzername" /></p>
+            <p><input type="password" id="loginpass" placeholder="Passwort" /></p>
           </div>
           <div class="modal-footer">
             <button class="btn forgot" data-dismiss="modal" aria-hidden="true">Passwort vergessen</button>
@@ -197,11 +201,11 @@
         <!-- login -->
         <div id="forgot" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
-            <h3 id="myModalLabel">Passwort vergessen?</h3>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3>Passwort vergessen?</h3>
           </div>
           <div class="modal-body">
-            <p><input type="text" id="loginname" placeholder="Benutzername"></p>
+            <p><input type="text" id="loginname" placeholder="Benutzername" /></p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-primary">Neues Passwort anfordern</button>
@@ -211,24 +215,24 @@
         <!-- change password -->
         <div id="changePass" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ChangePasswordLabel" aria-hidden="true">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
-            <h3 id="myModalLabel">Passwort Ã¤ndern</h3>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3>Passwort ändern</h3>
           </div>
           <div class="modal-body">
-            <p><input type="password" id="login" placeholder="bisheriges Passwort"></p>
-            <hr>
-            <p><input type="password" id="new" placeholder="Passwort"></p>
-            <p><input type="password" id="newR" placeholder="Passwort"></p>
+            <p><input type="password" id="login" placeholder="bisheriges Passwort" /></p>
+            <hr />
+            <p><input type="password" id="new" placeholder="Passwort" /></p>
+            <p><input type="password" id="newR" placeholder="Passwort" /></p>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-primary">Passwort Ã¤ndern</button>
+            <button class="btn btn-primary">Passwort ändern</button>
           </div>
         </div>
 
         <!-- fileinfos -->
         <div id="fileInfos" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="FileInfosLabel" aria-hidden="true">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
             <h3 id="myModalLabel">Dokumenteneigenschaften</h3>
           </div>
           <div class="modal-body">
@@ -255,7 +259,7 @@
                         <td></td>
                     </tr>
                     <tr>
-                        <th class="span2">Lokal vefÃ¼gbar</th>
+                        <th class="span2">Lokal vefügbar</th>
                         <td>nein</td>
                         <td><button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button></td>
                     </tr>
@@ -265,16 +269,17 @@
         </div>
 
 		<!--<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>-->
-		<script>window.jQuery || document.write('<script src="../public/js/vendor/jquery.js"><\/script>')</script>
-		<script src="../public/js/plugins.js"></script>
-		<script src="../public/js/main.js"></script>
+		<script type="text/javascript" src="../public/js/vendor/jquery.js"></script>
+		<script type="text/javascript" src="../public/js/plugins.js"></script>
+        <script type="text/javascript" src="../public/js/monodi/MonodiDocument.js"></script>
+		<script type="text/javascript" src="../public/js/main.js"></script>
 
 		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID.
 		<script>
 			var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
 			(function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
 			g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-			s.parentNode.insertBefore(g,s)}(document,'script'));-->
-		</script>
+			s.parentNode.insertBefore(g,s)}(document,'script'));
+		</script>-->
 	</body>
 </html>
