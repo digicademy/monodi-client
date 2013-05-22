@@ -1,0 +1,200 @@
+@import "bootstrap";
+
+body {
+    padding-top: 60px;
+}
+
+.navbar {
+    .nav {
+        float: none;
+
+        &>.right {
+            float: right;
+        }
+    }
+
+    .dropdown-toggle {
+        .caret {
+            border-top-color: #777;
+        }
+
+        &:hover .caret {
+            border-top-color: #fff;
+        }
+    }
+
+    .open .dropdown-toggle, .open .dropdown-toggle:hover {
+        color: #777;
+    }
+
+    .open .dropdown-toggle .caret, .open .dropdown-toggle .caret {
+        border-top-color: #777;
+    }
+
+    .btn, .btn-group {
+        margin-top: 0;
+    }
+
+    .btn-link {
+        float: none;
+        padding: 10px 15px 10px;
+        color: #777;
+        text-decoration: none;
+        text-shadow: none;
+
+        &:hover {
+            color: #fff;
+            background-color: transparent;
+        }
+    }
+
+    .dropdown-menu .btn-link {
+        display: block;
+
+        &:hover {
+            color: #222;
+        }
+    }
+}
+
+.navbar-inverse .nav > li > a {
+    color: #999999;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.modal-body hr {
+    margin-top: 10px;
+}
+
+.views>.container {
+    display: none;
+}
+
+.fileviewToggle {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.fileviews {
+    .actions {
+        text-align: center;
+    }
+
+    .fileList {
+        display: none;
+    }
+}
+
+.batch {
+    margin: 0 0 20px 60px;
+    position: relative;
+
+    &:before {
+        content: "";
+        width: 28px;
+        height: 35px;
+        position: absolute;
+        left: -29px;
+        top: 15px;
+        border-top: 1px solid #ddd;
+        border-left: 1px solid #ddd;
+    }
+
+    .files & {
+        margin-left: 60px;
+    }
+}
+
+.fileList {
+    .table {
+        margin-left: 0;
+    }
+
+    th:first-child, td:first-child {
+        text-align: center;
+    }
+
+    td {
+        vertical-align: middle;
+    }
+
+    input[type="checkbox"] {
+        margin-top: 0;
+    }
+}
+
+.fileStructure {
+    clear: left;
+
+    ul {
+        display: none;
+        position: relative;
+        margin: 0 0 0 30px;
+        padding: 0;
+        list-style: none;
+
+        &:before {
+            content: "";
+            height: 100%;
+            position: absolute;
+            left: -11px;
+            top: 0;
+            border-left: 1px solid #ddd;
+        }
+
+        .icon-folder-close {
+            margin-top: 0;
+        }
+    }
+
+    li {
+        padding-top: 8px;
+        position: relative;
+
+        &:before {
+            content: "";
+            width: 20px;
+            position: absolute;
+            left: -11px;
+            top: 23px;
+            border-top: 1px solid #ddd;
+        }
+
+        &:last-child:before {
+            height: 15px;
+            border-left: 1px solid #fff;
+        }
+    }
+
+    &>ul {
+        display: block;
+        margin-left: 42px;
+    }
+
+    input[type="checkbox"] {
+        margin: 0 0 0 20px;
+    }
+
+    .actions {
+        margin-right: 10px;
+        float: right;
+    }
+
+    .showChildren + ul {
+        display: block;
+    }
+
+    .showChildren .icon-folder-close {
+        background-position: -408px -120px;
+    }
+}
+
+#fileInfos {
+    th, td {
+        vertical-align: middle;
+    }
+
+    .change {
+        text-align: center;
+    }
+}
