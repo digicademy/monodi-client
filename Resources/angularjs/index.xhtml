@@ -6,10 +6,18 @@
 		<title>mono:di</title>
 		
 		<link rel="stylesheet" href="../public/css/main.css" />
+        
+        <script type="text/javascript" src="../public/js/vendor/jquery.js"></script>
+        <script>
+            baseurl = 'http://monodi.symfony2.dev/app_dev.php/';
+        </script>
+
 		<script type="text/javascript" src="../public/js/vendor/modernizr.js"></script>
         <script type="text/javascript" src="../public/js/vendor/angular.js"></script>
         <script type="text/javascript" src="../public/js/controllers.js"></script>
         <script type="text/javascript" src="../public/js/modules.js"></script>
+
+        <script type="text/javascript" src="../public/js/mock.js"></script>
 
         <style type="text/css" id="staticStyle"></style>
         <style type="text/css" id="dynamicStyle"></style>
@@ -42,7 +50,10 @@
                             </li>
 					        <li><button class="filecontrol btn btn-link">Verwaltung</button></li>
                             <li class="right"><button class="help btn btn-link">Hilfe</button></li>
-					        <li class="right"><button class="btn btn-link" data-target="#changePass" data-toggle="modal">Profil</button></li>
+					        <li class="right">
+                                <!--<button class="btn btn-link" data-target="#changePass" data-toggle="modal">Profil</button>-->
+                                <button class="btn btn-link" id="login">Login</button>
+                            </li>
 					    </ul>
 				    </div>
 				</div>
@@ -73,43 +84,7 @@
                     </div>
 
                     <div class="fileviews">
-                        <div class="fileStructure clearfix">
-                            <ul>
-                                <li><button class="btn btn-link"><i class="icon-folder-close"></i> Band 1</button>
-                                    <ul>
-                                        <li><button class="btn btn-link"><i class="icon-folder-close"></i> Aachen</button>
-                                            <ul>
-                                                <li><button class="btn btn-link"><i class="icon-folder-close"></i> Aa13</button>
-                                                    <ul>
-                                                        <li>
-                                                            <input type="checkbox" /><button class="btn btn-link">Dokument 1</button>
-                                                            <div class="actions btn-group">
-                                                                <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
-                                                                <button class="btn btn-inverse"><i class="icon-print icon-white"></i></button>
-                                                                <button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button>
-                                                                <button class="btn btn-primary" data-target="#fileInfos" data-toggle="modal"><i class="icon-info-sign icon-white"></i></button>
-                                                            </div>
-                                                        </li>
-                                                        <li>
-                                                            <input type="checkbox" /><button class="btn btn-link">Dokument 2</button>
-                                                            <div class="actions btn-group">
-                                                                <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
-                                                                <button class="btn btn-inverse"><i class="icon-print icon-white"></i></button>
-                                                                <button class="btn btn-warning"><i class="icon-remove icon-white"></i></button>
-                                                                <button class="btn btn-primary"><i class="icon-info-sign icon-white"></i></button>
-                                                            </div>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <li><button class="btn btn-link"><i class="icon-folder-close"></i> Aa16</button></li>
-                                            </ul>
-                                        </li>
-                                        <li><button class="btn btn-link"><i class="icon-folder-close"></i> Trier</button></li>
-                                    </ul>
-                                </li>
-                                <li><button class="btn btn-link"><i class="icon-folder-close"></i> Band 2</button></li>
-                            </ul>
-                        </div>
+                        <div class="fileStructure clearfix" filetree-repeat="documents"></div>
 
                         <div class="fileList clearfix">
                             <table class="table table-bordered table-striped span12">
@@ -121,47 +96,7 @@
                                         <th>Funktionen</th>
                                     </tr>
                                 </thead>
-                                <tbody class="table-hover">
-                                    <tr ng-repeat="document in documents">
-                                        <td><input type="checkbox" name="{{document.id}}" /></td>
-                                        <td>{{document.filename|formatPath}}</td>
-                                        <td>{{document.filename|formatName}}</td>
-                                        <td>
-                                            <div class="actions btn-group">
-                                                <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
-                                                <button class="btn btn-inverse"><i class="icon-print icon-white"></i></button>
-                                                <button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button>
-                                                <button class="btn btn-primary" data-target="#fileInfos" data-toggle="modal"><i class="icon-info-sign icon-white"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!--<tr>
-                                        <td><input type="checkbox"></td>
-                                        <td>Band 1 - Aachen - Aa13</td>
-                                        <td>Dokument 1</td>
-                                        <td>
-                                            <div class="actions btn-group">
-                                                <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
-                                                <button class="btn btn-inverse"><i class="icon-print icon-white"></i></button>
-                                                <button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button>
-                                                <button class="btn btn-primary" data-target="#fileInfos" data-toggle="modal"><i class="icon-info-sign icon-white"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="checkbox"></td>
-                                        <td>Band 1 - Aachen - Aa13</td>
-                                        <td>Dokument 2</td>
-                                        <td>
-                                            <div class="actions btn-group">
-                                                <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
-                                                <button class="btn btn-inverse"><i class="icon-print icon-white"></i></button>
-                                                <button class="btn btn-warning"><i class="icon-remove icon-white"></i></button>
-                                                <button class="btn btn-primary"><i class="icon-info-sign icon-white"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>-->
-                                </tbody>
+                                <tbody class="table-hover" filelist-repeat="documents"></tbody>
                             </table>
                         </div>
                     </div>
@@ -184,18 +119,20 @@
 
         <!-- login -->
         <div id="login" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3>Login</h3>
-          </div>
-          <div class="modal-body">
-            <p><input type="text" id="loginname" placeholder="Benutzername" /></p>
-            <p><input type="password" id="loginpass" placeholder="Passwort" /></p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn forgot" data-dismiss="modal" aria-hidden="true">Passwort vergessen</button>
-            <button class="btn btn-primary">Anmelden</button>
-          </div>
+            <form action="login_check" method="post">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3>Login</h3>
+                </div>
+                <div class="modal-body">
+                    <p><input type="text" id="loginname" placeholder="Benutzername" /></p>
+                    <p><input type="password" id="loginpass" placeholder="Passwort" /></p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn forgot" data-dismiss="modal" aria-hidden="true">Passwort vergessen</button>
+                    <button type="submit" class="btn btn-primary">Anmelden</button>
+                </div>
+            </form>
         </div>
 
         <!-- login -->
@@ -268,8 +205,6 @@
           </div>
         </div>
 
-		<!--<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>-->
-		<script type="text/javascript" src="../public/js/vendor/jquery.js"></script>
 		<script type="text/javascript" src="../public/js/plugins.js"></script>
         <script type="text/javascript" src="../public/js/monodi/MonodiDocument.js"></script>
 		<script type="text/javascript" src="../public/js/main.js"></script>

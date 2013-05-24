@@ -34,7 +34,7 @@ var md = new MonodiDocument({
 });
 
 var checkElement = function(el) {
-	return md.getSelectedElement().nodeName == el;
+	return (md.getSelectedElement())? md.getSelectedElement().nodeName == el : false;
 };
 
 var getCaretCharacterOffsetWithin = function (element) {
@@ -173,4 +173,9 @@ $(document).on('keydown', function(e) {
 	if (checkElement('sb')) {
 		md.setSbLabel($(e.target).text());
 	}
+});
+
+$('#login').on('click', function() {
+	window.open(baseurl + 'oauth/v2/auth?client_id=1_2rhsh9vp7hkw4s4gg4w848cs4s8cg0kgcoskskc44swss00oco','','width=700,height=500,toolbar=0,menubar=0,location=0,status=0,scrollbars=0,resizable=0,left=0,top=0');
+	return false;
 });

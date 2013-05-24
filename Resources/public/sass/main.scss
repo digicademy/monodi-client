@@ -181,7 +181,7 @@ body {
         float: right;
     }
 
-    .showChildren + ul {
+    .showChildren ~ ul {
         display: block;
     }
 

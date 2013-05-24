@@ -6377,7 +6377,7 @@ body {
   .fileStructure .actions {
     margin-right: 10px;
     float: right; }
-  .fileStructure .showChildren + ul {
+  .fileStructure .showChildren ~ ul {
     display: block; }
   .fileStructure .showChildren .icon-folder-close {
     background-position: -408px -120px; }
