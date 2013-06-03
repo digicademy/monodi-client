@@ -48,7 +48,7 @@
   <xsl:param name="accidentalSpace" select="1.5"/>
   <xsl:param name="sbPbWidth" select="6"/>
   <xsl:param name="pbLineDistance" select="1"/>
-  <xsl:param name="paddingAfterIneume" select="1.5"/>
+  <xsl:param name="paddingAfterIneume" select="4"/>
   <xsl:param name="paddingBeforeFirstSyllable" select="2"/>
   <xsl:param name="paddingAroundHyphen" select="1"/>
   <xsl:param name="paddingAfterSyllableText" select="2.5"/>
@@ -69,6 +69,7 @@
   <xsl:param name="noteheadEllipticity" select="1.1"/>
   <xsl:param name="noteheadSkew" select="10"/>
   <xsl:param name="liquescentNoteheadSize" select=".7"/>
+  <xsl:param name="liquescentColor" select="'#31a'"/>
   <xsl:param name="apostrophaNoteheadSize" select=".5*($noteheadSize + $liquescentNoteheadSize)"/>
   
   <xsl:param name="staffLineWidth" select=".25"/>
@@ -218,7 +219,10 @@
       }
       .apostropha .ledgerlines {
         stroke-width:<xsl:value-of select="$scaleStepSize * 2 * ($apostrophaNoteheadSize + $ledgerLineProtrusion) * $scaleStepSize"/>;
-      } 
+      }
+      .liquescent {
+        fill:<xsl:value-of select="$liquescentColor"/>;
+      }
       .dummy.note {
         opacity:.5;
       }
@@ -534,17 +538,15 @@
         <svg:defs>
           <svg:circle id="standardNotehead" 
               r="{$scaleStepSize}" transform="scale({$noteheadEllipticity},1) skewX({-$noteheadSkew})"/>
-          <svg:circle id="liquescentNotehead" 
-              r="{$scaleStepSize * $liquescentNoteheadSize}" transform="scale({$noteheadEllipticity},1) skewX({-$noteheadSkew})"/>
           <svg:path id="oriscusNotehead" transform="scale({$scaleStepSize})" stroke="none"
             d="M-1 -1.25
-            C 0 -3
-              0  0.75
-              1 -1.25
-            L 1  1.25
-            C 0  3
-              0 -0.75
-             -1  1.25 z"/>
+               C 0 -3
+                 0  0.75
+                 1 -1.25
+               L 1  1.25
+               C 0  3
+                 0 -0.75
+                -1  1.25 z"/>
           <svg:path id="quilismaNotehead" transform="scale({.03125 * $scaleStepSize})" stroke="none"
             d="M -48 -40
                c   8  15
@@ -783,7 +785,7 @@
   </xsl:template>
   
   <xsl:template match="mei:note">
-    <div class="_mei note {@label}">
+    <div class="_mei note {@label} {@mfunc}">
       <xsl:apply-templates select="@xml:id"/>
       
       <xsl:variable name="noteheadStep"><!-- $noteheadStep = 0 means note is on center line (i.e. a "b") -->
@@ -815,7 +817,14 @@
         <xsl:variable name="noteheadType">
           <xsl:apply-templates select="." mode="get-notehead-type"/>
         </xsl:variable>
-        <svg:use y="{$noteheadStep * $scaleStepSize}" xlink:href="#{$idPrefix}{$noteheadType}Notehead"/>
+        <svg:use xlink:href="#{$idPrefix}{$noteheadType}Notehead">
+          <xsl:attribute name="transform">
+            translate(0,<xsl:value-of select="$noteheadStep * $scaleStepSize"/>)
+            <xsl:if test="@mfunc='liquescent'">
+              scale(<xsl:value-of select="$liquescentNoteheadSize"/>)
+            </xsl:if>
+          </xsl:attribute>
+        </svg:use>
       </svg:svg>
       <xsl:apply-templates select="*|text()"/>
     </div>
@@ -827,7 +836,7 @@
   <xsl:template match="*[not(@pname)][@intm='d' or @intm='u']" mode="get-notehead-type">
     <xsl:value-of select="@intm"/>
   </xsl:template>
-  <xsl:template match="*[@label='liquescent' or @label='oriscus' or @label='quilisma' or @label='apostropha']" mode="get-notehead-type">
+  <xsl:template match="*[@label='oriscus' or @label='quilisma' or @label='apostropha']" mode="get-notehead-type">
     <xsl:value-of select="@label"/>
   </xsl:template>
   
@@ -836,6 +845,9 @@
   </xsl:template>
   <xsl:template match="mei:note[@accid.ges='f' or @accid='f']" mode="get-accidental">
     <xsl:value-of select="'&#9837;'"/>
+  </xsl:template>
+  <xsl:template match="mei:note[@accid.ges='n' or @accid='n']" mode="get-accidental">
+    <xsl:value-of select="'&#9838;'"/>
   </xsl:template>
   
   

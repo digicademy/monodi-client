@@ -88,17 +88,19 @@ $(document).on('keydown', function(e) {
 				md.deleteElement();
 			break;
 			case 66: //b
-			case 51: //# (LinX)
-			case 82: //# (LinF)
+        md.toggleAccidental("f");
+      break;
+      case 163: //# (LinF)
 			case 220: //# (Mac)
-				var sOrF = (e.keyCode == 66)? 'f' : 's';
-				md.toggleAccidental(sOrF);
+        md.toggleAccidental("s");
+			break;
+			case 78: // n
+			  md.toggleAccidental("n");
 			break;
 			case 79: //o
 			case 81: //q
 			case 187: //´
 			case 188: //,
-			case 76: //l
 				var pitchClass = (function() {
 					switch(e.keyCode) {
 						case 79: return 'oriscus';
@@ -106,11 +108,14 @@ $(document).on('keydown', function(e) {
 						case 187:
 						case 188:
 							return 'apostropha';
-						case 76: return 'liquescent';
 					}
 				})();
-				md.setPitchClass(pitchClass);
+				md.togglePerformanceNeumeType(pitchClass);
 			break;
+      case 76: //l
+        console.log("here")
+        md.toggleLiquescence();
+      break;
 			default: console.log(e);
 		}
 

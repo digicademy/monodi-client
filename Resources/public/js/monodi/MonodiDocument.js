@@ -321,28 +321,31 @@
       /* If this note does not have a defined pitch (ascending/descing liquescent),
        * then we need to get the pitch information from the preceding note,
        * which this XPath expression does. */
-      var pnameAttribute = evaluateXPath(note,"(@pname|preceding-sibling::mei:note/@pname)[last()]")[0];
-      var octAttribute   = evaluateXPath(note,"(@oct  |preceding-sibling::mei:note/@oct  )[last()]")[0];
+      var pnameAttribute = evaluateXPath(note,"(@pname|preceding::mei:note/@pname)[last()]")[0];
+      var octAttribute   = evaluateXPath(note,"(@oct  |preceding::mei:note/@oct  )[last()]")[0];
 
       // If the user has messed up things, we might not have valid pitch and octave information
       pnameAttribute = pnameAttribute || {value:"b"};
       octAttribute   = octAttribute   || {value: 4 };
 
       var oldOctValue = parseInt(octAttribute.value,10);
-      /* newPitchValue can be greater than 6 and less than 0.
+      /* While pitch values usually only can have values from 0 to 6,
+       * newPitchValue can be greater than 6 and less than 0.
        * This is regularized using "%" when setting the attribute.
        * We don't regularize here because we need the information >6 /<0
-       * for determining whethere there is an octave change. */
+       * for determining whether there is an octave change. */
       var newPitchValue = PITCH_VALUES[pnameAttribute.value] + steps;
 
       // We add 7 first to newPitchValue so that "%" always returns positive numbers
       note.setAttribute("pname",PITCH_NAMES[(newPitchValue + 7) % 7]);
       note.setAttribute("oct",  oldOctValue + Math.floor(newPitchValue/7));
-      note.removeAttribute("label");
 
-      // We need to refresh the parent node because slurs and following liquescents
+      // We need to refresh the parent ineume because slurs and following liquescents
       // with unknown pitch could be affected by this pitch change.
-      refresh(note.parentNode);
+      // The parent uneume might do the job as well, but who knows whether there could be 
+      // liquescents with unknown pitch immediately following this note that are not inside
+      // the same uneume element. Their vertical position would depend on the current note.
+      refresh(evaluateXPath(note,"ancestor::mei:ineume")[0]);
       return note;
     };
 
@@ -359,6 +362,7 @@
       note.removeAttribute("accid");
       note.removeAttribute("label");
       note.setAttribute("intm", intmValue);
+      note.setAttribute("mfunc", "liquescent");
       refresh(note);
       return note;
     };
@@ -450,7 +454,7 @@
     };
 
     this.getHtmlElement = function(element) {
-      return $HTML(element? element : selectedElement);
+      return $HTML(element || selectedElement);
     };
 
     this.newNoteAfter = function(element, leaveFocus) {
@@ -477,6 +481,7 @@
         )
       ) {
         newNote.removeAttribute("label"); 
+        newNote.removeAttribute("mfunc"); 
       }
       newNote.removeAttribute("accid");
 
@@ -497,11 +502,11 @@
     // QUESTION: newUneumeAfter and newIneumeAfter are almost identical. (How) Can we unify them? 
     this.newUneumeAfter = function(element, leaveFocus) {
       // Returns new inserted neume element
-      element = element || selectedElement;
+      element = $MEI(element || selectedElement);
 
       var newUneume = createMeiElement("<uneume/>");
       insertElement(setNewId(newUneume),{
-        contextElement: $MEI(element),
+        contextElement: element,
         parent: "ancestor-or-self::mei:ineume[1]",
         precedingSibling: "ancestor-or-self::mei:uneume[1]"
       });
@@ -515,11 +520,11 @@
 
     this.newIneumeAfter = function(element, leaveFocus) {
       // Returns new inserted neume element
-      element = element || selectedElement;
+      element = $MEI(element || selectedElement);
 
       var newIneume = createMeiElement("<ineume/>");
       newIneume = insertElement(setNewId(newIneume),{
-        contextElement: $MEI(element),
+        contextElement: element,
         parent: "ancestor-or-self::mei:syllable[1]",
         precedingSibling: "ancestor-or-self::mei:ineume[1]",
         leaveFocus: true
@@ -548,7 +553,7 @@
 
     this.newSyllableAfter = function(text, leaveFocus, element) {
       text = text || '';
-      element = element || selectedElement;
+      element = $MEI(element || selectedElement);
       // CAUTION: We simplify this for now and don't encode wordpos info.
       //          Instead, we just leave the hyphens in the text
       // Inserts a new syllable element after the specified element (if paremter "element" is supplied)
@@ -557,7 +562,7 @@
       var newSyllable = createMeiElement("<syllable><syl></syl></syllable>");
       var syl = setNewId(newSyllable.firstElementChild);
       newSyllable = insertElement(setNewId(newSyllable),{
-        contextElement: $MEI(element),
+        contextElement: element,
         parent: "ancestor-or-self::mei:layer[1]",
         precedingSibling: "ancestor-or-self::mei:syllable[1]",
         leaveFocus: true
@@ -573,7 +578,7 @@
       // The editors break the chants into staves only between word borders
       // (typesetters may have to introduce more breaks, which currently are not encoded in MEI).  
 
-      element = $MEI(element);
+      element = $MEI(element || selectedElement);
 
       var newSb = createMeiElement("<sb/>"),
           parentNodeName = evaluateXPath(element, "ancestor-or-self::*[self::mei:ineume or self::mei:syllable][1]/..")[0].localName;
@@ -699,7 +704,7 @@
 
     // TODO: Test this    
     this.getAccidental = function(element) {
-      // Returns the current accidental value: "s", "f" or null, if no accidental is set.
+      // Returns the current accidental value: "s", "f", "n" (or null, if no accidental is set).
       element = $MEI(element, "note", "Can not return accidental of none-note element");
       return element.getAttribute("accid");
     };
@@ -724,29 +729,71 @@
     };
 
     this.toggleAccidental = function(accidental, element) {
-      element = element || selectedElement;
-      if (!accidental || this.getAccidental(element) == accidental) {
-        this.setAccidental(null, element);
-      } else {
-        this.setAccidental(accidental, element);
-      }
-    }
+      element = $MEI(element) || selectedElement;
+      this.setAccidental(this.getAccidental(element) !== accidental && accidental, element);
+    };
 
-    this.getPitchClass = function(element) {
-      element = $MEI(element, "note", "Can not get pitch class of non-note elements");
+    this.setLiquescence = function(trueOrFalse, element) {
+      element = $MEI(element, "note", "Can not set liquescence flag on non-note elements") || selectedElement;
+      switch(trueOrFalse) {
+        case "true":
+        case true:
+          element.setAttribute("mfunc","liquescent");
+          break;
+        case "false":
+        case false:
+          element.removeAttribute("mfunc");
+          break;
+        default:
+          throw new Error("Attempt at setting liquescence flag to " + trueOrFalse + ". Only true or false are allowed");
+      }
+      refresh(element);
+    };
+
+    this.getLiquescence = function(element) {
+      element = $MEI(element || selectedElement, "note", "Can not get liquescence flag of non-note elements");
+      return element.getAttribute("mfunc") === "liquescent" ? true : false;
+    };
+
+    this.toggleLiquescence = function(element) {
+      element = $MEI(element || selectedElement, "note", "Can not set liquescence flag of non-note elements");
+      console.log(!this.getLiquescence(element))
+      this.setLiquescence(!this.getLiquescence(element), element);
+    };
+
+    this.getPerformanceNeumeType = function(element) {
+      element = $MEI(element || selectedElement, "note", "Can not get performance neume type of non-note elements");
       return element.getAttribute("label");
     };
 
-    this.setPitchClass = function(className, element) {
-      element = element || selectedElement;
-      var validPitchClasses = ["oriscus","quilisma","apostropha","liquescent"];
+    this.setPerformanceNeumeType = function(performanceNeumeType, element) {
+      element = $MEI(element || selectedElement, "note", "Can not assign performance neume type to non-note elements");
 
-      element = $MEI(element, "note", "Can not assign pitch class to non-note elements");
-      if (validPitchClasses.indexOf(className) < 0) {
-        throw new Error(className.toString() + " is not a valid pitch class. Valid pitch classes are " + validPitchClasses.join(" ,"));
+       // any performanceNeumeType that evaluates to false in a boolean expression shall 
+       // result in the removal of any performance neume type 
+      switch(performanceNeumeType || null)  {  
+        case "oriscus":
+        case "quilisma":
+        case "apostropha":
+          element.setAttribute("label", performanceNeumeType);
+          break;
+        case null:
+          element.removeAttribute("label");
+          break;
+       default:
+          throw new Error(performanceNeumeType.toString() + " is not a recognized performance neume type. Supported types are oriscus, quilisma and apostropha."); 
       }
-      element.setAttribute("label",className);
       refresh(element);
+    };
+    
+    this.togglePerformanceNeumeType = function(performanceNeumeType, element) {
+      element = $MEI(element || selectedElement, "note", "Can not assign performance neume type to non-note elements");
+      var currentPerformanceNeumeType = element.getAttribute("label");
+      
+      this.setPerformanceNeumeType(
+        currentPerformanceNeumeType === performanceNeumeType ? false : performanceNeumeType, 
+        element
+      );
     };
 
     // TODO: Test this
