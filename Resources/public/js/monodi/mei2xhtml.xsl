@@ -671,7 +671,7 @@
     <xsl:variable name="annotations" select="//mei:annot[contains(concat(@plist,' ',@startid,' ',@endid,' '),concat($idRef,' '))]"/>
     <xsl:variable name="annotationLabels">
       <xsl:for-each select="$annotations">
-        <div class="annotLabel {@type}">
+        <div class="annotLabel {@type}" data-annotation-id="{@xml:id}">
           <xsl:attribute name="class">
             <xsl:value-of select="concat('annotLabel ',@type)"/>
             <xsl:if test="count($annotations) &gt; 1">
