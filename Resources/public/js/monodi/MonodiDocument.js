@@ -94,10 +94,9 @@
         if (xmlHttpRequest.status === 200) {
           if (xmlHttpRequest.responseXML) {
             return xmlHttpRequest.responseXML;
-          } else {
-            var parser = new DOMParser();
-            return parser.parseFromString(xmlHttpRequest.response,"text/xml");
           }
+          var parser = new DOMParser();
+          return parser.parseFromString(xmlHttpRequest.response,"text/xml");
         }
         throw new Error("Could not load file " + parameters.xmlUrl);
       }
@@ -513,7 +512,7 @@
       this.newNoteAfter(newUneume, true);
       //check if case exists that new note should not be selected
       //if (!leaveFocus) {
-        this.selectElement(newUneume.getElementsByTagName('note')[0]);
+      this.selectElement(newUneume.getElementsByTagName('note')[0]);
       //}
       return newUneume;
     };
@@ -736,16 +735,16 @@
     this.setLiquescence = function(trueOrFalse, element) {
       element = $MEI(element, "note", "Can not set liquescence flag on non-note elements") || selectedElement;
       switch(trueOrFalse) {
-        case "true":
-        case true:
-          element.setAttribute("mfunc","liquescent");
-          break;
-        case "false":
-        case false:
-          element.removeAttribute("mfunc");
-          break;
-        default:
-          throw new Error("Attempt at setting liquescence flag to " + trueOrFalse + ". Only true or false are allowed");
+      case "true":
+      case true:
+        element.setAttribute("mfunc","liquescent");
+        break;
+      case "false":
+      case false:
+        element.removeAttribute("mfunc");
+        break;
+      default:
+        throw new Error("Attempt at setting liquescence flag to " + trueOrFalse + ". Only true or false are allowed");
       }
       refresh(element);
     };
@@ -757,7 +756,6 @@
 
     this.toggleLiquescence = function(element) {
       element = $MEI(element || selectedElement, "note", "Can not set liquescence flag of non-note elements");
-      console.log(!this.getLiquescence(element))
       this.setLiquescence(!this.getLiquescence(element), element);
     };
 
@@ -772,16 +770,16 @@
        // any performanceNeumeType that evaluates to false in a boolean expression shall 
        // result in the removal of any performance neume type 
       switch(performanceNeumeType || null)  {  
-        case "oriscus":
-        case "quilisma":
-        case "apostropha":
-          element.setAttribute("label", performanceNeumeType);
-          break;
-        case null:
-          element.removeAttribute("label");
-          break;
-       default:
-          throw new Error(performanceNeumeType.toString() + " is not a recognized performance neume type. Supported types are oriscus, quilisma and apostropha."); 
+      case "oriscus":
+      case "quilisma":
+      case "apostropha":
+        element.setAttribute("label", performanceNeumeType);
+        break;
+      case null:
+        element.removeAttribute("label");
+        break;
+      default:
+        throw new Error(performanceNeumeType.toString() + " is not a recognized performance neume type. Supported types are oriscus, quilisma and apostropha."); 
       }
       refresh(element);
     };
