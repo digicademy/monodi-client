@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <mei xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e3">
+<?xml-stylesheet type="text/xsl" href="mei2xhtml.xsl"?>
+<mei xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e3">
   <meiHead xml:id="d0e5">
     <fileDesc xml:id="d0e7">
       <titleStmt xml:id="d0e9">
