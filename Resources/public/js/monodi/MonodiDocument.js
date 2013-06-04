@@ -431,21 +431,17 @@
         throw new Error("Argument passed to selectNextElement() must be string 'preceding' or 'following'");
       }
 
-      return this.selectElement(
-        evaluateXPath(
-          selectedElement,
-          // If selectedElement has an ancestor ineume or matches any of the following self::* selectors,
-          // we're on the music layer.
-          "self::*[ancestor-or-self::mei:ineume|self::mei:pb|self::mei:sb/@source|self::mei:gap]/" +
-          // For selection, we need to match the next element that belongs to the music layer.  
-          precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source|self::mei:gap][1]"
-        )[0] || evaluateXPath(
-          selectedElement,
-          // If couldn't locate selectedElement on the music layer in the above expression, we're obviously on the text layer.
-          precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)]][1]"
-        )[0] || selectedElement // If we couldn't grab the next element, we keep the selection so 
-                                // the user can still move around with the keyboard.
-      );
+      var nextElement;
+      
+      // Test whether we're on the music layer
+      if (evaluateXPath(selectedElement, "(ancestor-or-self::mei:ineume|self::mei:pb|self::mei:sb/@source)[1]")[0]) {
+        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source][1]")[0];
+      // Test whether we're on the text layer
+      } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")) {
+        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)])[1]]")[0];
+      }
+      
+      return this.selectElement(nextElement || selectedElement);
     };
 
     this.getSelectedElement = function() {
