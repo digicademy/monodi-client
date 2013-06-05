@@ -378,25 +378,34 @@
 
       // If we leave the previously selected element in an empty state, we have to delete it.
       // (uneumes with only a dummy inside count as empty as well)
+      
       var elementToDelete = evaluateXPath(
         selectedElement,
         "ancestor-or-self::mei:*[ " +
-          "ancestor-or-self::mei:syllable " +
+          // We will not delete anything that is outside the syllable element
+          "ancestor-or-self::mei:syllable " + 
+          // syl elements will only get deleted if the whole syllable element is deleted
           "and not(self::mei:syl) " +
+          // Never delete an element containing a non-empty syl
           "and string(descendant-or-self::mei:syl[1])='' " +
+          // Only delete if there are no notes inside the element (with the exception of a dummy note)
           "and ( " +
             " not(descendant-or-self::mei:note) " +
             " or (count(descendant::mei:note) = 1 and descendant::mei:note/@label = 'dummy') " +
           ")" +
-          "and (preceding-sibling::mei:syllable or following-sibling::mei:syllable) " +
+          "and ( " +
+            " not(self::mei:syllablle) " +
+            // If we matched a syllable element, we have to make sure that we don't end up with an empty line.
+            " or preceding-sibling::*[1]/self::mei:syllable or following-sibling::*[1]/self::mei:syllable " +
+          ") " + 
         "][last()]"
       )[0];
-      // TODO: We should probably check for sb/pb/gap elements that would be deleted.
+      // TODO: We should probably check for sb/pb elements that would be deleted.
       //       Probably we'd need a callback that asks the user what to do with those elements
       //       (whether to abort deletion, whether to move the items to previous/next syllable,
       //       whether to delete them)
 
-      if (elementToDelete) {
+      if (elementToDelete && evaluateXPath(elementToDelete, "descendant-or-self::*").indexOf(element) < 0) {
         // TODO: We need to select another element after deleting one
         /*this.selectElement(evaluateXPath(
           elementToDelete,
@@ -412,7 +421,7 @@
         if (selectedElement.nodeName === "syllable" && !selectedElement.getElementsByTagName("note")[0]) {
           var newIneume = this.newIneumeAfter(element);
           var note = newIneume.getElementsByTagName("note")[0];
-          note.setAttribute("label","dummy");
+          note.setAttribute("label", "dummy");
           refresh(note);
           selectedElement = note;
         }
@@ -797,7 +806,7 @@
       sb.setAttribute("label",labelText);
     };
 
-    this.deleteElement = function(element) {
+    this.deleteElement = function(element, leaveFocus) {
       element = element || selectedElement;
       // Deletes an element. If no parameter was supplied, the currently selected element will be removed.
       // If the currently selected element is deleted, a neighboring element will be selected (if possible, the left neighbor).
@@ -823,6 +832,10 @@
           "and count(descendant::mei:note) <= " + numberOfNotesToBeDeleted +
         "][last()]"
       )[0];
+      
+      /* TODO: Move the focus to another element
+      if (!leaveFocus) {
+      } */
 
 
       if (!element) {return;}
