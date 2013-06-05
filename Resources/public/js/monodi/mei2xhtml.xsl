@@ -271,6 +271,7 @@
         display:inline-block;
         height:1em;
         width:.5em;
+        z-index:-1;
       }
       *[contenteditable=true]:empty:before {
         position:absolute;
