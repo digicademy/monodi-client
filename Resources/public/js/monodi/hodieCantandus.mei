@@ -44,10 +44,10 @@
                   <syl xml:id="d0e84">di-</syl>
                 </syllable>
                 <syllable xml:id="d0e88">
+                  <pb source="#AachenMs13" n="123"/>
                   <uneume xml:id="d0e90">
                     <note xml:id="d0e92" pname="d" oct="4"/>
                   </uneume>
-                  <!--<pb source="#AachenMs13" n="123"/>-->
                   <syl xml:id="d0e97">e</syl>
                 </syllable>
                 <syllable xml:id="d0e101">
