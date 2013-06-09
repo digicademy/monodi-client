@@ -182,7 +182,7 @@
         white-space: nowrap;
       }
 
-      ._mei.mei, ._mei.music, ._mei.body, ._mei.mdiv, ._mei.score, ._mei.section, ._mei.staff, ._mei.layer {
+      ._mei.mei, ._mei.music, ._mei.body, ._mei.mdiv, ._mei.score, ._mei.section, ._mei.staff, ._mei.layer, ._mei.editionLine  {
         width: 100%;
       }
 <!--    </style>
