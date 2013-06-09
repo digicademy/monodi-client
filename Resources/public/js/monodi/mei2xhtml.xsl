@@ -182,7 +182,7 @@
         white-space: nowrap;
       }
 
-      ._mei.music, ._mei.body, ._mei.mdiv, ._mei.score, ._mei.section, ._mei.staff, ._mei.layer {
+      ._mei.mei, ._mei.music, ._mei.body, ._mei.mdiv, ._mei.score, ._mei.section, ._mei.staff, ._mei.layer {
         width: 100%;
       }
 <!--    </style>
@@ -265,7 +265,7 @@
       <!-- To make contenteditable fields visible when they are empty, we dislay a rectangle instead: 
            We create two empty inline-blocks.
            One (:after) makes sure the layout is reserving room,
-           the other (:after) is drawing the rectangle -->
+           the other one (:before) is drawing the rectangle -->
       *[contenteditable=true]:empty:after, *[contenteditable=true]:empty:before {
         content:"";
         display:inline-block;
@@ -275,7 +275,7 @@
       }
       *[contenteditable=true]:empty:before {
         position:absolute;
-        border:1px solid black;
+        border:1px dotted black;
         opacity:.5;
       }
 <!--    </style>
