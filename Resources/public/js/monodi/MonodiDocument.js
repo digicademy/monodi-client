@@ -506,10 +506,12 @@
       //             Do we want this or do we want the annotation itself to be selected?
  
       var previouslySelectedElement = selectedElement;
-      if (previouslySelectedElement) {removeDummyNotes(previouslySelectedElement);} 
       
       if (element) {
         selectedElement = element && $MEI(element);
+        
+        if (selectedElement === previouslySelectedElement) {return;}
+        if (previouslySelectedElement) {removeDummyNotes(previouslySelectedElement);} 
         
         // If we select a syllable element (*not* its syl element), we're operating on the music layer.
         // If there are no notes in this syllable element, we need to generate a dummy note that we can edit.
