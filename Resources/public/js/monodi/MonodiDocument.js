@@ -520,14 +520,14 @@
           refresh(note);
           selectedElement = note;
         }
+        
+        dynamicStyleElement.textContent = "#" + idPrefix + $ID(selectedElement) + "{" + selectionStyle + "}";
       } else {
         selectedElement = null;
       }
       
       removeEmptyElements(previouslySelectedElement);
       
-      dynamicStyleElement.textContent = "#" + idPrefix + $ID(selectedElement) + "{" + selectionStyle + "}";
-
       return selectedElement;
     };
     //selectElement = this.selectElement; // We need this because otherwise, private methods obviously 
@@ -544,7 +544,7 @@
       if (evaluateXPath(selectedElement, "(ancestor-or-self::mei:ineume|self::mei:pb|self::mei:sb/@source)[1]")[0]) {
         nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source][1]")[0];
       // Test whether we're on the text layer
-      } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")) {
+      } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")[0]) {
         nextElement = evaluateXPath(selectedElement, "(" + precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)])[1]]")[0];
       }
       
@@ -909,10 +909,16 @@
       var parent = element.parentNode;
       if (parent && checkIfItemCanBeDeleted(element)) {
         if (!leaveFocus) {
-          // If selecting the precedig element is not possible, we try to select the followig one. 
+          selectedElement = element;
           this.selectNextElement("preceding");
-          if (!selectedElement) {
+          // If selecting the precedig element was not possible (i.e. the same  
+          // element is still selected), we try to select the followig one. 
+          if (selectedElement === element) {
             this.selectNextElement("following");
+          }
+          // If there is no following element to select either, we deselect the item.
+          if (selectedElement === element) {
+            this.selectElement(null);
           }
         }
 
