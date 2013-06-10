@@ -175,10 +175,12 @@
 
     function createMeiElement(xmlText) {
       xmlText = "<mei xmlns='http://www.music-encoding.org/ns/mei'>" + xmlText + "</mei>";
-      return (new DOMParser()).parseFromString(
-        xmlText, 
-        "application/xml"
-      ).documentElement.firstElementChild;
+      return setNewId(
+        (new DOMParser()).parseFromString(
+          xmlText, 
+          "application/xml"
+        ).documentElement.firstElementChild
+      );
     }
 
     function isDrawable() {
@@ -385,7 +387,7 @@
 
       var newSb = addSourceAttribute(createMeiElement("<" + nodeName + "/>"));
 
-      insertElement(setNewId(newSb), {
+      insertElement(newSb, {
         contextElement : element,
         parent : "ancestor-or-self::mei:syllable[1]",
         precedingSibling : "ancestor-or-self::*[parent::mei:syllable][1]",
@@ -595,7 +597,7 @@
       element = (element ? $MEI(element) : selectedElement) || error("Can not insert note. No element to insert after.");
       // We're copying the preceding note's properties (if existent)
       var precedingNote = evaluateXPath(element,"(self::mei:note|preceding::mei:note)[last()]")[0];
-      var newNote = precedingNote ? precedingNote.cloneNode(true) : createMeiElement("<note pname='b' oct='4'/>");
+      var newNote = precedingNote ? setNewId(precedingNote.cloneNode(true)) : createMeiElement("<note pname='b' oct='4'/>");
       // If we're inserting a new new note after an apostropha that is inside the same ineume as the new note,
       // we want it to be an apostropha as well (i.e. retain the label attribute) because ineumes with apostrophae
       // can only contain either exclusively apostropha pitches or non-apostropha pitches.
@@ -610,7 +612,7 @@
       }
       newNote.removeAttribute("accid");
 
-      insertElement(setNewId(newNote),{
+      insertElement(newNote,{
         contextElement: element, 
         parent: "ancestor-or-self::mei:uneume[1]",
         // Doesn't matter if the XPath for precedingSibling evalutes to an empty set.
@@ -630,7 +632,7 @@
       element = $MEI(element || selectedElement);
 
       var newUneume = createMeiElement("<uneume/>");
-      insertElement(setNewId(newUneume),{
+      insertElement(newUneume,{
         contextElement: element,
         parent: "ancestor-or-self::mei:ineume[1]",
         precedingSibling: "ancestor-or-self::mei:uneume[1]"
@@ -648,7 +650,7 @@
       element = $MEI(element || selectedElement);
 
       var newIneume = createMeiElement("<ineume/>");
-      newIneume = insertElement(setNewId(newIneume),{
+      newIneume = insertElement(newIneume,{
         contextElement: element,
         parent: "ancestor-or-self::mei:syllable[1]",
         precedingSibling: "ancestor-or-self::mei:ineume[1]",
@@ -675,8 +677,8 @@
       // or the currently selected element.
 
       var newSyllable = createMeiElement("<syllable><syl></syl></syllable>");
-      var syl = setNewId(newSyllable.firstElementChild);
-      newSyllable = insertElement(setNewId(newSyllable),{
+      var syl = newSyllable.firstElementChild;
+      newSyllable = insertElement(newSyllable,{
         contextElement: element,
         parent: "ancestor-or-self::mei:layer[1]",
         precedingSibling: "ancestor-or-self::mei:syllable[1]",
@@ -702,7 +704,7 @@
       element = $MEI(element || selectedElement);
       var newSb = createMeiElement("<sb/>");
 
-      insertElement(setNewId(newSb), {
+      insertElement(newSb, {
         contextElement : element,
         parent : "ancestor-or-self::mei:layer[1]",
         precedingSibling : "ancestor-or-self::syllable[1]",
