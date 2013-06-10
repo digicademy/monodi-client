@@ -277,7 +277,7 @@
 
     this.hookUpToSurroundingHTML = function(suppliedMusicContainer, suppliedStaticStyleElement, suppliedDynamicStyleElement) {
       function ensureInstanceofHTMLElement(object,nodeName,errorMessage) {
-        if (object instanceof HTMLElement && (!nodeName || object.nodeName === nodeName)) {
+        if (object instanceof HTMLElement && (!nodeName || object.nodeName.toLowerCase() === nodeName)) {
           return object;
         } 
         throw new Error(errorMessage);

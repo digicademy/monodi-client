@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title/>
+    <style type="text/css" id="staticStyle"/>
+    <style type="text/css" id="dynamicStyle"/>
+    <script type="text/javascript" src="../MonodiDocument.js"/>
+  </head>
+  <body>
+    <div id="musicContainer"/>
+    <script type="text/javascript">//<![CDATA[
+      var md = new MonodiDocument({
+        staticStyleElement : document.getElementById("staticStyle"),
+        dynamicStyleElement: document.getElementById("dynamicStyle"),
+        musicContainer     : document.getElementById("musicContainer"),
+        xsltUrl            : "../mei2xhtml.xsl",
+        meiUrl             : "../hodieCantandus.mei",
+      });
+      
+      var note1 = document.getElementsByClassName("_mei note")[1];
+      
+      md.newNoteAfter(note1);
+      
+      console.log(md.getSerializedDocument());
+      ]]>
+    </script>
+  </body>
+</html>

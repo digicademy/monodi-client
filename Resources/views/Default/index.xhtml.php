@@ -1,40 +1,46 @@
-<?xml version="1.0" ?>
+<?php
+/**
+ * @see http://symfony.com/doc/current/cookbook/templating/PHP.html
+ * @see http://symfony.com/doc/current/cookbook/assetic/asset_management.html
+ * 
+ * @var Symfony\Bundle\FrameworkBundle\Templating\PhpEngine $view  
+ * $view['assets'] Symfony\Component\Templating\Helper\CoreAssetsHelper
+ */
+$bundleAssetPath = '/bundles/digitalwertmonodiclient/';
+?>
+<?php echo("<?xml version=\"1.0\" ?>\n"); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-	<head>
-		<title>mono:di</title>
-		
-		<link rel="stylesheet" href="../public/css/main.css" />
+    <head>
+        <title>mono:di</title>
         
-        <script type="text/javascript" src="../public/js/vendor/jquery.js"></script>
-        <script>
-            baseurl = 'http://monodi.symfony2.dev/app_dev.php/';
-        </script>
-
-		<script type="text/javascript" src="../public/js/vendor/modernizr.js"></script>
-        <script type="text/javascript" src="../public/js/vendor/angular.js"></script>
-        <script type="text/javascript" src="../public/js/controllers.js"></script>
-        <script type="text/javascript" src="../public/js/modules.js"></script>
-
-        <script type="text/javascript" src="../public/js/mock.js"></script>
+        <link rel="stylesheet" href="/bundles/digitalwertmonodiclient/css/main.css" />
+        
+        <script> baseurl = 'http://notengrafik.dw-dev.de/'; </script>
+        <script src="/bundles/digitalwertmonodiclient/js/vendor/modernizr.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/vendor/jquery.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/vendor/angular.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/controllers.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/modules.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/mock.js"></script>
 
         <style type="text/css" id="staticStyle"></style>
         <style type="text/css" id="dynamicStyle"></style>
-	</head>
-	<body ng-app="monodi">
+    </head>
+    <body ng-app="monodi">
 
-		<div class="navbar navbar-inverse navbar-fixed-top">
-			<div class="navbar-inner">
-				<div class="container">
-				    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-				        <span class="icon-bar"></span>
-					    <span class="icon-bar"></span>
-					    <span class="icon-bar"></span>
-			        </button>
-				    <a class="brand" href="./index.html">mono:di</a>
-				    <div class="nav-collapse collapse">
-					    <ul class="nav">
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="brand" href="./index.html">mono:di</a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
                             <li>
                                 <div class="btn-group">
                                     <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Dokument <span class="caret"></span></button>
@@ -48,17 +54,17 @@
                                     </ul>
                                 </div>
                             </li>
-					        <li><button class="filecontrol btn btn-link">Verwaltung</button></li>
+                            <li><button class="filecontrol btn btn-link">Verwaltung</button></li>
                             <li class="right"><button class="help btn btn-link">Hilfe</button></li>
-					        <li class="right">
+                            <li class="right">
                                 <!--<button class="btn btn-link" data-target="#changePass" data-toggle="modal">Profil</button>-->
                                 <button class="btn btn-link" id="login">Login</button>
                             </li>
-					    </ul>
-				    </div>
-				</div>
-			</div>
-		</div>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="views">
             <div class="main container">
@@ -100,6 +106,44 @@
                             </table>
                         </div>
                     </div>
+                </div>
+
+                <!-- fileinfos -->
+                <div id="fileInfos" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="FileInfosLabel" aria-hidden="true">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="myModalLabel">Dokumenteneigenschaften</h3>
+                  </div>
+                  <div class="modal-body">
+                    <table class="table table-bordered table-striped">
+                        <tbody class="table-hover">
+                            <tr>
+                                <th class="span2">Name</th>
+                                <td>{{info.title}}</td>
+                                <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
+                            </tr>
+                            <tr>
+                                <th class="span2">Dateiname</th>
+                                <td>{{info.filename}}</td>
+                                <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
+                            </tr>
+                            <tr>
+                                <th class="span2">Speicherort</th>
+                                <td>{{info.path}}</td>
+                            </tr>
+                            <tr>
+                                <th class="span2">Revision</th>
+                                <td>{{info.rev}}</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th class="span2">Lokal vefügbar</th>
+                                <td>nein</td>
+                                <td><button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                  </div>
                 </div>
             </div>
 
@@ -166,55 +210,16 @@
           </div>
         </div>
 
-        <!-- fileinfos -->
-        <div id="fileInfos" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="FileInfosLabel" aria-hidden="true">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="myModalLabel">Dokumenteneigenschaften</h3>
-          </div>
-          <div class="modal-body">
-            <table class="table table-bordered table-striped">
-                <tbody class="table-hover">
-                    <tr>
-                        <th class="span2">Name</th>
-                        <td>Dokument 1</td>
-                        <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
-                    </tr>
-                    <tr>
-                        <th class="span2">Speicherort</th>
-                        <td>Band 1 - Aachen - Aa13</td>
-                        <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
-                    </tr>
-                    <tr>
-                        <th class="span2">Erstellt am</th>
-                        <td>08.03.2013</td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <th class="span2">Letztmals bearbeitet am</th>
-                        <td>08.03.2013</td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <th class="span2">Lokal vefügbar</th>
-                        <td>nein</td>
-                        <td><button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button></td>
-                    </tr>
-                </tbody>
-            </table>
-          </div>
-        </div>
+        <script src="/bundles/digitalwertmonodiclient/js/plugins.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/monodi/MonodiDocument.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/main.js"></script>
 
-		<script type="text/javascript" src="../public/js/plugins.js"></script>
-        <script type="text/javascript" src="../public/js/monodi/MonodiDocument.js"></script>
-		<script type="text/javascript" src="../public/js/main.js"></script>
-
-		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID.
-		<script>
-			var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-			(function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-			g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-			s.parentNode.insertBefore(g,s)}(document,'script'));
-		</script>-->
-	</body>
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID.
+        <script>
+            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>-->
+    </body>
 </html>
