@@ -568,7 +568,7 @@
         nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source][1]")[0];
       // Test whether we're on the text layer
       } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")[0]) {
-        nextElement = evaluateXPath(selectedElement, "(" + precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)])[1]]")[0];
+        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)]][1]")[0];
       }
       
       return this.selectElement(nextElement || selectedElement);
