@@ -48,7 +48,7 @@
   <xsl:param name="accidentalSpace" select="1.5"/>
   <xsl:param name="sbPbWidth" select="6"/>
   <xsl:param name="pbLineDistance" select="1"/>
-  <xsl:param name="paddingAfterIneume" select="1.5"/>
+  <xsl:param name="paddingAfterIneume" select="4"/>
   <xsl:param name="paddingBeforeFirstSyllable" select="2"/>
   <xsl:param name="paddingAroundHyphen" select="1"/>
   <xsl:param name="paddingAfterSyllableText" select="2.5"/>
@@ -69,6 +69,7 @@
   <xsl:param name="noteheadEllipticity" select="1.1"/>
   <xsl:param name="noteheadSkew" select="10"/>
   <xsl:param name="liquescentNoteheadSize" select=".7"/>
+  <xsl:param name="liquescentColor" select="'#31a'"/>
   <xsl:param name="apostrophaNoteheadSize" select=".5*($noteheadSize + $liquescentNoteheadSize)"/>
   
   <xsl:param name="staffLineWidth" select=".25"/>
@@ -181,7 +182,7 @@
         white-space: nowrap;
       }
 
-      ._mei.music, ._mei.body, ._mei.mdiv, ._mei.score, ._mei.section, ._mei.staff, ._mei.layer {
+      ._mei.mei, ._mei.music, ._mei.body, ._mei.mdiv, ._mei.score, ._mei.section, ._mei.staff, ._mei.layer, ._mei.editionLine  {
         width: 100%;
       }
 <!--    </style>
@@ -218,7 +219,10 @@
       }
       .apostropha .ledgerlines {
         stroke-width:<xsl:value-of select="$scaleStepSize * 2 * ($apostrophaNoteheadSize + $ledgerLineProtrusion) * $scaleStepSize"/>;
-      } 
+      }
+      .liquescent {
+        fill:<xsl:value-of select="$liquescentColor"/>;
+      }
       .dummy.note {
         opacity:.5;
       }
@@ -261,16 +265,17 @@
       <!-- To make contenteditable fields visible when they are empty, we dislay a rectangle instead: 
            We create two empty inline-blocks.
            One (:after) makes sure the layout is reserving room,
-           the other (:after) is drawing the rectangle -->
+           the other one (:before) is drawing the rectangle -->
       *[contenteditable=true]:empty:after, *[contenteditable=true]:empty:before {
         content:"";
         display:inline-block;
         height:1em;
         width:.5em;
+        z-index:-1;
       }
       *[contenteditable=true]:empty:before {
         position:absolute;
-        border:1px solid black;
+        border:1px dotted black;
         opacity:.5;
       }
 <!--    </style>
@@ -534,17 +539,15 @@
         <svg:defs>
           <svg:circle id="standardNotehead" 
               r="{$scaleStepSize}" transform="scale({$noteheadEllipticity},1) skewX({-$noteheadSkew})"/>
-          <svg:circle id="liquescentNotehead" 
-              r="{$scaleStepSize * $liquescentNoteheadSize}" transform="scale({$noteheadEllipticity},1) skewX({-$noteheadSkew})"/>
           <svg:path id="oriscusNotehead" transform="scale({$scaleStepSize})" stroke="none"
             d="M-1 -1.25
-            C 0 -3
-              0  0.75
-              1 -1.25
-            L 1  1.25
-            C 0  3
-              0 -0.75
-             -1  1.25 z"/>
+               C 0 -3
+                 0  0.75
+                 1 -1.25
+               L 1  1.25
+               C 0  3
+                 0 -0.75
+                -1  1.25 z"/>
           <svg:path id="quilismaNotehead" transform="scale({.03125 * $scaleStepSize})" stroke="none"
             d="M -48 -40
                c   8  15
@@ -669,7 +672,7 @@
     <xsl:variable name="annotations" select="//mei:annot[contains(concat(@plist,' ',@startid,' ',@endid,' '),concat($idRef,' '))]"/>
     <xsl:variable name="annotationLabels">
       <xsl:for-each select="$annotations">
-        <div class="annotLabel {@type}">
+        <div class="annotLabel {@type}" data-annotation-id="{@xml:id}">
           <xsl:attribute name="class">
             <xsl:value-of select="concat('annotLabel ',@type)"/>
             <xsl:if test="count($annotations) &gt; 1">
@@ -783,7 +786,7 @@
   </xsl:template>
   
   <xsl:template match="mei:note">
-    <div class="_mei note {@label}">
+    <div class="_mei note {@label} {@mfunc}">
       <xsl:apply-templates select="@xml:id"/>
       
       <xsl:variable name="noteheadStep"><!-- $noteheadStep = 0 means note is on center line (i.e. a "b") -->
@@ -815,7 +818,14 @@
         <xsl:variable name="noteheadType">
           <xsl:apply-templates select="." mode="get-notehead-type"/>
         </xsl:variable>
-        <svg:use y="{$noteheadStep * $scaleStepSize}" xlink:href="#{$idPrefix}{$noteheadType}Notehead"/>
+        <svg:use xlink:href="#{$idPrefix}{$noteheadType}Notehead">
+          <xsl:attribute name="transform">
+            translate(0,<xsl:value-of select="$noteheadStep * $scaleStepSize"/>)
+            <xsl:if test="@mfunc='liquescent'">
+              scale(<xsl:value-of select="$liquescentNoteheadSize"/>)
+            </xsl:if>
+          </xsl:attribute>
+        </svg:use>
       </svg:svg>
       <xsl:apply-templates select="*|text()"/>
     </div>
@@ -827,7 +837,7 @@
   <xsl:template match="*[not(@pname)][@intm='d' or @intm='u']" mode="get-notehead-type">
     <xsl:value-of select="@intm"/>
   </xsl:template>
-  <xsl:template match="*[@label='liquescent' or @label='oriscus' or @label='quilisma' or @label='apostropha']" mode="get-notehead-type">
+  <xsl:template match="*[@label='oriscus' or @label='quilisma' or @label='apostropha']" mode="get-notehead-type">
     <xsl:value-of select="@label"/>
   </xsl:template>
   
@@ -836,6 +846,9 @@
   </xsl:template>
   <xsl:template match="mei:note[@accid.ges='f' or @accid='f']" mode="get-accidental">
     <xsl:value-of select="'&#9837;'"/>
+  </xsl:template>
+  <xsl:template match="mei:note[@accid.ges='n' or @accid='n']" mode="get-accidental">
+    <xsl:value-of select="'&#9838;'"/>
   </xsl:template>
   
   

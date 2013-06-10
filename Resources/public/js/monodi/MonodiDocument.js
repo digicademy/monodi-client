@@ -3,7 +3,7 @@
 // is used to find the corresponding MEI element.
 
 /*jslint vars:true, browser:true, indent:2 */
-/*global HTMLElement: false, SVGElement: false, Element,
+/*global HTMLElement: false, SVGElement: false, Element: false, Node: false, Document: false,
          XPathResult: false, XSLTProcessor: false,
          DOMParser: false, XMLSerializer: false */
 
@@ -48,7 +48,8 @@
 
     // To this list, "event handlers" will be added that shall be called after any visualization refresh.
     var callbacks = {
-      updateView: []
+      updateView: [],
+      deleteAnnotatedElement: []
     };
 
     var xmlNS = "http://www.w3.org/XML/1998/namespace";
@@ -83,7 +84,7 @@
       return resultArray;
     }
 
-    var loadXML = function(parameters) {
+    function loadXML(parameters) {
       // Returns an XML document
       // QUESTION: Make this asynchronous?
       if (parameters.xmlUrl) {
@@ -94,15 +95,14 @@
         if (xmlHttpRequest.status === 200) {
           if (xmlHttpRequest.responseXML) {
             return xmlHttpRequest.responseXML;
-          } else {
-            var parser = new DOMParser();
-            return parser.parseFromString(xmlHttpRequest.response,"text/xml");
           }
+          var parser = new DOMParser();
+          return parser.parseFromString(xmlHttpRequest.response,"text/xml");
         }
         throw new Error("Could not load file " + parameters.xmlUrl);
       }
       return (new DOMParser()).parseFromString(parameters.xmlString,"application/xml");
-    };
+    }
 
     function $ID(element) {
       // Takes an ID, an HTML or an MEI element and returns the proper ID.
@@ -144,8 +144,12 @@
       } */ // Because we also use $MEI() to test for the existence of an element, we don't throw an error here.
     }
 
-    var $HTML = function(element) {
+    function $HTML(element) {
       // Takes an ID, an HTML or an MEI element and returns the proper HTML element.
+      if (element instanceof Document) {
+        return musicContainer.firstElementChild;
+      }
+      
       if (element instanceof HTMLElement) {
         return element;
       }
@@ -154,7 +158,7 @@
         element = $ID(element);
       }
       return document.getElementById(idPrefix + element) || error("Object supplied to $HTML can not be mapped to an HTML element.");
-    };
+    }
 
     function setNewId(element) {
       // This function adds an ID to an MEI element so that it can be uniquely identified.
@@ -169,12 +173,13 @@
       return element;
     }
 
-    var createMeiElement = function(xmlText) {
+    function createMeiElement(xmlText) {
       xmlText = "<mei xmlns='http://www.music-encoding.org/ns/mei'>" + xmlText + "</mei>";
-      return (new DOMParser()).parseFromString(xmlText,
+      return (new DOMParser()).parseFromString(
+        xmlText, 
         "application/xml"
       ).documentElement.firstElementChild;
-    };
+    }
 
     function isDrawable() {
       // Checks whether everything we need for drawing is there
@@ -197,18 +202,30 @@
       if (!isDrawable()) {return;}
       // If an element was supplied, hand this on to the transform method.
       // If nothing was specified, we want to refresh the full body.
-      var stylesheetParameter_TransformNode = element? $ID(element) : "<music>";
-      // This is the element to be replaced with the refreshed rendering
-      element = element ? $HTML(element) : musicContainer.firstChild;
-
-      element.parentElement.replaceChild(
-        transform(stylesheetParameter_TransformNode),
-        element
-      );
-
-      var i;
-      for (i=0; i<callbacks.updateView.length; i+=1) {
-        callbacks.updateView[i](element);
+      
+      // As any changes inside a uneume might affect the whole group (especially slurs),
+      // for any changes of notes inside a uneume, we refresh the whole uneume
+      element = element ? evaluateXPath(
+        $MEI(element),
+        "(.|ancestor::mei:uneume)[1]"
+      )[0] : mei;
+      
+      if (element === mei) {
+        musicContainer.replaceChild(
+          transform("<mei>"),
+          musicContainer.firstElementChild
+        );
+      } else {
+        var htmlElement = $HTML(element);
+        htmlElement.parentElement.replaceChild(
+          transform($ID(element)),
+          htmlElement
+        );
+  
+        var i;
+        for (i=0; i<callbacks.updateView.length; i+=1) {
+          callbacks.updateView[i](element);
+        }
       }
     }
 
@@ -241,13 +258,143 @@
       return newElement;
     }
 
-    function addSourceId(element) {
+    function addSourceAttribute(element) {
       var sourceIdAttribute = evaluateXPath(element,"//mei:source[1]/@xml:id[1]")[0];
       element.setAttribute("source","#" + (sourceIdAttribute.textContent || error("No source ID found.")));
       return element;
     }
+    
+    function removeDummyState(note) {
+      note = $MEI(note);
+      if (note.getAttribute("label") === "dummy") {
+        note.removeAttribute("label");
+      }
+    }
+    
+    function removeDummyNotes(element) {
+      var dummyNotes = evaluateXPath(
+        element ? $MEI(element) : mei, 
+        "descendant-or-self::mei:note[@label='dummy']"
+      ),
+      i;
+      
+      for (i=0; i<dummyNotes.length; i+=1) {
+        var parent = dummyNotes[i].parentNode; 
+        parent.removeChild(dummyNotes[i]);
+        refresh(parent);
+      }      
+    }
 
+    function checkIfItemCanBeDeleted(element) {
+      /* When deleting we have to check, whether deleting the element affects annotations that are anchored on the element.
+       *   If so, we have to ask the user via a callback whether to proceed and delete the 
+       *   annotation or anchor it to a different element. 
+       */
+      
+      element = element ? $MEI(element) : selectedElement;
+      
+      // For syllable elements we check whether we have at least one neighboring syllable element.
+      // If not, we don't wan to delete as we'd get a line without a syllable which we don't support
+      // as the user needs at least one syllable to select for adding content to the line. 
+      if (element.nodeName === "syllable" && evaluateXPath(
+        element, 
+        "(following-sibling::*[1]|preceding-sibling::*[1])[self::mei:syllable]"
+      ).length === 0) {
+        return false;
+      }
+      
+      // We check whether one of the IDs that we find inside the element we want to delete 
+      // is referenced by another element (namely annotations).
+      var ids = evaluateXPath(element, "descendant-or-self::*/@xml:id");
+      // We don't want the IDs as attribute nodes, so we extract their values as strings
+      var i;  
+      for (i=0; i<ids.length; i+=1) {
+        ids[i] = ids[i].value;
+      }
+      var referencingElements = evaluateXPath(
+        mei, 
+        "//@*[ " + 
+          "local-name()='startid' or local-name()='endid' " +
+        "][ " +
+          ".='" + ids.join("' or .='") + "'" +
+        "]/parent::*"
+      );
+      if (referencingElements.length > 0) {
+        if (callbacks.deleteAnnotatedElement.length === 1) {
+          return callbacks.deleteAnnotatedElement[0](referencingElements, element);
+        }
+        throw new Error("Exactly one callback for deleteAnnotatedElement is required, but " + callbacks.deleteAnnotatedElement.length + "were defined.");
+      }
+      
+      return true;
+    }
 
+    function removeEmptyElements(element) {
+      // This will delete any elements inside syllables that don't have content
+      // (i.e. no notes, system/page breaks, no text in syl element)
+      // The currently selected element will not be deleted.
+      var emptyElements = evaluateXPath(
+        element ? $MEI(element) : mei,
+        // The context element might either be inside or outside of a syllable element.
+        // If it's inside, then we only want this syllable to be checked for empty elements,
+        // if it's outside, then we want to basically check all syllables.
+        // All our syllables are living inside one common layer element.  
+        "(ancestor-or-self::mei:syllable[1]|descendant-or-self::mei:layer[1])" +
+        
+        // Now we're selecting all elements that fulfill the "conditions of emptyness"
+        "/descendant-or-self::mei:syllable/descendant-or-self::*[ " +
+          // syl elements will never be deleted on their own, only together with the whole syllable element
+          "not(self::mei:syl) " +
+          // We're checking whether there is still some content that shall prevent us from deleting
+          "and not(descendant-or-self::mei:syl[string-length() > 0]) " +
+          "and not(descendant-or-self::mei:note) " +
+          "and not(descendant-or-self::mei:pb) " +
+          "and not(descendant-or-self::mei:sb) " +
+          // Obviously, the current selection must not be removed, even if it's empty
+          (selectedElement ? "and not(descendant-or-self::*[@xml:id='" + $ID(selectedElement) + "']) " : " ") +
+          "and ( " +
+            // If we matched a syllable element, we have to make sure that we don't end up with an empty line.
+            " not(self::mei:syllable) " +
+            " or preceding-sibling::*[1]/self::mei:syllable or following-sibling::*[1]/self::mei:syllable " +
+          ") " +
+        "]" 
+      ),
+      i;
+      
+      for (i=0; i<emptyElements.length; i+=1) {
+        /*jslint bitwise:true*/ // compareDocumentPosition() returns a bitmask where bitwise operations are most appropriate
+        if (
+          !(mei.compareDocumentPosition(emptyElements[i]) & Node.DOCUMENT_POSITION_DISCONNECTED) &&
+          checkIfItemCanBeDeleted(emptyElements[i])
+        ) {
+          // TODO: Check for annotations!
+          var parent = emptyElements[i].parentNode;
+          parent.removeChild(emptyElements[i]);
+          refresh(parent);
+        }
+      }
+    }
+
+    function newSourceBreakAfter(element, nodeName, leaveFocus) {
+      // Inserts and returns a new system break.
+      // We place source system breaks inside <syllable> elements as we sometimes have breaks with in a syllable.
+      // The editors break the chants into staves only between word borders
+      // (typesetters may have to introduce more breaks, which currently are not encoded in MEI).
+
+      element = $MEI(element || selectedElement);
+
+      var newSb = addSourceAttribute(createMeiElement("<" + nodeName + "/>"));
+
+      insertElement(setNewId(newSb), {
+        contextElement : element,
+        parent : "ancestor-or-self::mei:syllable[1]",
+        precedingSibling : "ancestor-or-self::*[parent::mei:syllable][1]",
+        leaveFocus : leaveFocus
+      });
+      
+      return newSb;
+    }
+    
 
     //////// "Public methods" //////////
 
@@ -321,28 +468,33 @@
       /* If this note does not have a defined pitch (ascending/descing liquescent),
        * then we need to get the pitch information from the preceding note,
        * which this XPath expression does. */
-      var pnameAttribute = evaluateXPath(note,"(@pname|preceding-sibling::mei:note/@pname)[last()]")[0];
-      var octAttribute   = evaluateXPath(note,"(@oct  |preceding-sibling::mei:note/@oct  )[last()]")[0];
+      var pnameAttribute = evaluateXPath(note,"(@pname|preceding::mei:note/@pname)[last()]")[0];
+      var octAttribute   = evaluateXPath(note,"(@oct  |preceding::mei:note/@oct  )[last()]")[0];
 
       // If the user has messed up things, we might not have valid pitch and octave information
       pnameAttribute = pnameAttribute || {value:"b"};
       octAttribute   = octAttribute   || {value: 4 };
 
       var oldOctValue = parseInt(octAttribute.value,10);
-      /* newPitchValue can be greater than 6 and less than 0.
+      /* While pitch values usually only can have values from 0 to 6,
+       * newPitchValue can be greater than 6 and less than 0.
        * This is regularized using "%" when setting the attribute.
        * We don't regularize here because we need the information >6 /<0
-       * for determining whethere there is an octave change. */
+       * for determining whether there is an octave change. */
       var newPitchValue = PITCH_VALUES[pnameAttribute.value] + steps;
 
       // We add 7 first to newPitchValue so that "%" always returns positive numbers
       note.setAttribute("pname",PITCH_NAMES[(newPitchValue + 7) % 7]);
       note.setAttribute("oct",  oldOctValue + Math.floor(newPitchValue/7));
-      note.removeAttribute("label");
+      
+      removeDummyState(note);
 
-      // We need to refresh the parent node because slurs and following liquescents
+      // We need to refresh the parent ineume because slurs and following liquescents
       // with unknown pitch could be affected by this pitch change.
-      refresh(note.parentNode);
+      // The parent uneume might do the job as well, but who knows whether there could be 
+      // liquescents with unknown pitch immediately following this note that are not inside
+      // the same uneume element. Their vertical position would depend on the current note.
+      refresh(evaluateXPath(note,"ancestor::mei:ineume")[0]);
       return note;
     };
 
@@ -359,6 +511,7 @@
       note.removeAttribute("accid");
       note.removeAttribute("label");
       note.setAttribute("intm", intmValue);
+      note.setAttribute("mfunc", "liquescent");
       refresh(note);
       return note;
     };
@@ -371,53 +524,33 @@
       // Takes care of highlighting.
 
       // QUESTION: - When selecting annotation labels, the containing element will be selected.
-      //         Do we want this or do we want the annotation itself to be selected?
-
-      // If we leave the previously selected element in an empty state, we have to delete it.
-      // (uneumes with only a dummy inside count as empty as well)
-      var elementToDelete = evaluateXPath(
-        selectedElement,
-        "ancestor-or-self::mei:*[ " +
-          "ancestor-or-self::mei:syllable " +
-          "and not(self::mei:syl) " +
-          "and string(descendant-or-self::mei:syl[1])='' " +
-          "and ( " +
-            " not(descendant-or-self::mei:note) " +
-            " or (count(descendant::mei:note) = 1 and descendant::mei:note/@label = 'dummy') " +
-          ")" +
-          "and (preceding-sibling::mei:syllable or following-sibling::mei:syllable) " +
-        "][last()]"
-      )[0];
-      // TODO: We should probably check for sb/pb/gap elements that would be deleted.
-      //       Probably we'd need a callback that asks the user what to do with those elements
-      //       (whether to abort deletion, whether to move the items to previous/next syllable,
-      //       whether to delete them)
-
-      if (elementToDelete) {
-        // TODO: We need to select another element after deleting one
-        /*this.selectElement(evaluateXPath(
-          elementToDelete,
-          "(following::*[self::mei:note or self::mei:syl][1]|preceding::*[self::mei:note or self::mei:syl][1])[last()]"
-        ));*/
-        if (!this.deleteElement(elementToDelete)) {return;}
-      }
-
+      //             Do we want this or do we want the annotation itself to be selected?
+ 
+      var previouslySelectedElement = selectedElement;
+      
       if (element) {
-        selectedElement = $MEI(element);
+        selectedElement = element && $MEI(element);
+        
+        if (selectedElement === previouslySelectedElement) {return;}
+        if (previouslySelectedElement) {removeDummyNotes(previouslySelectedElement);} 
+        
         // If we select a syllable element (*not* its syl element), we're operating on the music layer.
         // If there are no notes in this syllable element, we need to generate a dummy note that we can edit.
         if (selectedElement.nodeName === "syllable" && !selectedElement.getElementsByTagName("note")[0]) {
           var newIneume = this.newIneumeAfter(element);
           var note = newIneume.getElementsByTagName("note")[0];
-          note.setAttribute("label","dummy");
+          note.setAttribute("label", "dummy");
           refresh(note);
           selectedElement = note;
         }
+        
+        dynamicStyleElement.textContent = "#" + idPrefix + $ID(selectedElement) + "{" + selectionStyle + "}";
       } else {
         selectedElement = null;
       }
-      dynamicStyleElement.textContent = "#" + idPrefix + $ID(selectedElement) + "{" + selectionStyle + "}";
-
+      
+      removeEmptyElements(previouslySelectedElement);
+      
       return selectedElement;
     };
     //selectElement = this.selectElement; // We need this because otherwise, private methods obviously 
@@ -428,21 +561,17 @@
         throw new Error("Argument passed to selectNextElement() must be string 'preceding' or 'following'");
       }
 
-      return this.selectElement(
-        evaluateXPath(
-          selectedElement,
-          // If selectedElement has an ancestor ineume or matches any of the following self::* selectors,
-          // we're on the music layer.
-          "self::*[ancestor-or-self::mei:ineume|self::mei:pb|self::mei:sb/@source|self::mei:gap]/" +
-          // For selection, we need to match the next element that belongs to the music layer.  
-          precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source|self::mei:gap][1]"
-        )[0] || evaluateXPath(
-          selectedElement,
-          // If couldn't locate selectedElement on the music layer in the above expression, we're obviously on the text layer.
-          precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)]][1]"
-        )[0] || selectedElement // If we couldn't grab the next element, we keep the selection so 
-                                // the user can still move around with the keyboard.
-      );
+      var nextElement;
+      
+      // Test whether we're on the music layer
+      if (evaluateXPath(selectedElement, "(ancestor-or-self::mei:ineume|self::mei:pb|self::mei:sb/@source)[1]")[0]) {
+        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source][1]")[0];
+      // Test whether we're on the text layer
+      } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")[0]) {
+        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)]][1]")[0];
+      }
+      
+      return this.selectElement(nextElement || selectedElement);
     };
 
     this.getSelectedElement = function() {
@@ -450,7 +579,7 @@
     };
 
     this.getHtmlElement = function(element) {
-      return $HTML(element? element : selectedElement);
+      return $HTML(element || selectedElement);
     };
 
     this.newNoteAfter = function(element, leaveFocus) {
@@ -477,6 +606,7 @@
         )
       ) {
         newNote.removeAttribute("label"); 
+        newNote.removeAttribute("mfunc"); 
       }
       newNote.removeAttribute("accid");
 
@@ -497,29 +627,29 @@
     // QUESTION: newUneumeAfter and newIneumeAfter are almost identical. (How) Can we unify them? 
     this.newUneumeAfter = function(element, leaveFocus) {
       // Returns new inserted neume element
-      element = element || selectedElement;
+      element = $MEI(element || selectedElement);
 
       var newUneume = createMeiElement("<uneume/>");
       insertElement(setNewId(newUneume),{
-        contextElement: $MEI(element),
+        contextElement: element,
         parent: "ancestor-or-self::mei:ineume[1]",
         precedingSibling: "ancestor-or-self::mei:uneume[1]"
       });
       this.newNoteAfter(newUneume, true);
       //check if case exists that new note should not be selected
       //if (!leaveFocus) {
-        this.selectElement(newUneume.getElementsByTagName('note')[0]);
+      this.selectElement(newUneume.getElementsByTagName('note')[0]);
       //}
       return newUneume;
     };
 
     this.newIneumeAfter = function(element, leaveFocus) {
       // Returns new inserted neume element
-      element = element || selectedElement;
+      element = $MEI(element || selectedElement);
 
       var newIneume = createMeiElement("<ineume/>");
       newIneume = insertElement(setNewId(newIneume),{
-        contextElement: $MEI(element),
+        contextElement: element,
         parent: "ancestor-or-self::mei:syllable[1]",
         precedingSibling: "ancestor-or-self::mei:ineume[1]",
         leaveFocus: true
@@ -528,16 +658,6 @@
       return newIneume;
     };
 
-
-    //TODO: Test this
-    this.newGapAfter = function(element) {
-      var newGap = createMeiElement("<gap/>");
-      return insertElement(setNewId(newGap),{
-        contextElement: $MEI(element),
-        parent: "ancestor-or-self::mei:syllable[1]",
-        precedingSibling: "ancestor-or-self::mei:uneume[1]"
-      });
-    };
 
     this.setSylText = function(text, syl) {
       syl = syl || selectedElement;
@@ -548,7 +668,7 @@
 
     this.newSyllableAfter = function(text, leaveFocus, element) {
       text = text || '';
-      element = element || selectedElement;
+      element = $MEI(element || selectedElement);
       // CAUTION: We simplify this for now and don't encode wordpos info.
       //          Instead, we just leave the hyphens in the text
       // Inserts a new syllable element after the specified element (if paremter "element" is supplied)
@@ -557,7 +677,7 @@
       var newSyllable = createMeiElement("<syllable><syl></syl></syllable>");
       var syl = setNewId(newSyllable.firstElementChild);
       newSyllable = insertElement(setNewId(newSyllable),{
-        contextElement: $MEI(element),
+        contextElement: element,
         parent: "ancestor-or-self::mei:layer[1]",
         precedingSibling: "ancestor-or-self::mei:syllable[1]",
         leaveFocus: true
@@ -567,32 +687,33 @@
       return newSyllable;
     };
 
-    this.newSbAfter = function(element, leaveFocus) {
-      // Inserts and returns a new system break.
-      // We place source system breaks inside <syllable> elements as we sometimes have breaks with in a syllable.
-      // The editors break the chants into staves only between word borders
-      // (typesetters may have to introduce more breaks, which currently are not encoded in MEI).  
+    this.newSourceSbAfter = function(element, leaveFocus) {
+      return newSourceBreakAfter(element, "sb", leaveFocus);
+    };
 
-      element = $MEI(element);
+    this.newSourcePbAfter = function(element, folioNumber, rectoVerso, leaveFocus) {
+      var pb = newSourceBreakAfter(element, "pb", leaveFocus);
+      this.setPbData(pb, folioNumber, rectoVerso);
+    };
 
-      var newSb = createMeiElement("<sb/>"),
-          parentNodeName = evaluateXPath(element, "ancestor-or-self::*[self::mei:ineume or self::mei:syllable][1]/..")[0].localName;
-      // Only if we're on the music layer, we need to add a source ID (see comment above)
-      insertElement(setNewId(newSb),{
-        contextElement: element,
-        parent: "ancestor-or-self::mei:" + parentNodeName + "[1]",
-        precedingSibling: "ancestor-or-self::*[parent::mei:" + parentNodeName + "][1]",
-        leaveFocus: leaveFocus
+    this.newEditionSbAfter = function(element, leaveFocus) {
+      // We put edition system breaks on the "text layer", i.e. inside <syllable>
+      // (as opposed to source system breaks) 
+      element = $MEI(element || selectedElement);
+      var newSb = createMeiElement("<sb/>");
+
+      insertElement(setNewId(newSb), {
+        contextElement : element,
+        parent : "ancestor-or-self::mei:layer[1]",
+        precedingSibling : "ancestor-or-self::syllable[1]",
+        leaveFocus : leaveFocus
       });
-      // We explicitly mark system breaks that are inside syllables as source system breaks.  
-      if (parentNodeName === "syllable") {
-        addSourceId(newSb);
-      }
+
       return newSb;
     };
 
     // TODO: Test this
-    this.setPbData = function(pb,folioNumber,rectoVerso) {
+    this.setPbData = function(pb, folioNumber, rectoVerso) {
       // Sets the folio number and recto/verso information for a page break.
       // folioNumber must be an integer or a string of an integer.
       // rectoVerso is optional and must be "recto" or "verso".
@@ -603,35 +724,19 @@
         throw new Error("rectoVerso can only take on the values 'recto' and 'verso', not '" + rectoVerso + "'.");
       }
       // We're requiring folio numbers to only contain alphanumeric characters. We could be more strict
-      if (folioNumber && (typeof folioNumber !== "string" || !folioNumber.match(/^[\w]+$/)[0])) {
+      if (folioNumber && ( typeof folioNumber !== "string" || !folioNumber.match(/^[\w]+$/)[0])) {
         throw new Error("Malformed folio number '" + folioNumber + "'");
       }
 
-      pb.setAttribute("n",folioNumber);
-      pb.setAttribute("func",rectoVerso);
+      pb.setAttribute("n", folioNumber);
+      pb.setAttribute("func", rectoVerso);
+      
+      refresh(pb);
 
       return pb;
     };
 
     // TODO: Test this
-    this.newPbAfter = function(element,folioNumber,rectoVerso,leaveFocus) {
-      // Inserts and returns a new page break marker.
-      // folioNumber and rectoVerso are optional. They'll usually be set later using setPbData().
-
-      element = $MEI(element);
-      var newPb = createMeiElement("<pb/>");
-      this.setPbData(newPb,folioNumber,rectoVerso);
-
-      insertElement(setNewId(newPb),{
-        contextElement: element,
-        parent: "ancestor-or-self::mei:syllable[1]",
-        precedingSibling: "ancestor-or-self::*[parent::mei:syllable][1]",
-        leaveFocus: leaveFocus
-      });
-      addSourceId(newPb);
-      return newPb;
-    };
-
     /* TODO: Rethink annotations
     this.newAnnot = function(annotType, annotLabel, annotText) {
       // A new annot element will be created and inserted into the document.
@@ -699,7 +804,7 @@
 
     // TODO: Test this    
     this.getAccidental = function(element) {
-      // Returns the current accidental value: "s", "f" or null, if no accidental is set.
+      // Returns the current accidental value: "s", "f", "n" (or null, if no accidental is set).
       element = $MEI(element, "note", "Can not return accidental of none-note element");
       return element.getAttribute("accid");
     };
@@ -719,34 +824,81 @@
         }
         element.setAttribute("accid",accidental);
       }
+      
+      removeDummyState(element);
+      
       refresh(evaluateXPath(element, "ancestor::mei:ineume")[0]);
       return element;
     };
 
     this.toggleAccidental = function(accidental, element) {
-      element = element || selectedElement;
-      if (!accidental || this.getAccidental(element) == accidental) {
-        this.setAccidental(null, element);
-      } else {
-        this.setAccidental(accidental, element);
-      }
-    }
+      element = $MEI(element) || selectedElement;
+      this.setAccidental(this.getAccidental(element) !== accidental && accidental, element);
+    };
 
-    this.getPitchClass = function(element) {
-      element = $MEI(element, "note", "Can not get pitch class of non-note elements");
+    this.setLiquescence = function(trueOrFalse, element) {
+      element = $MEI(element, "note", "Can not set liquescence flag on non-note elements") || selectedElement;
+      switch(trueOrFalse) {
+      case "true":
+      case true:
+        element.setAttribute("mfunc","liquescent");
+        break;
+      case "false":
+      case false:
+        element.removeAttribute("mfunc");
+        break;
+      default:
+        throw new Error("Attempt at setting liquescence flag to " + trueOrFalse + ". Only true or false are allowed");
+      }
+      
+      removeDummyState(element);
+      
+      refresh(element);
+    };
+
+    this.getLiquescence = function(element) {
+      element = $MEI(element || selectedElement, "note", "Can not get liquescence flag of non-note elements");
+      return element.getAttribute("mfunc") === "liquescent" ? true : false;
+    };
+
+    this.toggleLiquescence = function(element) {
+      element = $MEI(element || selectedElement, "note", "Can not set liquescence flag of non-note elements");
+      this.setLiquescence(!this.getLiquescence(element), element);
+    };
+
+    this.getPerformanceNeumeType = function(element) {
+      element = $MEI(element || selectedElement, "note", "Can not get performance neume type of non-note elements");
       return element.getAttribute("label");
     };
 
-    this.setPitchClass = function(className, element) {
-      element = element || selectedElement;
-      var validPitchClasses = ["oriscus","quilisma","apostropha","liquescent"];
+    this.setPerformanceNeumeType = function(performanceNeumeType, element) {
+      element = $MEI(element || selectedElement, "note", "Can not assign performance neume type to non-note elements");
 
-      element = $MEI(element, "note", "Can not assign pitch class to non-note elements");
-      if (validPitchClasses.indexOf(className) < 0) {
-        throw new Error(className.toString() + " is not a valid pitch class. Valid pitch classes are " + validPitchClasses.join(" ,"));
+       // any performanceNeumeType that evaluates to false in a boolean expression shall 
+       // result in the removal of any performance neume type 
+      switch(performanceNeumeType || null)  {  
+      case "oriscus":
+      case "quilisma":
+      case "apostropha":
+        element.setAttribute("label", performanceNeumeType);
+        break;
+      case null:
+        element.removeAttribute("label");
+        break;
+      default:
+        throw new Error(performanceNeumeType.toString() + " is not a recognized performance neume type. Supported types are oriscus, quilisma and apostropha."); 
       }
-      element.setAttribute("label",className);
       refresh(element);
+    };
+    
+    this.togglePerformanceNeumeType = function(performanceNeumeType, element) {
+      element = $MEI(element || selectedElement, "note", "Can not assign performance neume type to non-note elements");
+      var currentPerformanceNeumeType = element.getAttribute("label");
+      
+      this.setPerformanceNeumeType(
+        currentPerformanceNeumeType === performanceNeumeType ? false : performanceNeumeType, 
+        element
+      );
     };
 
     // TODO: Test this
@@ -756,46 +908,34 @@
       sb.setAttribute("label",labelText);
     };
 
-    this.deleteElement = function(element) {
-      element = element || selectedElement;
+    this.deleteElement = function(element, leaveFocus) {
       // Deletes an element. If no parameter was supplied, the currently selected element will be removed.
       // If the currently selected element is deleted, a neighboring element will be selected (if possible, the left neighbor).
-      // TODO: The following is really vague; Find a better working mode (possibly using callbacks?)!
-      // Before deleting, this method checks for any annotations that references to-be-deleted elements.
-      // If such references exist, it will ask the user to confirm the deletion.
-      // If the user confirms the deletion, the reference will be removed from the annotation.
-      // (Refinements are possible, e.g. options to also delete annotation, remove reference, change reference...)
-      element = $MEI(element);
-
-      // We can't simply delete the element passed as parameter because we might end up with empty elements.
-      // Those have to be deleted as well.
-
-      var numberOfNotesToBeDeleted = evaluateXPath(element,"descendant-or-self::mei:note").length;
-      var sylToBeDeleted = evaluateXPath(element,"descendant-or-self::mei:syl")[0];
-      var syllableTextToBeDeleted = sylToBeDeleted ? sylToBeDeleted.textContent : "";
-
-      var elementToDelete = evaluateXPath(
-        element,
-        "ancestor-or-self::mei:*[ " +
-          "ancestor-or-self::mei:syllable " +
-          "and string(mei:syl) = '' " +
-          "and count(descendant::mei:note) <= " + numberOfNotesToBeDeleted +
-        "][last()]"
-      )[0];
-
+      element = element ? $MEI(element) : selectedElement;
 
       if (!element) {return;}
       var parent = element.parentNode;
-      parent.removeChild(element);
-      refresh(parent);
+      if (parent && checkIfItemCanBeDeleted(element)) {
+        if (!leaveFocus) {
+          selectedElement = element;
+          this.selectNextElement("preceding");
+          // If selecting the precedig element was not possible (i.e. the same  
+          // element is still selected), we try to select the followig one. 
+          if (selectedElement === element) {
+            this.selectNextElement("following");
+          }
+          // If there is no following element to select either, we deselect the item.
+          if (selectedElement === element) {
+            this.selectElement(null);
+          }
+        }
 
-      return true;
-
-      // TODO: Enable this to handle notes
-      // If it leaves an empty neume group, the whole neume group will be deleted.
-      // The actual deletion will be done by deleteElement()
-      // QUESTION: Enable this to handle <syls>, or will they be deleted implicitly 
-      // when unselecting an empty syllable?
+        parent.removeChild(element);
+        refresh(parent);
+        removeEmptyElements(parent);
+        
+        return true;
+      }
     };
 
     // TODO: Test this
@@ -807,7 +947,11 @@
       //     because the currently selected element has (partly) moved outside the visible area.
       //     The argument supplied to the callback is the ID of the currently selected element.
       if (callbacks[callbackEvent]) {
-        callbacks[callbackEvent].push(callbackFunction);
+        if (typeof callbackFunction === "function") {
+          callbacks[callbackEvent].push(callbackFunction);
+        } else {
+          throw new Error("Second argument to addCallback() must be a function");
+        }
       } else {
         throw new Error("Unknown callback event " + callbackEvent);
       }
@@ -820,6 +964,9 @@
     };
 
     this.getSerializedDocument = function() {
+      // TODO: There are Blink/Webkit bugs that produce invalid XML and (in the case of Webkit)
+      //       puts IDs into the wrong namespace.  How to fix that?
+
       return (new XMLSerializer()).serializeToString(mei);
     };
 
@@ -847,8 +994,9 @@
     //           with parameters that weren't meant for it.
     var parameter;
     for (parameter in parameters) {
-      if (parameters.hasOwnProperty(parameter)) 
-        {xsltProcessor.setParameter(null,parameter,parameters[parameter]);}
+      if (parameters.hasOwnProperty(parameter)) {
+        xsltProcessor.setParameter(null, parameter, parameters[parameter]);
+      }
     }
 
 
