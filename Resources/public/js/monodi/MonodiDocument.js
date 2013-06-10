@@ -738,6 +738,52 @@
       return pb;
     };
 
+    
+    this.newAnnot = function(annotProperties) {
+      var annot = createMeiElement("<annot/>");
+      evaluateXPath(mei, "//mei:score[1]")[0].appendChild(annot);
+      this.setAnnotProperties(annot, annotProperties || {});
+    };
+    
+    this.setAnnotProperties = function(annot, properties) {
+      var oldProperties = this.getAnnotProperties(annot),
+        startid = $ID(properties.startid || oldProperties.startid || properties.endid),
+        endid   = $ID(properties.endid   || oldProperties.endid   || properties.startid),
+        type    = properties.type    || oldProperties.type,
+        label   = properties.label   || oldProperties.label,
+        text    = properties.text    || oldProperties.text;
+        
+      if (startid && endid) {
+        annot.setAttribute("startid", "#" + startid);
+        annot.setAttribute("endid"  , "#" + endid);
+      } else {
+        throw new Error("An annotation must be given a start or end id.");
+      }
+      
+      if (type) {
+        annot.setAttribute("type", type);
+      } else {
+        throw new Error("An annotation must be given a type.");
+      }
+      
+      annot.setAttribute("label",label);
+      annot.textContent = text;
+      
+      refresh(startid);
+      if (startid !== endid) {refresh(endid);}
+    };
+    
+    this.getAnnotProperties = function(annot) {
+      return {
+        // We must chop off the leading "#" from startid/endid anyURI
+        startid: String.substring(annot.getAttribute("startid") || "", 1),
+        endid  : String.substring(annot.getAttribute("endid"  ) || "", 1),
+        label  : annot.getAttribute("label"),
+        type   : annot.getAttribute("type"),
+        text   : annot.textContent
+      };
+    };    
+
     // TODO: Test this
     /* TODO: Rethink annotations
     this.newAnnot = function(annotType, annotLabel, annotText) {
