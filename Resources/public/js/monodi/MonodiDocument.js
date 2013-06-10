@@ -175,7 +175,8 @@
 
     function createMeiElement(xmlText) {
       xmlText = "<mei xmlns='http://www.music-encoding.org/ns/mei'>" + xmlText + "</mei>";
-      return (new DOMParser()).parseFromString(xmlText,
+      return (new DOMParser()).parseFromString(
+        xmlText, 
         "application/xml"
       ).documentElement.firstElementChild;
     }
@@ -205,7 +206,7 @@
       // As any changes inside a uneume might affect the whole group (especially slurs),
       // for any changes of notes inside a uneume, we refresh the whole uneume
       element = element ? evaluateXPath(
-         $MEI(element),
+        $MEI(element),
         "(.|ancestor::mei:uneume)[1]"
       )[0] : mei;
       
@@ -257,7 +258,7 @@
       return newElement;
     }
 
-    function addSourceId(element) {
+    function addSourceAttribute(element) {
       var sourceIdAttribute = evaluateXPath(element,"//mei:source[1]/@xml:id[1]")[0];
       element.setAttribute("source","#" + (sourceIdAttribute.textContent || error("No source ID found.")));
       return element;
@@ -372,6 +373,26 @@
           refresh(parent);
         }
       }
+    }
+
+    function newSourceBreakAfter(element, nodeName, leaveFocus) {
+      // Inserts and returns a new system break.
+      // We place source system breaks inside <syllable> elements as we sometimes have breaks with in a syllable.
+      // The editors break the chants into staves only between word borders
+      // (typesetters may have to introduce more breaks, which currently are not encoded in MEI).
+
+      element = $MEI(element || selectedElement);
+
+      var newSb = addSourceAttribute(createMeiElement("<" + nodeName + "/>"));
+
+      insertElement(setNewId(newSb), {
+        contextElement : element,
+        parent : "ancestor-or-self::mei:syllable[1]",
+        precedingSibling : "ancestor-or-self::*[parent::mei:syllable][1]",
+        leaveFocus : leaveFocus
+      });
+      
+      return newSb;
     }
     
 
@@ -666,32 +687,33 @@
       return newSyllable;
     };
 
-    this.newSbAfter = function(element, leaveFocus) {
-      // Inserts and returns a new system break.
-      // We place source system breaks inside <syllable> elements as we sometimes have breaks with in a syllable.
-      // The editors break the chants into staves only between word borders
-      // (typesetters may have to introduce more breaks, which currently are not encoded in MEI).  
+    this.newSourceSbAfter = function(element, leaveFocus) {
+      return newSourceBreakAfter(element, "sb", leaveFocus);
+    };
 
+    this.newSourcePbAfter = function(element, folioNumber, rectoVerso, leaveFocus) {
+      var pb = newSourceBreakAfter(element, "pb", leaveFocus);
+      this.setPbData(pb, folioNumber, rectoVerso);
+    };
+
+    this.newEditionSbAfter = function(element, leaveFocus) {
+      // We put edition system breaks on the "text layer", i.e. inside <syllable>
+      // (as opposed to source system breaks) 
       element = $MEI(element || selectedElement);
+      var newSb = createMeiElement("<sb/>");
 
-      var newSb = createMeiElement("<sb/>"),
-          parentNodeName = evaluateXPath(element, "ancestor-or-self::*[self::mei:ineume or self::mei:syllable][1]/..")[0].localName;
-      // Only if we're on the music layer, we need to add a source ID (see comment above)
-      insertElement(setNewId(newSb),{
-        contextElement: element,
-        parent: "ancestor-or-self::mei:" + parentNodeName + "[1]",
-        precedingSibling: "ancestor-or-self::*[parent::mei:" + parentNodeName + "][1]",
-        leaveFocus: leaveFocus
+      insertElement(setNewId(newSb), {
+        contextElement : element,
+        parent : "ancestor-or-self::mei:layer[1]",
+        precedingSibling : "ancestor-or-self::syllable[1]",
+        leaveFocus : leaveFocus
       });
-      // We explicitly mark system breaks that are inside syllables as source system breaks.  
-      if (parentNodeName === "syllable") {
-        addSourceId(newSb);
-      }
+
       return newSb;
     };
 
     // TODO: Test this
-    this.setPbData = function(pb,folioNumber,rectoVerso) {
+    this.setPbData = function(pb, folioNumber, rectoVerso) {
       // Sets the folio number and recto/verso information for a page break.
       // folioNumber must be an integer or a string of an integer.
       // rectoVerso is optional and must be "recto" or "verso".
@@ -702,35 +724,19 @@
         throw new Error("rectoVerso can only take on the values 'recto' and 'verso', not '" + rectoVerso + "'.");
       }
       // We're requiring folio numbers to only contain alphanumeric characters. We could be more strict
-      if (folioNumber && (typeof folioNumber !== "string" || !folioNumber.match(/^[\w]+$/)[0])) {
+      if (folioNumber && ( typeof folioNumber !== "string" || !folioNumber.match(/^[\w]+$/)[0])) {
         throw new Error("Malformed folio number '" + folioNumber + "'");
       }
 
-      pb.setAttribute("n",folioNumber);
-      pb.setAttribute("func",rectoVerso);
+      pb.setAttribute("n", folioNumber);
+      pb.setAttribute("func", rectoVerso);
+      
+      refresh(pb);
 
       return pb;
     };
 
     // TODO: Test this
-    this.newPbAfter = function(element,folioNumber,rectoVerso,leaveFocus) {
-      // Inserts and returns a new page break marker.
-      // folioNumber and rectoVerso are optional. They'll usually be set later using setPbData().
-
-      element = $MEI(element);
-      var newPb = createMeiElement("<pb/>");
-      this.setPbData(newPb,folioNumber,rectoVerso);
-
-      insertElement(setNewId(newPb),{
-        contextElement: element,
-        parent: "ancestor-or-self::mei:syllable[1]",
-        precedingSibling: "ancestor-or-self::*[parent::mei:syllable][1]",
-        leaveFocus: leaveFocus
-      });
-      addSourceId(newPb);
-      return newPb;
-    };
-
     /* TODO: Rethink annotations
     this.newAnnot = function(annotType, annotLabel, annotText) {
       // A new annot element will be created and inserted into the document.
@@ -958,6 +964,9 @@
     };
 
     this.getSerializedDocument = function() {
+      // TODO: There are Blink/Webkit bugs that produce invalid XML and (in the case of Webkit)
+      //       puts IDs into the wrong namespace.  How to fix that?
+
       return (new XMLSerializer()).serializeToString(mei);
     };
 
@@ -985,8 +994,9 @@
     //           with parameters that weren't meant for it.
     var parameter;
     for (parameter in parameters) {
-      if (parameters.hasOwnProperty(parameter)) 
-        {xsltProcessor.setParameter(null,parameter,parameters[parameter]);}
+      if (parameters.hasOwnProperty(parameter)) {
+        xsltProcessor.setParameter(null, parameter, parameters[parameter]);
+      }
     }
 
 
