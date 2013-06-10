@@ -90,9 +90,7 @@ $(document).on('keydown', function(e) {
 			case 66: //b
         md.toggleAccidental("f");
       break;
-      case 163: //# (LinF)
-      case 51:  //# (Lin Chrome; TODO: This is also the keyCode for "3". Shall we adopt a different key detection method? Is there a jQuery plugin that does proper key detection?)
-			case 220: //# (Mac)
+      case 83: //s
         md.toggleAccidental("s");
 			break;
 			case 78: // n
