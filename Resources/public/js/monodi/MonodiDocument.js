@@ -169,7 +169,7 @@
       do {
         newId = idPrefix + "mei" + new Date().getTime() + Math.floor((Math.random()*10000));
       } while ($MEI(newId)); // We must avoid IDs that already exist
-      element.setAttributeNS(xmlNS,"id",newId);
+      element.setAttributeNS(xmlNS,"xml:id",newId);
       return element;
     }
 
@@ -776,8 +776,8 @@
     this.getAnnotProperties = function(annot) {
       return {
         // We must chop off the leading "#" from startid/endid anyURI
-        startid: String.substring(annot.getAttribute("startid") || "", 1),
-        endid  : String.substring(annot.getAttribute("endid"  ) || "", 1),
+        startid: (annot.getAttribute("startid") || "").substring(1),
+        endid  : (annot.getAttribute("endid"  ) || "").substring(1),
         label  : annot.getAttribute("label"),
         type   : annot.getAttribute("type"),
         text   : annot.textContent
@@ -1012,9 +1012,6 @@
     };
 
     this.getSerializedDocument = function() {
-      // TODO: There are Blink/Webkit bugs that produce invalid XML and (in the case of Webkit)
-      //       puts IDs into the wrong namespace.  How to fix that?
-
       return (new XMLSerializer()).serializeToString(mei);
     };
 
