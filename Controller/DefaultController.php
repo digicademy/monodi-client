@@ -14,6 +14,13 @@ class DefaultController extends Controller
      */
     public function indexAction()
     {
-        return array();
+        $response = $this->render(
+            'DigitalwertMonodiClientBundle:Default:index.xhtml.php',
+            array('')
+        );
+        
+        $response->headers->set('Content-Type', 'application/xhtml+xml');
+
+        return $response;
     }
 }

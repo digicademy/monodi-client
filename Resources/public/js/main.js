@@ -29,8 +29,8 @@ var md = new MonodiDocument({
     staticStyleElement : document.getElementById("staticStyle"),
     dynamicStyleElement: document.getElementById("dynamicStyle"),
     musicContainer     : document.getElementById("musicContainer"),
-    xsltUrl            : "../public/js/monodi/mei2xhtml.xsl",
-    meiUrl             : "../public/js/monodi/empty.mei"
+    xsltUrl            : "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl",
+    meiUrl             : "/bundles/digitalwertmonodiclient/js/monodi/empty.mei"
 });
 
 var checkElement = function(el) {
@@ -180,6 +180,22 @@ $(document).on('keydown', function(e) {
 });
 
 $('#login').on('click', function() {
-	window.open(baseurl + 'oauth/v2/auth?client_id=1_2rhsh9vp7hkw4s4gg4w848cs4s8cg0kgcoskskc44swss00oco','','width=700,height=500,toolbar=0,menubar=0,location=0,status=0,scrollbars=0,resizable=0,left=0,top=0');
+	$.ajax({
+		url: baseurl + 'oauth/v2/auth?client_id=1_2m0rkq8ev2yoow4oswcs8wsokc400c0ooocc84k4g0k8kws4g0'
+	}).done(function(data) {
+		var form = data.match(/(<form(.|[\r\n])*\/form>)/)[0];
+		if (form.length) {
+			var $form = $(form);
+
+			$.ajax({
+				url: $form.attr('action') + '&redirect_uri=http://notengrafik.dw-dev.de/client/',
+				data: $form.find('#digitalwert_monodi_oauth_server_auth_allowAccess').prop('checked', true).end().serialize(),
+				method: $form.attr('method')
+			}).done( function(data) {
+
+			});
+		}
+	});
+	//window.open(baseurl + 'oauth/v2/auth?client_id=1_2m0rkq8ev2yoow4oswcs8wsokc400c0ooocc84k4g0k8kws4g0','','width=700,height=500,toolbar=0,menubar=0,location=0,status=0,scrollbars=0,resizable=0,left=0,top=0');
 	return false;
 });

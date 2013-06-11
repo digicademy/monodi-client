@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title/>
+    <style type="text/css" id="staticStyle"/>
+    <style type="text/css" id="dynamicStyle"/>
+    <script type="text/javascript" src="../MonodiDocument.js"/>
+  </head>
+  <body>
+    <div id="musicContainer"/>
+    <script type="text/javascript">//<![CDATA[
+      var md = new MonodiDocument({
+        staticStyleElement : document.getElementById("staticStyle"),
+        dynamicStyleElement: document.getElementById("dynamicStyle"),
+        musicContainer     : document.getElementById("musicContainer"),
+        xsltUrl            : "../mei2xhtml.xsl",
+        meiUrl             : "../hodieCantandus.mei",
+      });
+      
+      var firstNote = document.getElementsByClassName("_mei note")[0];
+      // changeScaleStep can be given a specific note to change...
+      md.changeScaleStep(1, firstNote);
+      
+      md.selectElement(firstNote);
+      // ...or it implicitly defaults to the currently selected element. 
+      md.changeScaleStep(1);
+      ]]>
+    </script>
+  </body>
+</html>
