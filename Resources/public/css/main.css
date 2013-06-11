@@ -3801,8 +3801,8 @@ input[type="submit"].btn.btn-mini {
   position: fixed;
   right: 0;
   left: 0;
-  z-index: 1030;
-  margin-bottom: 0; }
+  margin-bottom: 0;
+  z-index: 1030; }
 
 .navbar-fixed-top .navbar-inner,
 .navbar-static-top .navbar-inner {

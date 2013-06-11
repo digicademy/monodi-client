@@ -11,7 +11,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 <?php echo("<?xml version=\"1.0\" ?>\n"); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml"><!--manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest"-->
     <head>
         <title>mono:di</title>
         
@@ -21,16 +21,20 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         <script src="/bundles/digitalwertmonodiclient/js/vendor/modernizr.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/vendor/jquery.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/vendor/angular.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/controllers.js"></script>
+
+        <script src="/bundles/digitalwertmonodiclient/js/const.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/controller/AppController.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/controller/NavController.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/controller/DocumentListController.js"></script>
+        <script src="/bundles/digitalwertmonodiclient/js/controller/DocumentController.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/modules.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/mock.js"></script>
 
         <style type="text/css" id="staticStyle"></style>
         <style type="text/css" id="dynamicStyle"></style>
     </head>
-    <body ng-app="monodi">
+    <body ng-app="monodi" ng-controller="AppCtrl">
 
-        <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar navbar-inverse navbar-fixed-top" ng-controller="NavCtrl">
             <div class="navbar-inner">
                 <div class="container">
                     <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -43,22 +47,21 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                         <ul class="nav">
                             <li>
                                 <div class="btn-group">
-                                    <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Dokument <span class="caret"></span></button>
+                                    <button class="btn btn-link dropdown-toggle" data-toggle="dropdown" ng-click="showView('main')">Dokument <span class="caret"></span></button>
                                     <ul class="dropdown-menu">
                                         <li><button class="btn btn-link">Speichern</button></li>
                                         <li><button class="btn btn-link">Speichern unter</button></li>
-                                        <li><button class="btn btn-link">Eigenschaften</button></li>
+                                        <li><button class="btn btn-link" ng-click="showDocumentInfo()">Eigenschaften</button></li>
                                         <li class="divider"></li>
-                                        <li><button class="btn btn-link">Neu</button></li>
-                                        <li><button class="open btn btn-link">Öffnen</button></li>
+                                        <li><button class="open btn btn-link" ng-click="showView('files')">Öffnen</button></li>
                                     </ul>
                                 </div>
                             </li>
-                            <li><button class="filecontrol btn btn-link">Verwaltung</button></li>
-                            <li class="right"><button class="help btn btn-link">Hilfe</button></li>
+                            <li><button class="filecontrol btn btn-link" ng-click="showView('files')">Verwaltung</button></li>
+                            <li class="right"><button class="help btn btn-link" ng-click="showView('help')">Hilfe</button></li>
                             <li class="right">
-                                <!--<button class="btn btn-link" data-target="#changePass" data-toggle="modal">Profil</button>-->
-                                <button class="btn btn-link" id="login">Login</button>
+                                <button class="btn btn-link" data-target="#changePassModal" data-toggle="modal" ng-show="access_token">Profil</button>-->
+                                <button class="btn btn-link" ng-click="login()" ng-hide="access_token">Login</button>
                             </li>
                         </ul>
                     </div>
@@ -67,7 +70,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         </div>
 
         <div class="views">
-            <div class="main container">
+            <div class="main container" ng-controller="DocumentCtrl">
                 <div id="musicContainer"></div>
             </div>
 
@@ -90,60 +93,41 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                     </div>
 
                     <div class="fileviews">
-                        <div class="fileStructure clearfix" filetree-repeat="documents"></div>
+                        <div class="fileStructure clearfix">
+                            <ul>
+                                <li ng-repeat="el in documents" ng-include="'/bundles/digitalwertmonodiclient/js/templates/tree.html'"></li>
+                            </ul>
+                        </div>
 
                         <div class="fileList clearfix">
                             <table class="table table-bordered table-striped span12">
                                 <thead>
                                     <tr>
-                                        <th class="span1"><input type="checkbox" /></th>
+                                        <th class="span1"><input type="checkbox" ng-click="toggle()" /></th>
                                         <th class="span6">Struktur</th>
                                         <th class="span4">Name</th>
                                         <th>Funktionen</th>
                                     </tr>
                                 </thead>
-                                <tbody class="table-hover" filelist-repeat="documents"></tbody>
+                                <tbody class="table-hover">
+                                    <tr ng-repeat="el in files">
+                                        <td><input type="checkbox" name="{{el.id}}" id="list-document-{{el.id}}" /></td>
+                                        <td>{{el.path}}</td>
+                                        <td><button class="btn btn-link" ng-click="openDocument(el.id)">{{el.filename}}</button></td>
+                                        <td>
+                                            <div class="actions btn-group">
+                                                <button class="btn btn-danger"><i class="icon-trash icon-white" ng-show="online"></i></button>
+                                                <button class="btn btn-inverse" ng-click="print(el.id)"><i class="icon-print icon-white"></i></button>
+                                                <button class="btn btn-info" ng-click="saveLocal(el.id)" ng-hide="el.local" ng-show="online"><i class="icon-arrow-down icon-white"></i></button>
+                                                <button class="btn btn-warning" ng-click="removeLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>
+                                                <button class="btn btn-primary" ng-click="documentinfo(el.id)" data-toggle="modal"><i class="icon-info-sign icon-white"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
-
-                <!-- fileinfos -->
-                <div id="fileInfos" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="FileInfosLabel" aria-hidden="true">
-                  <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3 id="myModalLabel">Dokumenteneigenschaften</h3>
-                  </div>
-                  <div class="modal-body">
-                    <table class="table table-bordered table-striped">
-                        <tbody class="table-hover">
-                            <tr>
-                                <th class="span2">Name</th>
-                                <td>{{info.title}}</td>
-                                <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
-                            </tr>
-                            <tr>
-                                <th class="span2">Dateiname</th>
-                                <td>{{info.filename}}</td>
-                                <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
-                            </tr>
-                            <tr>
-                                <th class="span2">Speicherort</th>
-                                <td>{{info.path}}</td>
-                            </tr>
-                            <tr>
-                                <th class="span2">Revision</th>
-                                <td>{{info.rev}}</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <th class="span2">Lokal vefügbar</th>
-                                <td>nein</td>
-                                <td><button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                  </div>
                 </div>
             </div>
 
@@ -161,8 +145,47 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
             </div>
         </div>
 
+        <!-- fileinfos -->
+        <div id="fileInfosModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="FileInfosLabel" aria-hidden="true">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">Dokumenteneigenschaften</h3>
+          </div>
+          <div class="modal-body">
+            <table class="table table-bordered table-striped">
+                <tbody class="table-hover">
+                    <tr>
+                        <th class="span2">Name</th>
+                        <td>{{info.title}}</td>
+                        <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
+                    </tr>
+                    <tr>
+                        <th class="span2">Dateiname</th>
+                        <td>{{info.filename}}</td>
+                        <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
+                    </tr>
+                    <tr>
+                        <th class="span2">Speicherort</th>
+                        <td>{{info.path}}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th class="span2">Revision</th>
+                        <td>{{info.rev}}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th class="span2">Lokal vefügbar</th>
+                        <td>nein</td>
+                        <td><button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- login -->
-        <div id="login" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
+        <div id="loginModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
             <form action="login_check" method="post">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -179,35 +202,51 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
             </form>
         </div>
 
-        <!-- login -->
-        <div id="forgot" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3>Passwort vergessen?</h3>
-          </div>
-          <div class="modal-body">
-            <p><input type="text" id="loginname" placeholder="Benutzername" /></p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary">Neues Passwort anfordern</button>
-          </div>
+        <!-- forgot -->
+        <div id="forgotModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3>Passwort vergessen?</h3>
+            </div>
+            <div class="modal-body">
+                <p><input type="text" id="loginname" placeholder="Benutzername" /></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary">Neues Passwort anfordern</button>
+            </div>
         </div>
 
         <!-- change password -->
-        <div id="changePass" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ChangePasswordLabel" aria-hidden="true">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3>Passwort ändern</h3>
-          </div>
-          <div class="modal-body">
-            <p><input type="password" id="login" placeholder="bisheriges Passwort" /></p>
-            <hr />
-            <p><input type="password" id="new" placeholder="Passwort" /></p>
-            <p><input type="password" id="newR" placeholder="Passwort" /></p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary">Passwort ändern</button>
-          </div>
+        <div id="changePassModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ChangePasswordLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3>Passwort ändern</h3>
+            </div>
+            <form name="changePassword" ng-submit="changePass(pass)">
+                <div class="modal-body">
+                    <p>
+                        <input type="text" name="username" ng-model="pass.name" placeholder="Nutzername" required="required" />
+                        <span class="error" ng-show="changePassword.username.$error.required">!</span>
+                    </p>
+                    <p>
+                        <input type="password" name="old" ng-model="pass.old" placeholder="bisheriges Passwort" required="required" />
+                        <span class="error" ng-show="changePassword.old.$error.required">!</span>
+                    </p>
+                    <hr />
+                    <p>
+                        <input type="password" name="new" ng-model="pass.new" placeholder="Passwort" required="required" />
+                        <span class="error" ng-show="changePassword.new.$error.required">!</span>
+                    </p>
+                    <p>
+                        <input type="password" name="newR" ng-model="pass.newR" placeholder="Passwort" match="changePassword.new.$viewValue" required="required" />
+                        <span class="error" ng-show="changePassword.newR.$error.required">!</span>
+                        <div class="error" ng-show="changePassword.newR.$error.match">Neue Passwörter sind nicht gleich</div>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Passwort ändern</button>
+                </div>
+            </form>
         </div>
 
         <script src="/bundles/digitalwertmonodiclient/js/plugins.js"></script>

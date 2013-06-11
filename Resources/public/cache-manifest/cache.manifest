@@ -1,0 +1,26 @@
+CACHE MANIFEST
+# rev 2
+/bundles/digitalwertmonodiclient/css/main.css
+/bundles/digitalwertmonodiclient/js/vendor/modernizr.js
+/bundles/digitalwertmonodiclient/js/vendor/jquery.js
+/bundles/digitalwertmonodiclient/js/vendor/angular.js
+
+/bundles/digitalwertmonodiclient/js/const.js
+/bundles/digitalwertmonodiclient/js/controller/AppController.js
+/bundles/digitalwertmonodiclient/js/controller/NavController.js
+/bundles/digitalwertmonodiclient/js/controller/DocumentListController.js
+/bundles/digitalwertmonodiclient/js/controller/DocumentController.js
+/bundles/digitalwertmonodiclient/js/modules.js
+
+/bundles/digitalwertmonodiclient/js/templates/tree.html
+/bundles/digitalwertmonodiclient/js/templates/tree-doc.html
+
+/bundles/digitalwertmonodiclient/js/plugins.js
+/bundles/digitalwertmonodiclient/js/monodi/MonodiDocument.js
+/bundles/digitalwertmonodiclient/js/main.js
+
+/bundles/digitalwertmonodiclient/img/glyphicons-halflings.png
+/bundles/digitalwertmonodiclient/img/glyphicons-halflings-white.png
+
+NETWORK:
+*
