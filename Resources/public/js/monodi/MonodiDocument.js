@@ -979,7 +979,15 @@
         }
 
         parent.removeChild(element);
-        refresh(parent);
+        if (element.nodeName === "annot") {
+          var annotProperties = this.getAnnotProperties(element);
+          refresh(annotProperties.startid);
+          if (annotProperties.startid !== annotProperties.endid) {
+            refresh(annotProperties.endid);
+          }
+        } else {
+          refresh(parent);
+        }
         removeEmptyElements(parent);
         
         return true;
