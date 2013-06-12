@@ -11,7 +11,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 <?php echo("<?xml version=\"1.0\" ?>\n"); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><!--manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest"-->
+<html xmlns="http://www.w3.org/1999/xhtml" encoding="utf-8"><!--manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest"-->
     <head>
         <title>mono:di</title>
         
@@ -60,7 +60,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                             <li><button class="filecontrol btn btn-link" ng-click="showView('files')">Verwaltung</button></li>
                             <li class="right"><button class="help btn btn-link" ng-click="showView('help')">Hilfe</button></li>
                             <li class="right">
-                                <button class="btn btn-link" data-target="#changePassModal" data-toggle="modal" ng-show="access_token">Profil</button>-->
+                                <button class="btn btn-link" data-target="#changePassModal" data-toggle="modal" ng-show="access_token">Profil</button>
                                 <button class="btn btn-link" ng-click="login()" ng-hide="access_token">Login</button>
                             </li>
                         </ul>
@@ -245,6 +245,28 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-primary" type="submit">Passwort ändern</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- annotation -->
+        <div id="annotationModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ChangePasswordLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3>Kommentar</h3>
+            </div>
+            <form name="changePassword" ng-submit="changePass(pass)">
+                <div class="modal-body">
+                    <p>
+                        <input type="text" placeholder="Label" />
+                    </p>
+                    <p>
+                        <textarea placeholder="Text"></textarea>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-warning" data-dismiss="modal">abbrechen</button>
+                    <button class="btn btn-primary" type="submit">Kommentar speichern</button>
                 </div>
             </form>
         </div>

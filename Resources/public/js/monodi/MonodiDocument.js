@@ -175,12 +175,18 @@
 
     function createMeiElement(xmlText) {
       xmlText = "<mei xmlns='http://www.music-encoding.org/ns/mei'>" + xmlText + "</mei>";
-      return setNewId(
-        (new DOMParser()).parseFromString(
-          xmlText, 
-          "application/xml"
-        ).documentElement.firstElementChild
-      );
+      var newElement = (new DOMParser()).parseFromString(
+        xmlText, 
+        "application/xml"
+      ).documentElement.firstElementChild;
+      
+      var elementsWithoutIds = evaluateXPath(newElement,"descendant-or-self::*");
+      var i;
+      for (i=0; i<elementsWithoutIds.length; i+=1) {
+        setNewId(elementsWithoutIds[i]);
+      }
+      
+      return newElement;
     }
 
     function isDrawable() {
@@ -188,11 +194,24 @@
       return musicContainer && staticStyleElement && dynamicStyleElement && mei && true;
     }
 
-    function transform(transformNode){
+    function transform(transformNode, specialIdPrefix){
       // "raw" method for transforming MEI to HTML/SVG.
-      // It's called when initializing the view and by refresh as well as
-      xsltProcessor.setParameter(null,"transformNode",transformNode);
-      return xsltProcessor.transformToFragment(mei,document).firstChild;
+      // It's called when initializing the view and by refresh as well as when printing.
+      // transformNode is either an ID, a document node or a "tag" (like "<music>")
+      // When a "tag" is supplied, the transformation will transform the first element with the supplied tag name.
+      var meiDocument;
+      
+      console.log((specialIdPrefix === undefined) ? idPrefix : specialIdPrefix, idPrefix, specialIdPrefix)
+      xsltProcessor.setParameter(null, "idPrefix", (specialIdPrefix === undefined) ? idPrefix : specialIdPrefix);
+      if (transformNode instanceof Document) {
+        meiDocument = transformNode;
+        xsltProcessor.removeParameter(null,"transformNode");
+      } else {
+        meiDocument = mei;
+        xsltProcessor.setParameter(null,"transformNode",transformNode);
+      }
+      meiDocument = meiDocument || mei;
+      return xsltProcessor.transformToFragment(meiDocument,document).firstChild;
     }
 
     function refresh(element) {
@@ -261,7 +280,7 @@
     }
 
     function addSourceAttribute(element) {
-      var sourceIdAttribute = evaluateXPath(element,"//mei:source[1]/@xml:id[1]")[0];
+      var sourceIdAttribute = evaluateXPath(mei, "//mei:source[1]/@xml:id[1]")[0];
       element.setAttribute("source","#" + (sourceIdAttribute.textContent || error("No source ID found.")));
       return element;
     }
@@ -318,9 +337,12 @@
         "//@*[ " + 
           "local-name()='startid' or local-name()='endid' " +
         "][ " +
-          ".='" + ids.join("' or .='") + "'" +
-        "]/parent::*"
+          ".='#" + ids.join("' or .='#") + "'" +
+        "]/parent::*[" +
+          "@startid = @endid" +  // If start and end id are not identical, we simply change start or end id
+        "]"
       );
+      console.log("Number of referencing elements:", referencingElements.length)
       if (referencingElements.length > 0) {
         if (callbacks.deleteAnnotatedElement.length === 1) {
           return callbacks.deleteAnnotatedElement[0](referencingElements, element);
@@ -377,6 +399,7 @@
       }
     }
 
+      
     function newSourceBreakAfter(element, nodeName, leaveFocus) {
       // Inserts and returns a new system break.
       // We place source system breaks inside <syllable> elements as we sometimes have breaks with in a syllable.
@@ -385,21 +408,32 @@
 
       element = $MEI(element || selectedElement);
 
-      var newSb = addSourceAttribute(createMeiElement("<" + nodeName + "/>"));
+      var newBreak = addSourceAttribute(createMeiElement("<" + nodeName + "/>"));
 
-      insertElement(newSb, {
+      insertElement(newBreak, {
         contextElement : element,
         parent : "ancestor-or-self::mei:syllable[1]",
-        precedingSibling : "ancestor-or-self::*[parent::mei:syllable][1]",
-        leaveFocus : leaveFocus
+        precedingSibling : "ancestor-or-self::*[parent::mei:syllable][1]"
       });
       
-      return newSb;
+      if (!leaveFocus) {
+        self.selectElement(newBreak);
+      }
+      
+      return newBreak;
     }
     
 
     //////// "Public methods" //////////
 
+
+    this.ANNOTATION_TYPES = {
+      "internal":           {label: "internal annotation",       color:"#c11"},
+      "typesetter":         {label: "annotation for typesetter", color:"#11c"},
+      "public":             {label: "public annotation",         color:"#a70"},
+      "diacriticalMarking": {label: "diacritical marking",       color:"#384"},
+      "specialProperty":    {label: "special pitch property",    color:"#808"}
+    };
 
     // TODO: Implement this or merge .loadDocument()
     this.newDocument = function(text) {
@@ -547,6 +581,10 @@
         }
         
         dynamicStyleElement.textContent = "#" + idPrefix + $ID(selectedElement) + "{" + selectionStyle + "}";
+        
+        for (i=0; i<callbacks.updateView.length; i+=1) {
+          callbacks.updateView[i](element);
+        }
       } else {
         selectedElement = null;
       }
@@ -571,6 +609,8 @@
       // Test whether we're on the text layer
       } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")[0]) {
         nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)]][1]")[0];
+      } else {
+        throw new Error("We are neither on the text nor on the music layer.");
       }
       
       return this.selectElement(nextElement || selectedElement);
@@ -690,14 +730,14 @@
     };
 
     this.newSourceSbAfter = function(element, leaveFocus) {
-      return newSourceBreakAfter(element, "sb", leaveFocus);
+      return newSourceBreakAfter($MEI(element) || selectedElement, "sb", leaveFocus);
     };
 
     this.newSourcePbAfter = function(element, folioNumber, rectoVerso, leaveFocus) {
       var pb = newSourceBreakAfter(element, "pb", leaveFocus);
-      this.setPbData(pb, folioNumber, rectoVerso);
+      this.setPbData(folioNumber, rectoVerso, pb);
     };
-
+    
     this.newEditionSbAfter = function(element, leaveFocus) {
       // We put edition system breaks on the "text layer", i.e. inside <syllable>
       // (as opposed to source system breaks) 
@@ -711,16 +751,18 @@
         leaveFocus : leaveFocus
       });
 
+      this.newSyllableAfter("", true, newSb); // We can't have empty lines
+      
       return newSb;
     };
 
     // TODO: Test this
-    this.setPbData = function(pb, folioNumber, rectoVerso) {
+    this.setPbData = function(folioNumber, rectoVerso, pb) {
       // Sets the folio number and recto/verso information for a page break.
       // folioNumber must be an integer or a string of an integer.
       // rectoVerso is optional and must be "recto" or "verso".
 
-      pb = $MEI(pb, "pb");
+      pb = $MEI(pb || selectedElement, "pb")
 
       if (rectoVerso && (rectoVerso !== "recto" || rectoVerso !== "verso")) {
         throw new Error("rectoVerso can only take on the values 'recto' and 'verso', not '" + rectoVerso + "'.");
@@ -730,8 +772,8 @@
         throw new Error("Malformed folio number '" + folioNumber + "'");
       }
 
-      pb.setAttribute("n", folioNumber);
-      pb.setAttribute("func", rectoVerso);
+      pb.setAttribute("n", folioNumber || "");
+      pb.setAttribute("func", rectoVerso || "");
       
       refresh(pb);
 
@@ -746,13 +788,27 @@
     };
     
     this.setAnnotProperties = function(annot, properties) {
+      annot = $MEI(annot);
+      
       var oldProperties = this.getAnnotProperties(annot),
-        startid = $ID(properties.startid || oldProperties.startid || properties.endid),
-        endid   = $ID(properties.endid   || oldProperties.endid   || properties.startid),
+        startid = properties.startid || oldProperties.startid || properties.endid,
+        endid   = properties.endid   || oldProperties.endid   || properties.startid,
         type    = properties.type    || oldProperties.type,
         label   = properties.label   || oldProperties.label,
         text    = properties.text    || oldProperties.text;
-        
+       
+      // properties.ids supercedes startid and endid 
+      if (properties.ids) {
+        startid = properties.ids[0];
+        endid   = properties.ids[properties.ids.length - 1];
+        // We have to check whether the ids are in the correct order
+        /*jslint bitwise:true*/ // compareDocumentPosition() returns a bitmask where bitwise operations are most appropriate
+        if ($MEI(endid).compareDocumentPosition($MEI(startid)) & Node.DOCUMENT_POSITION_FOLLOWING) {
+          startid = endid;
+          endid   = properties.ids[0];
+        }
+      }
+
       if (startid && endid) {
         annot.setAttribute("startid", "#" + startid);
         annot.setAttribute("endid"  , "#" + endid);
@@ -770,10 +826,14 @@
       annot.textContent = text;
       
       refresh(startid);
-      if (startid !== endid) {refresh(endid);}
+      if (startid               !== endid)   {refresh(endid);}
+      if (oldProperties.startid !== startid) {refresh(oldProperties.startid);}
+      if (oldProperties.endid   !== endid)   {refresh(oldProperties.endid);}
     };
     
     this.getAnnotProperties = function(annot) {
+      annot = $MEI(annot);
+      
       return {
         // We must chop off the leading "#" from startid/endid anyURI
         startid: (annot.getAttribute("startid") || "").substring(1),
@@ -1022,6 +1082,24 @@
     this.getSerializedDocument = function() {
       return (new XMLSerializer()).serializeToString(mei);
     };
+
+    this.getPrintHtml = function(documents) {
+      var printDocument = transform(documents[0], "d0"),
+        printDocumentBody = printDocument.getElementsByTagName("body")[0],
+        i;
+      for (i=1; i<documents.length; i+=1) {
+        var contentToAppend = transform(documents[i], "d" + i).getElementsByTagName("body")[0].firstElementChild;
+        var defElements = contentToAppend.getElementsByTagName("defs");
+        var j;
+        for (j=0; j<defElements.length; j+=1) {
+          defElements[j].parentNode.removeChild(defElements[j]);
+        } 
+        printDocumentBody.appendChild(contentToAppend);
+      }
+      return printDocument;
+    };
+    
+    this.getMeiDocument = function(){return mei};
 
     // TODO: - getter/setter für Vorgangsnummer
     //       - method for generating print-ready HTML page

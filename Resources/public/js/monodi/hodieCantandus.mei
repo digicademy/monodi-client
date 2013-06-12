@@ -1,14 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="mei2xhtml.xsl"?>
-<mei xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e3">
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="mei2xhtml.xsl"?>
+<mei xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e3" meiversion="2013">
   <meiHead xml:id="d0e5">
     <fileDesc xml:id="d0e7">
       <titleStmt xml:id="d0e9">
         <title xml:id="d0e11"/>
       </titleStmt>
       <pubStmt xml:id="d0e14"/>
-      <sourceDesc xml:id="d0e16">
-        <source xml:id="AachenMs13"/>
+      <seriesStmt>
+        <title>Corpus monodicum</title>
+        <identifier type="volume">I</identifier>
+        <identifier type="section">tropi</identifier>
+      </seriesStmt>
+      <sourceDesc>
+        <source>
+          <physLoc>
+            <repository>
+              <geogName>Aachen</geogName>
+              <corpName>Domarchiv</corpName>
+              <identifier>G13</identifier>
+            </repository>
+          </physLoc>
+        </source>
       </sourceDesc>
     </fileDesc>
   </meiHead>
@@ -16,7 +28,8 @@
     <body xml:id="d0e25">
       <mdiv xml:id="d0e27">
         <score xml:id="d0e29">
-          <annot xml:id="d0e31" startid="#note1" endid="#note1" label="test" type="internal">Nur ein Test</annot>
+          <annot xml:id="d0e31" startid="#note1" endid="#note1" label="test" type="internal">Nur ein
+            Test</annot>
           <section xml:id="d0e34">
             <staff xml:id="d0e36">
               <layer xml:id="d0e38">
@@ -27,162 +40,209 @@
                       <note xml:id="note1" pname="d" oct="4"/>
                       <note label="oriscus" xml:id="d0e52" pname="d" oct="4"/>
                     </uneume>
-                    <note xml:id="d0e56" pname="c" oct="4"/>
+                    <uneume>
+                      <note xml:id="d0e56" pname="c" oct="4"/>
+                    </uneume>
                   </ineume>
-                  <uneume xml:id="d0e59">
-                    <note label="quilisma" xml:id="d0e63" pname="d" oct="4"/>
-                    <note xml:id="d0e66" pname="f" oct="4"/>
-                    <note xml:id="d0e68" pname="d" oct="4"/>
-                  </uneume>
+                  <ineume>
+                    <uneume xml:id="d0e59">
+                      <note label="quilisma" xml:id="d0e63" pname="d" oct="4"/>
+                      <note xml:id="d0e66" pname="f" oct="4"/>
+                      <note xml:id="d0e68" pname="d" oct="4"/>
+                    </uneume>
+                  </ineume>
                   <syl xml:id="d0e71" wordpos="i">Ho</syl>
                 </syllable>
                 <syllable xml:id="d0e75">
-                  <uneume xml:id="d0e77">
-                    <note xml:id="d0e79" pname="c" oct="4"/>
-                    <note xml:id="d0e81" pname="d" oct="4"/>
-                  </uneume>
+                  <ineume>
+                    <uneume xml:id="d0e77">
+                      <note xml:id="d0e79" pname="c" oct="4"/>
+                      <note xml:id="d0e81" pname="d" oct="4"/>
+                    </uneume>
+                  </ineume>
                   <syl xml:id="d0e84">di-</syl>
                 </syllable>
-                <syllable xml:id="d0e88">
+                <syllable>
                   <pb source="#AachenMs13" n="123"/>
-                  <uneume xml:id="d0e90">
-                    <note xml:id="d0e92" pname="d" oct="4"/>
-                  </uneume>
                   <syl xml:id="d0e97">e</syl>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e90">
+                      <note xml:id="d0e92" pname="d" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e101">
-                  <uneume xml:id="d0e103">
-                    <note xml:id="d0e105" pname="c" oct="4"/>
-                    <note label="liquescent" xml:id="d0e109" pname="d" oct="4"/>
-                  </uneume>
+                <syllable>
                   <syl xml:id="d0e113">can-</syl>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e103">
+                      <note xml:id="d0e105" pname="c" oct="4"/>
+                      <note mfunc="liquescent" xml:id="d0e109" pname="d" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e117">
-                  <uneume xml:id="d0e119">
-                    <note xml:id="d0e121" pname="d" oct="4"/>
-                    <note label="liquescent" xml:id="d0e125" pname="c" oct="4"/>
-                  </uneume>
+                <syllable>
                   <syl xml:id="d0e129">tan-</syl>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e119">
+                      <note xml:id="d0e121" pname="d" oct="4"/>
+                      <note mfunc="liquescent" xml:id="d0e125" pname="c" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e133">
-                  <uneume xml:id="d0e135">
-                    <note xml:id="d0e137" pname="c" oct="4"/>
-                    <note xml:id="d0e139" pname="f" oct="4"/>
-                  </uneume>
+                <syllable>
                   <syl xml:id="d0e142">dus</syl>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e135">
+                      <note xml:id="d0e137" pname="c" oct="4"/>
+                      <note xml:id="d0e139" pname="f" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e146">
+                <syllable>
                   <syl xml:id="d0e148">est</syl>
-                  <uneume xml:id="d0e151">
-                    <note xml:id="d0e153" pname="g" oct="4"/>
-                    <note xml:id="d0e155" pname="a" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e151">
+                      <note xml:id="d0e153" pname="g" oct="4"/>
+                      <note xml:id="d0e155" pname="a" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e159">
+                <syllable>
                   <syl xml:id="d0e161">no-</syl>
-                  <uneume xml:id="d0e164">
-                    <note xml:id="d0e166" pname="f" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e164">
+                      <note xml:id="d0e166" pname="f" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e170">
+                <syllable>
                   <syl xml:id="bis">bis</syl>
-                  <uneume xml:id="d0e175">
-                    <note xml:id="d0e177" pname="f" oct="4"/>
-                    <note xml:id="d0e179" pname="e" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e175">
+                      <note xml:id="d0e177" pname="f" oct="4"/>
+                      <note xml:id="d0e179" pname="e" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
                 <!--<sb/>-->
-                <syllable xml:id="d0e185">
+                <syllable>
                   <syl xml:id="d0e187">pu-</syl>
-                  <uneume xml:id="d0e190">
-                    <note xml:id="d0e192" pname="d" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e190">
+                      <note xml:id="d0e192" pname="d" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e196">
+                <syllable>
                   <syl xml:id="d0e198">er</syl>
-                  <uneume xml:id="d0e201">
-                    <note xml:id="d0e203" pname="d" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e201">
+                      <note xml:id="d0e203" pname="d" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e207">
+                <syllable>
                   <syl xml:id="d0e209">quem</syl>
-                  <uneume xml:id="d0e212">
-                    <note xml:id="d0e214" pname="g" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e212">
+                      <note xml:id="d0e214" pname="g" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e218">
+                <syllable>
                   <syl xml:id="d0e220">gi-</syl>
-                  <uneume xml:id="d0e223">
-                    <note xml:id="d0e225" pname="g" oct="4"/>
-                    <note label="liquescent" xml:id="d0e229" pname="a" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e223">
+                      <note xml:id="d0e225" pname="g" oct="4"/>
+                      <note mfunc="liquescent" xml:id="d0e229" pname="a" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e234">
+                <syllable>
                   <syl xml:id="d0e236">gne-</syl>
-                  <uneume xml:id="d0e239">
-                    <note xml:id="d0e241" pname="a" oct="4"/>
-                    <note xml:id="d0e243" pname="g" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e239">
+                      <note xml:id="d0e241" pname="a" oct="4"/>
+                      <note xml:id="d0e243" pname="g" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e247">
+                <syllable>
                   <syl xml:id="d0e249">bat</syl>
-                  <uneume xml:id="d0e252">
-                    <note xml:id="d0e254" pname="f" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e252">
+                      <note xml:id="d0e254" pname="f" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e258">
+                <syllable>
                   <syl xml:id="d0e260">in</syl>
-                  <uneume xml:id="d0e263">
-                    <note xml:id="d0e265" pname="g" oct="4"/>
-                  </uneume>
-                  <!--<sb source="#AachenMs13"/>-->
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e263">
+                      <note xml:id="d0e265" pname="g" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e271">
+                <syllable>
                   <syl xml:id="d0e273">ef-</syl>
-                  <uneume xml:id="d0e276">
-                    <note xml:id="d0e278" pname="a" oct="4"/>
-                    <note xml:id="d0e280" pname="c" oct="5"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e276">
+                      <note xml:id="d0e278" pname="a" oct="4"/>
+                      <note xml:id="d0e280" pname="c" oct="5"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e284">
+                <syllable>
                   <syl xml:id="d0e286">fa-</syl>
-                  <uneume xml:id="d0e289">
-                    <note xml:id="d0e291" pname="c" oct="5"/>
-                    <note xml:id="d0e293" pname="b" oct="4" accid="f"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e289">
+                      <note xml:id="d0e291" pname="c" oct="5"/>
+                      <note xml:id="d0e293" pname="b" oct="4" accid="f"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e297">
+                <syllable>
                   <syl xml:id="d0e299">bi-</syl>
-                  <uneume xml:id="d0e302">
-                    <note xml:id="d0e304" pname="b" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e302">
+                      <note xml:id="d0e304" pname="b" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e308">
+                <syllable>
                   <syl xml:id="d0e310">li-</syl>
-                  <uneume xml:id="d0e313">
-                    <note xml:id="d0e315" pname="b" oct="4"/>
-                    <note xml:id="d0e317" pname="a" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e313">
+                      <note xml:id="d0e315" pname="b" oct="4"/>
+                      <note xml:id="d0e317" pname="a" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e321">
+                <syllable>
                   <syl xml:id="d0e323">ter</syl>
-                  <uneume xml:id="d0e326">
-                    <note label="quilisma" xml:id="d0e330" pname="g" oct="4"/>
-                    <note xml:id="d0e333" pname="a" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e326">
+                      <note label="quilisma" xml:id="d0e330" pname="g" oct="4"/>
+                      <note xml:id="d0e333" pname="a" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e337">
+                <syllable>
                   <syl xml:id="d0e339">an-</syl>
-                  <uneume xml:id="d0e342">
-                    <note xml:id="d0e344" pname="g" oct="4"/>
-                    <note label="quilisma" xml:id="d0e348" pname="a" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e342">
+                      <note xml:id="d0e344" pname="g" oct="4"/>
+                      <note label="quilisma" xml:id="d0e348" pname="a" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
                 <syllable xml:id="d0e353">
                   <syl xml:id="d0e355">te</syl>
-                  <uneume xml:id="d0e358">
-                    <note xml:id="d0e360" pname="a" oct="4"/>
-                  </uneume>
+                  <ineume>
+                    <uneume xml:id="d0e358">
+                      <note xml:id="d0e360" pname="a" oct="4"/>
+                    </uneume>
+                  </ineume>
                   <!--<pb source="#AachenMs13" n="456"/>-->
                   <ineume xml:id="d0e365">
                     <uneume xml:id="d0e367">
@@ -196,37 +256,47 @@
                     </uneume>
                   </ineume>
                 </syllable>
-                <syllable xml:id="d0e385">
+                <syllable>
                   <syl xml:id="d0e387">tem-</syl>
-                  <uneume xml:id="d0e390">
-                    <note xml:id="d0e392" pname="f" oct="4"/>
-                    <note label="liquescent" xml:id="d0e396" pname="e" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e390">
+                      <note xml:id="d0e392" pname="f" oct="4"/>
+                      <note mfunc="liquescent" xml:id="d0e396" pname="e" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e401">
+                <syllable>
                   <syl xml:id="d0e403">po-</syl>
-                  <uneume xml:id="d0e406">
-                    <note xml:id="d0e408" pname="d" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e406">
+                      <note xml:id="d0e408" pname="d" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e412">
+                <syllable>
                   <syl xml:id="d0e414">ra</syl>
-                  <uneume xml:id="d0e417">
-                    <note xml:id="d0e419" pname="c" oct="4"/>
-                    <note xml:id="d0e421" pname="d" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e417">
+                      <note xml:id="d0e419" pname="c" oct="4"/>
+                      <note xml:id="d0e421" pname="d" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e425">
+                <syllable>
                   <syl xml:id="d0e427">pa-</syl>
-                  <uneume xml:id="d0e430">
-                    <note xml:id="d0e432" pname="d" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e430">
+                      <note xml:id="d0e432" pname="d" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
-                <syllable xml:id="d0e436">
+                <syllable>
                   <syl xml:id="d0e438">ter</syl>
-                  <uneume xml:id="d0e441">
-                    <note xml:id="d0e443" pname="d" oct="4"/>
-                  </uneume>
+                  <mei:ineume xmlns="" xmlns:mei="http://www.music-encoding.org/ns/mei">
+                    <uneume xmlns="http://www.music-encoding.org/ns/mei" xml:id="d0e441">
+                      <note xml:id="d0e443" pname="d" oct="4"/>
+                    </uneume>
+                  </mei:ineume>
                 </syllable>
               </layer>
             </staff>

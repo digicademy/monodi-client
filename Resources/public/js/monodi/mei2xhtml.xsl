@@ -239,7 +239,7 @@
            using borders of pseudo-elements before and after -->
       .musicLayer > .sb:after, .musicLayer > .pb:after {
         content:"";
-        border-left:<xsl:value-of select="$sbPbLineWidth"/>px solid black;
+        border-left:<xsl:value-of select="$sbPbLineWidth"/>px solid;
         position:absolute;
         left:<xsl:value-of select=".5*($sbPbWidth * $scaleStepSize - $sbPbLineWidth)"/>px;
         height:<xsl:value-of select="$scaleStepSize * 8"/>px;
@@ -247,17 +247,18 @@
         z-index:-1;
       }
       .musicLayer > .pb:after {
-        border-right:<xsl:value-of select="$sbPbLineWidth"/>px solid black;
+        border-right:<xsl:value-of select="$sbPbLineWidth"/>px solid;
         width:<xsl:value-of select="$pbLineDistance * $scaleStepSize"/>px;
         <!--left:<xsl:value-of select=".5*(($sbPbWidth - $pbLineDistance) * $scaleStepSize - $sbPbLineWidth)"/>px;-->
       }
       .folioDescription {
+        position:relative;
         border:1px solid black;
         margin:-1px 0;
         font-style:italic;
         min-width:1em;
         height:1em;
-        top:<xsl:value-of select="$scaleStepSize * 7"/>px;
+        <!--top:<xsl:value-of select="$scaleStepSize * 7"/>px;-->
         background-color:rgba(255,255,255,.9);
       }
 <!--    </style>
@@ -401,13 +402,39 @@
           content:"_";
           opacity:0;
         }
-        .endAnnot a {
+        .endAnnot > a {
           text-align:right;
         }
-        .startAnnot a {
+        .startAnnot > a {
           text-align:left;
         }
-        
+        .annotLabel.accumulatedAnnot {
+          display:none; <!-- We don't show labels if there is more than one because they would stack up and be unreadable -->
+        }
+        .annotGroup:hover {
+          width:auto; <!-- We want to show the full labels on hover, so make width adjust to the length of the labels. -->
+        }
+        .annotGroup:hover:before {
+          border:none; <!-- As we make .annotGroup wider on hover, the border would enclose more elements than it should; so we hide it. -->
+        }
+        .annotGroup:hover > .annotLabel {
+          display:block;
+          position:relative;
+          height:2.5em;
+          z-index:10;
+        }
+        .annotGroup:hover > .annotLabel:before {
+          border:none;
+        }
+        ._mei .annotGroup:hover > .annotLabel > a:before {
+          border:none;
+        }
+        .annotGroup:hover > .annotLabel > a {
+          overflow:visible;
+        }
+        .annotGroup:hover > a {
+          display:none;  <!-- Hide the "+" -->
+        }
         <!-- Special styling of music layer annotations -->
         <!--.nc   > .annotLabel:before, 
         .note > .annotLabel:before {
@@ -495,13 +522,19 @@
           background-color:rgba(0,0,0,.2);
         }
         .annotLabel > a:hover {
-          <!--overflow:visible;-->
-          <!--width:max-content;-->
+          width:max-content;
           max-width:none;
           border:1px solid currentColor;
           background-color:#fff;
           z-index:1;
           min-width:100%;
+          position:absolute;
+        }
+        .annotLabel:hover > a > .annotSelectionExtender:before {
+          content:"+";
+          border:1px solid black;
+          background-color: rgba(255,255,255,.5);
+          padding:.4em;
         }
         .annotLabel:not(.endAnnot) > a:hover {
           right:auto;
@@ -522,7 +555,7 @@
       <xsl:variable name="annotationClass" select="substring-before($styleDefinitions,':')"/>
       <xsl:variable name="annotationColor" select="substring-before(substring-after($styleDefinitions,':'),';')"/>
       <xsl:value-of select="concat('._mei .annotLabel.',normalize-space($annotationClass),'{color:',$annotationColor,';}&#10;')"/>
-      <xsl:value-of select="concat('._mei .annotLabel.',normalize-space($annotationClass),' a:before{background-color:',$annotationColor,';}&#10;')"/>
+      <xsl:value-of select="concat('._mei .annotLabel.',normalize-space($annotationClass),' > a:before{background-color:',$annotationColor,';}&#10;')"/>
       <xsl:call-template name="create-annotation-color-styles">
         <xsl:with-param name="styleDefinitions" select="substring-after($styleDefinitions,';')"/>
       </xsl:call-template>
@@ -674,33 +707,36 @@
       <xsl:for-each select="$annotations">
         <div class="annotLabel {@type}" data-annotation-id="{@xml:id}">
           <xsl:attribute name="class">
-            <xsl:value-of select="concat('annotLabel ',@type)"/>
+            <xsl:value-of select="concat('annotLabel ',@type,' ')"/>
             <xsl:if test="count($annotations) &gt; 1">
               <!-- TODO: Find a better class name? -->
-              <xsl:value-of select="' accumulatedAnnot'"/>
+              <xsl:value-of select="' accumulatedAnnot '"/>
             </xsl:if>
             <!-- Mark annot if we have a start, end, single or multiple annot.
                    We will display them differently (using "bracket" and "corner" shaped borders) -->
             <xsl:choose>
               <xsl:when test="(@startid=$idRef and @endid=$idRef) or normalize-space(@plist)=$idRef">
-                <xsl:value-of select="' singleElementAnnot'"/>
+                <xsl:value-of select="' singleElementAnnot '"/>
               </xsl:when>
               <xsl:when test="contains(concat(@plist,' '),concat($idRef,' '))">
-                <xsl:value-of select="' multiElementAnnot'"/>
+                <xsl:value-of select="' multiElementAnnot '"/>
               </xsl:when>
-              <xsl:when test="@startid=$idRef"> startAnnot</xsl:when>
-              <xsl:when test="@endid  =$idRef"> endAnnot</xsl:when>
+              <xsl:when test="@startid=$idRef"> startAnnot </xsl:when>
+              <xsl:when test="@endid  =$idRef"> endAnnot </xsl:when>
             </xsl:choose>
             <!-- We now test if both start and end of annotation are on the same "level"
                    (count() will return 1 if on the music layer, 0 otherwise) -->
-            <xsl:if
-              test="count(key('id',substring(@startid,2))[self::mei:note])
-                          !=count(key('id',substring(@endid  ,2))[self::mei:note])">
-              <xsl:value-of select="' multiLayerAnnot'"/>
+            <xsl:if test="count(
+              key('id',substring(@startid,2))[descendant-or-self::mei:note][not(descendant-or-self::mei:syllable)][1]
+            ) != count(
+              key('id',substring(@endid  ,2))[descendant-or-self::mei:note][not(descendant-or-self::mei:syllable)][1]
+            )">
+              <xsl:value-of select="' multiLayerAnnot '"/>
             </xsl:if>
           </xsl:attribute>
           <a href="#{$idPrefix}{@xml:id}" title="{@type} annotation:&#10;{.}">
             <xsl:value-of select="@label"/>
+            <span class="annotSelectionExtender"/>
           </a>
         </div>
       </xsl:for-each>
@@ -711,7 +747,7 @@
     <xsl:if test="count($annotations) &gt; 1">
       <div class="annotLabel annotGroup">
         <xsl:copy-of select="$annotationLabels"/>
-        <!--<a href="#">+</a>-->
+        <a href="#" title="multiple annotations">+</a>
       </div>
     </xsl:if>
   </xsl:template>

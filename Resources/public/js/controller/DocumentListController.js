@@ -18,7 +18,7 @@ function DocumentListCtrl($scope, $http) {
             localStorage['document' + id] = JSON.stringify(this);
             var documentList = localStorage['documentList'];
             if (documentList) {
-                if (documentList.index(' ' + id + ',') < 0) {
+                if (documentList.indexOf(' ' + id + ',') < 0) {
                     localStorage['documentList'] += ' ' + id + ',';
                 }
             } else {
