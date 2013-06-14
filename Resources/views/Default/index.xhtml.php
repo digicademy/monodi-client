@@ -32,7 +32,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         <style type="text/css" id="staticStyle"></style>
         <style type="text/css" id="dynamicStyle"></style>
     </head>
-    <body ng-app="monodi" ng-controller="AppCtrl">
+    <body ng-app="monodi" ng-controller="AppCtrl" data-appid="<?php echo($publicId); ?>">
         <div class="views">
             <div class="main container" ng-controller="DocumentCtrl">
                 <div id="musicContainer"></div>
