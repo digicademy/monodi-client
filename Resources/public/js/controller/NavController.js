@@ -6,7 +6,7 @@ function NavCtrl($scope, $http) {
             var form = data.match(/(<form(.|[\r\n])*\/form>)/)[0];
             if (form.length) {
                 var $modal = $('#loginModal').empty();
-                var $iframe = $('<iframe />').appendTo($modal).on('load',function() {
+                var $iframe = $('<iframe />').on('load',function() {
                     $iframe.contents().find('body').append(form);
                     $iframe.off('load').on('load', function() {
                         var hash = this.contentWindow.location.hash;
@@ -23,6 +23,7 @@ function NavCtrl($scope, $http) {
                         }
                     });
                 });
+                $iframe.appendTo($modal);
                 $modal.modal('show');
             }
         });
@@ -30,8 +31,7 @@ function NavCtrl($scope, $http) {
     };
 
     $scope.changePass = function(pass) {
-        var request = '{"current_password":"' + pass.old + '","new":"' + pass.new +'"}';
-        $http.put(baseurl + 'api/v1/profile/' + pass.name + '/password.json?access_token=' + $scope.access_token, request).success(function (data) {
+        $http.put(baseurl + 'api/v1/profile/' + pass.name + '/password.json?access_token=' + $scope.access_token, '{"current_password":"' + pass.old + '","new":"' + pass.new +'"}').success(function (data) {
             $('#changePassModal').find('.modal-body').find('.notice').remove().end().append('<p class="notice">Passwort wurde erfolgreich geändert</p>');
         }).error(function (data, status) {
             var error = '';

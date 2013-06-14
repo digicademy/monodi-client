@@ -76,6 +76,10 @@ function AppCtrl($scope, $http) {
         }
     };
 
+    $scope.saveDocument = function() {
+        $scope.$broadcast('saveDocument');
+    };
+
     $scope.$on('openDocumentRequest', function(e, data) {
         $scope.getDocument(data.id, function() {
             $scope.active = this;

@@ -226,7 +226,7 @@ $(document).on('keydown', function(e) {
 	if (checkElement('syl')) {
 		var $target = $(e.target);
 		if (!$target.data('saved')) {
-			monodi.document.setSylText($(e.target).text());
+			//monodi.document.setSylText($(e.target).text());
 		}
 	}
 }).on('focusout', '.sb.edition[contenteditable]', function(e) {

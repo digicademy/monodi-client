@@ -200,8 +200,7 @@
       // transformNode is either an ID, a document node or a "tag" (like "<music>")
       // When a "tag" is supplied, the transformation will transform the first element with the supplied tag name.
       var meiDocument;
-      
-      console.log((specialIdPrefix === undefined) ? idPrefix : specialIdPrefix, idPrefix, specialIdPrefix)
+
       xsltProcessor.setParameter(null, "idPrefix", (specialIdPrefix === undefined) ? idPrefix : specialIdPrefix);
       if (transformNode instanceof Document) {
         meiDocument = transformNode;
