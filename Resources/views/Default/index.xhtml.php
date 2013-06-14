@@ -36,22 +36,35 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         <div class="views">
             <div class="main container" ng-controller="DocumentCtrl">
                 <div id="musicContainer"></div>
+                <!-- saved -->
+                <div id="savedModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="savedLabel" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3>Document saved</h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>The document you are editing has been saved.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn" data-dismiss="modal" aria-hidden="true">Ok</button>
+                    </div>
+                </div>
             </div>
 
             <div class="files container" ng-controller="DocumentListCtrl">
                 <div class="row-fluid">
                     <div class="fileviewToggle btn-group span4 offset8">
-                        <button class="btn active"><i class="icon-align-left"></i> Ordnerstruktur</button>
-                        <button class="btn"><i class="icon-th-list"></i> Reine Liste</button>
+                        <button class="btn active"><i class="icon-align-left"></i> directory structure</button>
+                        <button class="btn"><i class="icon-th-list"></i> document list</button>
                     </div>
 
                     <div class="batch btn-group span4">
-                        <button class="btn dropdown-toggle btn-block" data-toggle="dropdown">Batchfunktionen <span class="caret"></span></button>
+                        <button class="btn dropdown-toggle btn-block" data-toggle="dropdown">Batch functions <span class="caret"></span></button>
                         <ul class="dropdown-menu">
-                            <li><button class="btn btn-link">Drucken</button></li>
-                            <li><button class="btn btn-link">Löschen</button></li>
-                            <li><button class="btn btn-link">Lokal speichern</button></li>
-                            <li><button class="btn btn-link">Lokal löschen</button></li>
+                            <li><button class="btn btn-link">print</button></li>
+                            <li><button class="btn btn-link">delete</button></li>
+                            <li><button class="btn btn-link">save locally</button></li>
+                            <li><button class="btn btn-link">delete locally</button></li>
                         </ul>
                     </div>
 
@@ -67,9 +80,9 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                 <thead>
                                     <tr>
                                         <th class="span1"><input type="checkbox" ng-click="toggle()" /></th>
-                                        <th class="span6">Struktur</th>
+                                        <th class="span6">Path</th>
                                         <th class="span4">Name</th>
-                                        <th>Funktionen</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="table-hover">
@@ -163,16 +176,15 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                     <div class="btn-group">
                                         <button class="btn btn-link dropdown-toggle" data-toggle="dropdown" ng-click="showView('main')">Dokument <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
-                                            <li><button class="btn btn-link" ng-click="saveDocument()">Speichern</button></li>
-                                            <li><button class="btn btn-link">Speichern unter</button></li>
-                                            <li><button class="btn btn-link" ng-click="showDocumentInfo()">Eigenschaften</button></li>
+                                            <li><button class="btn btn-link" ng-click="saveDocument()">Save</button></li>
+                                            <li><button class="btn btn-link" ng-click="showDocumentInfo()">Properties</button></li>
                                             <li class="divider"></li>
-                                            <li><button class="open btn btn-link" ng-click="showView('files')">Öffnen</button></li>
+                                            <li><button class="open btn btn-link" ng-click="showView('files')">Open</button></li>
                                         </ul>
                                     </div>
                                 </li>
-                                <li><button class="filecontrol btn btn-link" ng-click="showView('files')">Verwaltung</button></li>
-                                <li class="right"><button class="help btn btn-link" ng-click="showView('help')">Hilfe</button></li>
+                                <li><button class="filecontrol btn btn-link" ng-click="showView('files')">Management</button></li>
+                                <li class="right"><button class="help btn btn-link" ng-click="showView('help')">Help</button></li>
                                 <li class="right">
                                     <button class="btn btn-link" data-target="#changePassModal" data-toggle="modal" ng-show="access_token">Profil</button>
                                     <button class="btn btn-link" ng-click="login()" ng-hide="access_token">Login</button>
@@ -182,7 +194,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                     </div>
                 </div>
             </div>
-            
+
             <!-- login -->
             <div id="loginModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
                 <form action="login_check" method="post">
@@ -195,8 +207,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                         <p><input type="password" id="loginpass" placeholder="Passwort" /></p>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn forgot" data-dismiss="modal" aria-hidden="true">Passwort vergessen</button>
-                        <button type="submit" class="btn btn-primary">Anmelden</button>
+                        <button class="btn forgot" data-dismiss="modal" aria-hidden="true">Forgot your password?</button>
+                        <button type="submit" class="btn btn-primary">Login</button>
                     </div>
                 </form>
             </div>
@@ -205,13 +217,13 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
             <div id="forgotModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="LoginLabel" aria-hidden="true">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3>Passwort vergessen?</h3>
+                    <h3>Forgot your password?</h3>
                 </div>
                 <div class="modal-body">
                     <p><input type="text" id="loginname" placeholder="Benutzername" /></p>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary">Neues Passwort anfordern</button>
+                    <button class="btn btn-primary">request new password</button>
                 </div>
             </div>
 
@@ -224,26 +236,26 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                 <form name="changePassword" ng-submit="changePass(pass)">
                     <div class="modal-body">
                         <p>
-                            <input type="text" name="username" ng-model="pass.name" placeholder="Nutzername" required="required" />
+                            <input type="text" name="username" ng-model="pass.name" placeholder="Username" required="required" />
                             <span class="error" ng-show="changePassword.username.$error.required">!</span>
                         </p>
                         <p>
-                            <input type="password" name="old" ng-model="pass.old" placeholder="bisheriges Passwort" required="required" />
+                            <input type="password" name="old" ng-model="pass.old" placeholder="Current Password" required="required" />
                             <span class="error" ng-show="changePassword.old.$error.required">!</span>
                         </p>
                         <hr />
                         <p>
-                            <input type="password" name="new" ng-model="pass.new" placeholder="Passwort" required="required" />
+                            <input type="password" name="new" ng-model="pass.new" placeholder="Password" required="required" />
                             <span class="error" ng-show="changePassword.new.$error.required">!</span>
                         </p>
                         <p>
-                            <input type="password" name="newR" ng-model="pass.newR" placeholder="Passwort" match="pass.new" required="required" />
+                            <input type="password" name="newR" ng-model="pass.newR" placeholder="Password" match="pass.new" required="required" />
                             <span class="error" ng-show="changePassword.newR.$error.required">!</span>
-                            <div class="error" ng-show="changePassword.newR.$error.match">Neue Passwörter sind nicht gleich</div>
+                            <div class="error" ng-show="changePassword.newR.$error.match">new passwords are not equal</div>
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" type="submit">Passwort ändern</button>
+                        <button class="btn btn-primary" type="submit">change password</button>
                     </div>
                 </form>
             </div>
@@ -253,7 +265,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         <div id="annotationModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ChangePasswordLabel" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3>Kommentar</h3>
+                <h3>Comment</h3>
             </div>
             <form name="changePassword" ng-submit="changePass(pass)">
                 <div class="modal-body">
@@ -265,8 +277,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                     </p>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-warning" data-dismiss="modal">abbrechen</button>
-                    <button class="btn btn-primary" type="submit">Kommentar speichern</button>
+                    <button class="btn btn-warning" data-dismiss="modal">cancel</button>
+                    <button class="btn btn-primary" type="submit">save comment</button>
                 </div>
             </form>
         </div>
