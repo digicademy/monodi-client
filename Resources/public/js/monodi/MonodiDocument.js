@@ -284,28 +284,27 @@
       return element;
     }
     
-    function removeDummyState(note) {
-      note = $MEI(note);
-      if (note.getAttribute("label") === "dummy") {
+    function removeDummyState(element) {
+      evaluateXPath($MEI(element), "descendant-or-self::mei:note[@label='dummy']").forEach(function(note){
         note.removeAttribute("label");
-      }
+      });
     }
     
     function removeDummyNotes(element) {
-      var dummyNotes = evaluateXPath(
+      var ineumesWithDummy = evaluateXPath(
         element ? $MEI(element) : mei, 
-        "descendant-or-self::mei:note[@label='dummy']"
+        "(descendant-or-self::mei:ineume|ancestor::mei:ineume)[descendant::mei:note/@label='dummy']"
       ),
       i;
       
-      for (i=0; i<dummyNotes.length; i+=1) {
-        var parent = dummyNotes[i].parentNode; 
-        parent.removeChild(dummyNotes[i]);
+      for (i=0; i<ineumesWithDummy.length; i+=1) {
+        var parent = ineumesWithDummy[i].parentNode; 
+        parent.removeChild(ineumesWithDummy[i]);
         refresh(parent);
       }      
     }
 
-    function checkIfItemCanBeDeleted(element) {
+    function checkIfElementCanBeDeleted(element) {
       /* When deleting we have to check, whether deleting the element affects annotations that are anchored on the element.
        *   If so, we have to ask the user via a callback whether to proceed and delete the 
        *   annotation or anchor it to a different element. 
@@ -337,14 +336,38 @@
           "local-name()='startid' or local-name()='endid' " +
         "][ " +
           ".='#" + ids.join("' or .='#") + "'" +
-        "]/parent::*[" +
-          "@startid = @endid" +  // If start and end id are not identical, we simply change start or end id
-        "]"
+        "]/parent::*"
       );
-      console.log("Number of referencing elements:", referencingElements.length)
+      
+      // Some annotations can be deleted without problems because they're still attached to a second element
+      // We're indexing backwards because we'll possibly delete elements from the array, 
+      // which would make the loop skip some elements when going forward
+      for (i=referencingElements.length - 1; i>=0; i-=1) {
+        var startid = referencingElements[i].getAttribute("startid").substring(1), // @startid/@endid are anyURIs, so they have 
+            endid   = referencingElements[i].getAttribute("endid"  ).substring(1), //   a preceding "#" that we have to delete.
+            startidIsNotPointingToDeletion = ids.indexOf(startid) < 0,
+            endidIsNotPointingToDeletion   = ids.indexOf(endid  ) < 0;
+        
+        if (startidIsNotPointingToDeletion || endidIsNotPointingToDeletion) {
+          // We move the start or end of the annotation (depending on what will not be deleted)
+          var idRemainingValid = startidIsNotPointingToDeletion ? startid : endid;
+          referencingElements[i].setAttribute(
+            startidIsNotPointingToDeletion ? "endid" : "startid",
+            "#" + idRemainingValid
+          );
+          referencingElements.splice(i,1);
+          refresh(idRemainingValid);
+        } 
+      }
+      
       if (referencingElements.length > 0) {
         if (callbacks.deleteAnnotatedElement.length === 1) {
-          return callbacks.deleteAnnotatedElement[0](referencingElements, element);
+          if (callbacks.deleteAnnotatedElement[0](referencingElements, element)) {
+            for (i=0; i<referencingElements.length; i+=1) {
+              self.deleteElement(referencingElements[i], true);
+            }
+            return true;
+          }
         }
         throw new Error("Exactly one callback for deleteAnnotatedElement is required, but " + callbacks.deleteAnnotatedElement.length + "were defined.");
       }
@@ -388,7 +411,7 @@
         /*jslint bitwise:true*/ // compareDocumentPosition() returns a bitmask where bitwise operations are most appropriate
         if (
           !(mei.compareDocumentPosition(emptyElements[i]) & Node.DOCUMENT_POSITION_DISCONNECTED) &&
-          checkIfItemCanBeDeleted(emptyElements[i])
+          checkIfElementCanBeDeleted(emptyElements[i])
         ) {
           // TODO: Check for annotations!
           var parent = emptyElements[i].parentNode;
@@ -604,7 +627,7 @@
       
       // Test whether we're on the music layer
       if (evaluateXPath(selectedElement, "(ancestor-or-self::mei:ineume|self::mei:pb|self::mei:sb/@source)[1]")[0]) {
-        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source][1]")[0];
+        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source|self::mei:syllable[count(*)=1]][1]")[0];
       // Test whether we're on the text layer
       } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")[0]) {
         nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)]][1]")[0];
@@ -634,8 +657,10 @@
       // Do we derive this information implicitly from number of apostropha components?
 
       element = (element ? $MEI(element) : selectedElement) || error("Can not insert note. No element to insert after.");
+      removeDummyState(element);
+      
       // We're copying the preceding note's properties (if existent)
-      var precedingNote = evaluateXPath(element,"(self::mei:note|preceding::mei:note)[last()]")[0];
+      var precedingNote = evaluateXPath(element,"(descendant-or-self::mei:note|preceding::mei:note)[not(@intm)][last()]")[0];
       var newNote = precedingNote ? setNewId(precedingNote.cloneNode(true)) : createMeiElement("<note pname='b' oct='4'/>");
       // If we're inserting a new new note after an apostropha that is inside the same ineume as the new note,
       // we want it to be an apostropha as well (i.e. retain the label attribute) because ineumes with apostrophae
@@ -669,6 +694,7 @@
     this.newUneumeAfter = function(element, leaveFocus) {
       // Returns new inserted neume element
       element = $MEI(element || selectedElement);
+      removeDummyState(element);
 
       var newUneume = createMeiElement("<uneume/>");
       insertElement(newUneume,{
@@ -687,6 +713,7 @@
     this.newIneumeAfter = function(element, leaveFocus) {
       // Returns new inserted neume element
       element = $MEI(element || selectedElement);
+      removeDummyState(element);
 
       var newIneume = createMeiElement("<ineume/>");
       newIneume = insertElement(newIneume,{
@@ -761,7 +788,7 @@
       // folioNumber must be an integer or a string of an integer.
       // rectoVerso is optional and must be "recto" or "verso".
 
-      pb = $MEI(pb || selectedElement, "pb")
+      pb = $MEI(pb || selectedElement, "pb");
 
       if (rectoVerso && (rectoVerso !== "recto" || rectoVerso !== "verso")) {
         throw new Error("rectoVerso can only take on the values 'recto' and 'verso', not '" + rectoVerso + "'.");
@@ -824,10 +851,14 @@
       annot.setAttribute("label",label);
       annot.textContent = text;
       
+      removeDummyState(startid);
       refresh(startid);
-      if (startid               !== endid)   {refresh(endid);}
+      if (startid !== endid)   {
+        removeDummyState(endid);
+        refresh(endid);
+      }
       if (oldProperties.startid !== startid) {refresh(oldProperties.startid);}
-      if (oldProperties.endid   !== endid)   {refresh(oldProperties.endid);}
+      if (oldProperties.endid   !== endid  ) {refresh(oldProperties.endid  );}
     };
     
     this.getAnnotProperties = function(annot) {
@@ -1022,7 +1053,7 @@
 
       if (!element) {return;}
       var parent = element.parentNode;
-      if (parent && checkIfItemCanBeDeleted(element)) {
+      if (parent && checkIfElementCanBeDeleted(element)) {
         if (!leaveFocus) {
           selectedElement = element;
           this.selectNextElement("preceding");
@@ -1098,7 +1129,7 @@
       return printDocument;
     };
     
-    this.getMeiDocument = function(){return mei};
+    //this.getMeiDocument = function(){return mei};
 
     // TODO: - getter/setter für Vorgangsnummer
     //       - method for generating print-ready HTML page
