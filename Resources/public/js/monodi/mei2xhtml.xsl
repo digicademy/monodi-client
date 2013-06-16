@@ -267,17 +267,24 @@
            We create two empty inline-blocks.
            One (:after) makes sure the layout is reserving room,
            the other one (:before) is drawing the rectangle -->
-      *[contenteditable=true]:empty:after, *[contenteditable=true]:empty:before {
+      ._mei *[contenteditable=true]:empty:after, *[contenteditable=true]:empty:before {
         content:"";
         display:inline-block;
         height:1em;
         width:.5em;
         z-index:-1;
       }
-      *[contenteditable=true]:empty:before {
+      ._mei *[contenteditable=true]:empty:before {
         position:absolute;
         border:1px dotted black;
         opacity:.5;
+      }
+      <!-- We don't support line breaks in our contenteditable fields -->
+      ._mei [contenteditable] * {
+        display:inline;
+      }
+      ._mei [contenteditable] br {
+        display:none;
       }
 <!--    </style>
     <style type="text/css"> <!-\- Layout fine tuning -\->-->
@@ -743,7 +750,7 @@
             </xsl:if>
           </xsl:attribute>
           <a href="#{$idPrefix}{@xml:id}" title="{@type} annotation:&#10;{.}">
-            <xsl:value-of select="@label"/>
+            <xsl:value-of select="concat(@label,'&#160;')"/>
             <span class="annotSelectionExtender"/>
           </a>
         </div>
