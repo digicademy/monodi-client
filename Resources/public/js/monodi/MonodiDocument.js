@@ -207,18 +207,13 @@
         xsltProcessor.removeParameter(null,"transformNode");
       } else {
         meiDocument = mei;
-        xsltProcessor.setParameter(null,"transformNode",transformNode);
+        xsltProcessor.setParameter(null,"transformNode",$ID(transformNode));
       }
       meiDocument = meiDocument || mei;
       return xsltProcessor.transformToFragment(meiDocument,document).firstChild;
     }
 
     function refresh(element) {
-      // If an element was supplied, hand on the ID to the stylesheet.
-      // Otherwise, tell the stylesheet to transform the body.
-      // In Firefox, we wouldn't have to rely on IDs, there we could
-      // directly supply the MEI element as a parameter, but this does not
-      // work in Chrome.
       if (!isDrawable()) {return;}
       // If an element was supplied, hand this on to the transform method.
       // If nothing was specified, we want to refresh the full body.
@@ -227,25 +222,30 @@
       // for any changes of notes inside a uneume, we refresh the whole uneume
       element = element ? evaluateXPath(
         $MEI(element),
+        // As the content of uneue influences the rendering of slurs, 
+        // we have to refresh the whole uneume whenever something inside changes
         "(.|ancestor::mei:uneume)[1]"
-      )[0] : mei;
+      )[0] : "<mei>";
       
-      if (element === mei) {
-        musicContainer.replaceChild(
-          transform("<mei>"),
-          musicContainer.firstElementChild
-        );
-      } else {
-        var htmlElement = $HTML(element);
-        htmlElement.parentElement.replaceChild(
-          transform($ID(element)),
-          htmlElement
-        );
-  
-        var i;
-        for (i=0; i<callbacks.updateView.length; i+=1) {
-          callbacks.updateView[i](element);
-        }
+      var htmlElement;
+      switch (element.nodeName || element) {
+        case "<mei>":
+          htmlElement = musicContainer.firstElementChild;
+          break;
+        case !element.hasAttribute("source") && "sb":
+          // transform() will return a whole line of music for edition <sb>s.
+          // The whole line is wrapped into the parent element of the HTML element corresponding to the <sb> element.
+          htmlElement = $HTML(element).parentElement; 
+          break;
+        default:
+          htmlElement = $HTML(element);
+      }
+      
+      htmlElement.parentElement.replaceChild(transform(element), htmlElement);
+    
+      var i;
+      for (i=0; i<callbacks.updateView.length; i+=1) {
+        callbacks.updateView[i](element);
       }
     }
 
@@ -587,7 +587,11 @@
       var previouslySelectedElement = selectedElement;
       
       if (element) {
-        selectedElement = element && $MEI(element);
+        selectedElement = element && evaluateXPath(
+          $MEI(element),
+          // We only allow selection of sepcific types of elements 
+          "descendant-or-self::*[self::mei:note or self::mei:syllable or self::mei:syl or self::mei:sb or self::mei:pb][1]"
+        )[0];
         
         if (selectedElement === previouslySelectedElement) {return;}
         if (previouslySelectedElement) {removeDummyNotes(previouslySelectedElement);} 
@@ -727,11 +731,11 @@
     };
 
 
-    this.setSylText = function(text, syl) {
+    this.setSylText = function(text, syl, dontRefresh) {
       syl = syl || selectedElement;
       syl = $MEI(syl, "syl", "setSylText() only accepts syl elements as first argument, no " + syl.nodeName + " elements.");
       syl.textContent = text;
-      refresh(syl);
+      if (!dontRefresh) {refresh(syl);}
     };
 
     this.newSyllableAfter = function(text, leaveFocus, element) {
@@ -783,7 +787,7 @@
     };
 
     // TODO: Test this
-    this.setPbData = function(folioNumber, rectoVerso, pb) {
+    this.setPbData = function(folioNumber, rectoVerso, pb, dontRefresh) {
       // Sets the folio number and recto/verso information for a page break.
       // folioNumber must be an integer or a string of an integer.
       // rectoVerso is optional and must be "recto" or "verso".
@@ -801,7 +805,7 @@
       pb.setAttribute("n", folioNumber || "");
       pb.setAttribute("func", rectoVerso || "");
       
-      refresh(pb);
+      if (!dontRefresh) {refresh(pb);}
 
       return pb;
     };
@@ -873,72 +877,6 @@
         text   : annot.textContent
       };
     };    
-
-    // TODO: Test this
-    /* TODO: Rethink annotations
-    this.newAnnot = function(annotType, annotLabel, annotText) {
-      // A new annot element will be created and inserted into the document.
-      // annotType and annotMode are mandatory (they will be passed to setAnnotType and setAnnotMode).
-      // annotLabel and annotText are optional. Both can be set later when edited by the user.
-    };
-
-    this.setAnnotType = function(annot, annotType) {
-      // annotType must be one of the following values:
-      // "internal", "public", "specialNeume", "apparatus", "typesetter"
-    };
-
-    this.getAnnotType = function(annot) {
-      // Name says it.
-    };
-
-    this.setAnnotText = function(annot, paragraphArray) {
-      // Name says it all.
-      // paragraphArray is an array of strings, each being a paragraph (content of a <p> element)
-    };
-
-    this.getAnnotText = function(annot) {
-      // Name says it.
-    };
-
-    this.setAnnotLabel = function(annot, label) {
-      // Name says it.
-      // This method will also update the labels on annotated elements.
-    };
-
-    this.getAnnotLabel = function(annot) {
-      // Name says it.
-    };
-
-    this.setAnnotElements = function(annot, idArray) {
-      // Depending on the annotation mode, this function will either set the plist attribute or the startid/endid attributes.
-    };
-
-    this.getElementsAddressedByAnnot = function(annot, all) {
-      // Returns an array of IDs. The IDs represent the elements that are addressed by an annotation.
-      // Parameter all is optional. If it is true and annotation mode is "startEnd", then all elements "in between" start and end are returned.
-      // Otherwise, only the specified elements are returned. Usually, this parameter should not be required.
-    };
-
-    this.getListOfAnnotations = function(element, type) {
-      // Returns an array of IDs. The IDs represent annotation elements.
-      // "element" must be an HTML or MEI element or an ID. It can also be "$ALL" or "$GLOBAL".
-      // TODO: Continue here:
-      // If "element" however is
-      // If optional parameter "type" is provided, only annotations of this type will be listed.
-    };
-
-    this.highlightElementsReferencedByAnnot = function(annot) {
-      // This function will modify styles that will highlight all elements that are referenced by
-      // the annotation that is supplied as parameter.
-    };*/
-
-    /* QUESTION: Do we still need this?  We probably won't list annotations, will we? 
-    this.toString = function(element, html) {
-      // Returns a short characterizing string representation for an element,
-      // e.g. "note e4 oriscus" or something similar.
-      // If optional parameter html is true, an html representation is created that incorporates CSS classes
-      // suitable for styling different types of elements differently.
-    };*/
 
     // TODO: Test this    
     this.getAccidental = function(element) {
@@ -1040,10 +978,12 @@
     };
 
     // TODO: Test this
-    this.setSbLabel = function(labelText, sb) {
+    this.setSbLabel = function(labelText, sb, dontRefresh) {
       sb = sb || selectedElement;
       sb = $MEI(sb, "sb", "System break labels can only be assigned to sb elements.");
       sb.setAttribute("label",labelText);
+      
+      if (!dontRefresh) {refresh(sb);}
     };
 
     this.deleteElement = function(element, leaveFocus) {
