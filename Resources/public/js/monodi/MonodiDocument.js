@@ -840,8 +840,8 @@
       }
 
       if (startid && endid) {
-        annot.setAttribute("startid", "#" + startid);
-        annot.setAttribute("endid"  , "#" + endid);
+        annot.setAttribute("startid", "#" + $ID(startid));
+        annot.setAttribute("endid"  , "#" + $ID(endid  ));
       } else {
         throw new Error("An annotation must be given a start or end id.");
       }
