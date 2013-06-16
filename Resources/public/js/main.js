@@ -152,7 +152,7 @@ $(document).on('keydown', function(e) {
 	}
 
 	if (syl) {
-		var caret = getCaretCharacterOffsetWithin(e.target);
+		var caret = getCaretCharacterOffsetWithin(e.target),
 			$target = $(e.target),
 			text = $(e.target).text(),
 			open = text.indexOf('<'),
