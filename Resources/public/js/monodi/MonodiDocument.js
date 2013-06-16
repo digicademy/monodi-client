@@ -590,7 +590,7 @@
         selectedElement = element && evaluateXPath(
           $MEI(element),
           // We only allow selection of sepcific types of elements 
-          "descendant-or-self::*[self::mei:note or self::mei:syllable or self::mei:syl or self::mei:sb or self::mei:pb][1]"
+          "descendant-or-self::*[self::mei:note or self::mei:syllable[not(descendant::mei:note)] or self::mei:syl or self::mei:sb or self::mei:pb][1]"
         )[0];
         
         if (selectedElement === previouslySelectedElement) {return;}
@@ -734,7 +734,7 @@
     this.setSylText = function(text, syl, dontRefresh) {
       syl = syl || selectedElement;
       syl = $MEI(syl, "syl", "setSylText() only accepts syl elements as first argument, no " + syl.nodeName + " elements.");
-      syl.textContent = text;
+      syl.textContent = text.trim();
       if (!dontRefresh) {refresh(syl);}
     };
 
@@ -777,7 +777,7 @@
       insertElement(newSb, {
         contextElement : element,
         parent : "ancestor-or-self::mei:layer[1]",
-        precedingSibling : "ancestor-or-self::syllable[1]",
+        precedingSibling : "ancestor-or-self::mei:syllable[1]",
         leaveFocus : leaveFocus
       });
 
@@ -824,8 +824,8 @@
         startid = properties.startid || oldProperties.startid || properties.endid,
         endid   = properties.endid   || oldProperties.endid   || properties.startid,
         type    = properties.type    || oldProperties.type,
-        label   = properties.label   || oldProperties.label,
-        text    = properties.text    || oldProperties.text;
+        label   = typeof(properties.label) === "string" ? properties.label : (oldProperties.label || ""),
+        text    = typeof(properties.text ) === "string" ? properties.text  : (oldProperties.text  || "");
        
       // properties.ids supercedes startid and endid 
       if (properties.ids) {
@@ -993,7 +993,7 @@
 
       if (!element) {return;}
       var parent = element.parentNode;
-      if (parent && checkIfElementCanBeDeleted(element)) {
+      if (parent && checkIfElementCanBeDeleted(element) && element.getAttribute("label") !== "dummy") {
         if (!leaveFocus) {
           selectedElement = element;
           this.selectNextElement("preceding");
