@@ -754,7 +754,7 @@
         precedingSibling: "ancestor-or-self::mei:syllable[1]",
         leaveFocus: true
       });
-      this.setSylText(text, syl);
+      this.setSylText(text, false, syl);
       if (!leaveFocus) {this.selectElement(syl);}
       return newSyllable;
     };
