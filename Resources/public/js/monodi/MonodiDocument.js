@@ -238,6 +238,7 @@
       var htmlElement;
       switch (element.nodeName || element) {
         case "<mei>":
+          musicContainer.innerHTML = "<div></div>";
           htmlElement = musicContainer.firstElementChild;
           break;
         case !element.hasAttribute("source") && "sb":
@@ -250,7 +251,7 @@
       }
       
       htmlElement.parentElement.replaceChild(transform(element), htmlElement);
-      callUpdateViewCallbacks(element);
+      callUpdateViewCallbacks(htmlElement);
     }
 
     function insertElement(newElement, p) {
@@ -460,11 +461,153 @@
       "specialProperty":    {label: "special pitch property",    color:"#808"}
     };
 
-    // TODO: Implement this or merge .loadDocument()
-    this.newDocument = function(text) {
+    this.newDocument = function(text, textValidationCallback) {
       // Creates a new document and loads it into the document area.
       // Parameter "text" is optional. If provided, the text layer will be
       // generated from the hyphenated text so that only the music layer has to be added.
+      
+      
+      // This function can be tested with the following call:
+      /* monodi.document.newDocument(null,function(problemLine, problemLineNumber){
+           alert(
+             "Line " + problemLineNumber + " does not follow the expected syntax:\n\n  " + 
+             problemLine + 
+             "\n\nA fallback method will be used for generating the document"
+           );
+           return true;
+         })
+       */
+      
+      // Before entering the music, the project prepares text documents that contains only the text
+      // and is formatted in a specific way.
+      // It has three Tab separated columns:
+      // - left column: line labels (of the form /\d+/ or /[A-Z]/) 
+      // - center column: actual sung text
+      // - right column: folio numbers (of the form /\|\| f\. \d+v?/)
+      // We try to interpret parameter text in this way and extract all the necessary information.
+      // If we don't succeed, we signal this to the user and ask the user to either fix the input
+      // or make use of the fallback mode which interprets the input as one column of sung text.
+      
+      function processSyllables(string, sbLabel, folioInfo) {
+        /*jslint regexp: true*/
+        folioInfo = folioInfo || "";
+        sbLabel = sbLabel || "";
+        var contentString = '<sb label="' + sbLabel + '"/>',
+          syllables = string.match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g),
+          breakMarkerString = "",
+          folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)(v?)$/) || [],
+          i;
+          
+        for (i=0; i<syllables.length; i+=1) {
+          var syllable = syllables[i];
+          
+          switch (syllable) {
+            case "|":
+              breakMarkerString = "<sb source=''/>";
+              break;
+            case "||":
+              breakMarkerString = "<pb source='' " + 
+                "n='" + (folioInfoComponents[1] || "") + "' " + 
+                "func='" + (folioInfoComponents[2] || (folioInfoComponents[1] ? "r" : "")) + "'/>";
+              break;
+            default :
+              contentString += "<syllable>" +
+                                 "<syl>" + syllable.replace(/</g,"&lt;") + "</syl>" +
+                                 breakMarkerString +
+                               "</syllable>";
+              breakMarkerString = "";
+          }
+        }
+        return contentString;
+      }
+      
+      text = text || "";//|| prompt("Paste text")
+      // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
+      // escaped areas (using <>) and line breaks.
+      var contentString = "",
+        contentStringHasValidColumns = true,
+        rubricCaption = "",
+        lines = text.split(/\s*[\n\r]+/),
+        line,
+        i;
+      for (i=0; i<lines.length; i+=1) {
+        line = lines[i];
+        // Line that consists of:
+        // - Line label (or nothing)
+        // - Tab
+        // - Line content
+        // - optional:
+        //   - tab
+        //   - /|| f. \d+v?/ // 
+        /*jslint regexp: true*/
+        if (line.match(/^(\d*|[A-Z]?)\t([^\t]+)\t?(\|*\s*f\.\s*\d+v?)?\s*$/)) {
+          var columns = line.split(/\s*\t\s*/);
+          // A line that has no line label in the left column,
+          // only capital letters in the center column
+          // and optionally folio information of the form /f\. \d+v?/ in the third column
+          // is a rubric caption.
+          if (columns[0] === "" && columns[1].match(/^[A-Z\s]+$/)) {
+            // This is the rubric caption for the next line
+            rubricCaption = " " + columns[1];
+          } else {
+            contentString += processSyllables(columns[1], columns[0] + rubricCaption, columns[2]);
+            rubricCaption = "";
+          }        
+        } else {
+          contentStringHasValidColumns = false;
+          break; 
+        }
+      }
+      if (!contentStringHasValidColumns) {
+        // We're offering a fallback method here that does not rely on strict syntax,
+        // but can not transcribe all
+        contentString = "";
+        // Using textValidationCallback, The user is asked whether he wants to process the text in fallback mode
+        // (no culomn interpretation) 
+        if (textValidationCallback(line, i)) {
+          for (i=0; i<lines.length; i+=1) {
+            contentString += processSyllables(lines[i]);
+          }
+        } else {
+          return;
+        }
+      }
+      this.loadDocument({meiString: 
+        '<mei xmlns="http://www.music-encoding.org/ns/mei">' +
+          '<meiHead>' +
+            '<fileDesc>' +
+              '<titleStmt>' +
+                '<title/>' +
+              '</titleStmt>' +
+              '<pubStmt/>' +
+              '<sourceDesc>' +
+                '<source/>' +
+              '</sourceDesc>' +
+            '</fileDesc>' +
+          '</meiHead>' +
+          '<music>' +
+            '<body>' +
+              '<mdiv>' +
+                '<score>' +
+                  '<section>' +
+                    '<staff>' +
+                      '<layer>' +
+                        contentString +
+                      '</layer>' +
+                    '</staff>' +
+                  '</section>' +
+                '</score>' +
+              '</mdiv>' +
+            '</body>' +
+          '</music>' +
+        '</mei>'
+      });
+      
+      var elementsWithEmptySourceAttribute = evaluateXPath(mei, "//*[@source and @source='']");
+      for (i=0; i<elementsWithEmptySourceAttribute.length; i+=1) {
+        addSourceAttribute(elementsWithEmptySourceAttribute[i]);
+      }
+      
     };
 
     this.loadDocument = function(parameters) {
@@ -494,9 +637,6 @@
       musicContainer = ensureInstanceofHTMLElement(suppliedMusicContainer,null,
         "Parameter musicContainer must be an instance of HTMLElement"
       );
-      // We add a dummy element because later, we will call refresh(),
-      // which needs something to replace.
-      if (musicContainer) {musicContainer.innerHTML = "<div></div>";}
       staticStyleElement = ensureInstanceofHTMLElement(suppliedStaticStyleElement,"style",
         "Parameter staticStyleElement must be an HTML style element"
       );
