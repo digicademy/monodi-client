@@ -22,7 +22,6 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         <script src="/bundles/digitalwertmonodiclient/js/vendor/jquery.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/vendor/angular.js"></script>
 
-        <script src="/bundles/digitalwertmonodiclient/js/const.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/controller/AppController.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/controller/NavController.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/controller/DocumentListController.js"></script>
@@ -283,6 +282,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
             </form>
         </div>
 
+        <script src="/bundles/digitalwertmonodiclient/js/const.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/plugins.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/monodi/MonodiDocument.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/main.js"></script>

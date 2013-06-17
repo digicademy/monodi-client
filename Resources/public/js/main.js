@@ -250,7 +250,7 @@ $(document).on('keydown', function(e) {
 		properties = monodi.document.getAnnotProperties(annot);
 
 	var $modal = $('#annotationModal').find('form').on('submit', function() {
-		var $this = $(this);
+		var $this = $(this).off('submit');
 		monodi.document.setAnnotProperties(annot, {
 			type: $this.find('select').val(),
 			label: $this.find('input').val(),
