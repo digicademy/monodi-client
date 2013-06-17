@@ -207,18 +207,13 @@
         xsltProcessor.removeParameter(null,"transformNode");
       } else {
         meiDocument = mei;
-        xsltProcessor.setParameter(null,"transformNode",transformNode);
+        xsltProcessor.setParameter(null,"transformNode",$ID(transformNode));
       }
       meiDocument = meiDocument || mei;
       return xsltProcessor.transformToFragment(meiDocument,document).firstChild;
     }
 
     function refresh(element) {
-      // If an element was supplied, hand on the ID to the stylesheet.
-      // Otherwise, tell the stylesheet to transform the body.
-      // In Firefox, we wouldn't have to rely on IDs, there we could
-      // directly supply the MEI element as a parameter, but this does not
-      // work in Chrome.
       if (!isDrawable()) {return;}
       // If an element was supplied, hand this on to the transform method.
       // If nothing was specified, we want to refresh the full body.
@@ -227,25 +222,30 @@
       // for any changes of notes inside a uneume, we refresh the whole uneume
       element = element ? evaluateXPath(
         $MEI(element),
+        // As the content of uneue influences the rendering of slurs, 
+        // we have to refresh the whole uneume whenever something inside changes
         "(.|ancestor::mei:uneume)[1]"
-      )[0] : mei;
+      )[0] : "<mei>";
       
-      if (element === mei) {
-        musicContainer.replaceChild(
-          transform("<mei>"),
-          musicContainer.firstElementChild
-        );
-      } else {
-        var htmlElement = $HTML(element);
-        htmlElement.parentElement.replaceChild(
-          transform($ID(element)),
-          htmlElement
-        );
-  
-        var i;
-        for (i=0; i<callbacks.updateView.length; i+=1) {
-          callbacks.updateView[i](element);
-        }
+      var htmlElement;
+      switch (element.nodeName || element) {
+        case "<mei>":
+          htmlElement = musicContainer.firstElementChild;
+          break;
+        case !element.hasAttribute("source") && "sb":
+          // transform() will return a whole line of music for edition <sb>s.
+          // The whole line is wrapped into the parent element of the HTML element corresponding to the <sb> element.
+          htmlElement = $HTML(element).parentElement; 
+          break;
+        default:
+          htmlElement = $HTML(element);
+      }
+      
+      htmlElement.parentElement.replaceChild(transform(element), htmlElement);
+    
+      var i;
+      for (i=0; i<callbacks.updateView.length; i+=1) {
+        callbacks.updateView[i](element);
       }
     }
 
@@ -284,28 +284,27 @@
       return element;
     }
     
-    function removeDummyState(note) {
-      note = $MEI(note);
-      if (note.getAttribute("label") === "dummy") {
+    function removeDummyState(element) {
+      evaluateXPath($MEI(element), "descendant-or-self::mei:note[@label='dummy']").forEach(function(note){
         note.removeAttribute("label");
-      }
+      });
     }
     
     function removeDummyNotes(element) {
-      var dummyNotes = evaluateXPath(
+      var ineumesWithDummy = evaluateXPath(
         element ? $MEI(element) : mei, 
-        "descendant-or-self::mei:note[@label='dummy']"
+        "(descendant-or-self::mei:ineume|ancestor::mei:ineume)[descendant::mei:note/@label='dummy']"
       ),
       i;
       
-      for (i=0; i<dummyNotes.length; i+=1) {
-        var parent = dummyNotes[i].parentNode; 
-        parent.removeChild(dummyNotes[i]);
+      for (i=0; i<ineumesWithDummy.length; i+=1) {
+        var parent = ineumesWithDummy[i].parentNode; 
+        parent.removeChild(ineumesWithDummy[i]);
         refresh(parent);
       }      
     }
 
-    function checkIfItemCanBeDeleted(element) {
+    function checkIfElementCanBeDeleted(element) {
       /* When deleting we have to check, whether deleting the element affects annotations that are anchored on the element.
        *   If so, we have to ask the user via a callback whether to proceed and delete the 
        *   annotation or anchor it to a different element. 
@@ -337,14 +336,38 @@
           "local-name()='startid' or local-name()='endid' " +
         "][ " +
           ".='#" + ids.join("' or .='#") + "'" +
-        "]/parent::*[" +
-          "@startid = @endid" +  // If start and end id are not identical, we simply change start or end id
-        "]"
+        "]/parent::*"
       );
-      console.log("Number of referencing elements:", referencingElements.length)
+      
+      // Some annotations can be deleted without problems because they're still attached to a second element
+      // We're indexing backwards because we'll possibly delete elements from the array, 
+      // which would make the loop skip some elements when going forward
+      for (i=referencingElements.length - 1; i>=0; i-=1) {
+        var startid = referencingElements[i].getAttribute("startid").substring(1), // @startid/@endid are anyURIs, so they have 
+            endid   = referencingElements[i].getAttribute("endid"  ).substring(1), //   a preceding "#" that we have to delete.
+            startidIsNotPointingToDeletion = ids.indexOf(startid) < 0,
+            endidIsNotPointingToDeletion   = ids.indexOf(endid  ) < 0;
+        
+        if (startidIsNotPointingToDeletion || endidIsNotPointingToDeletion) {
+          // We move the start or end of the annotation (depending on what will not be deleted)
+          var idRemainingValid = startidIsNotPointingToDeletion ? startid : endid;
+          referencingElements[i].setAttribute(
+            startidIsNotPointingToDeletion ? "endid" : "startid",
+            "#" + idRemainingValid
+          );
+          referencingElements.splice(i,1);
+          refresh(idRemainingValid);
+        } 
+      }
+      
       if (referencingElements.length > 0) {
         if (callbacks.deleteAnnotatedElement.length === 1) {
-          return callbacks.deleteAnnotatedElement[0](referencingElements, element);
+          if (callbacks.deleteAnnotatedElement[0](referencingElements, element)) {
+            for (i=0; i<referencingElements.length; i+=1) {
+              self.deleteElement(referencingElements[i], true);
+            }
+            return true;
+          }
         }
         throw new Error("Exactly one callback for deleteAnnotatedElement is required, but " + callbacks.deleteAnnotatedElement.length + "were defined.");
       }
@@ -388,7 +411,7 @@
         /*jslint bitwise:true*/ // compareDocumentPosition() returns a bitmask where bitwise operations are most appropriate
         if (
           !(mei.compareDocumentPosition(emptyElements[i]) & Node.DOCUMENT_POSITION_DISCONNECTED) &&
-          checkIfItemCanBeDeleted(emptyElements[i])
+          checkIfElementCanBeDeleted(emptyElements[i])
         ) {
           // TODO: Check for annotations!
           var parent = emptyElements[i].parentNode;
@@ -564,7 +587,11 @@
       var previouslySelectedElement = selectedElement;
       
       if (element) {
-        selectedElement = element && $MEI(element);
+        selectedElement = element && evaluateXPath(
+          $MEI(element),
+          // We only allow selection of sepcific types of elements 
+          "descendant-or-self::*[self::mei:note or self::mei:syllable[not(descendant::mei:note)] or self::mei:syl or self::mei:sb or self::mei:pb][1]"
+        )[0];
         
         if (selectedElement === previouslySelectedElement) {return;}
         if (previouslySelectedElement) {removeDummyNotes(previouslySelectedElement);} 
@@ -604,7 +631,7 @@
       
       // Test whether we're on the music layer
       if (evaluateXPath(selectedElement, "(ancestor-or-self::mei:ineume|self::mei:pb|self::mei:sb/@source)[1]")[0]) {
-        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source][1]")[0];
+        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source|self::mei:syllable[count(*)=1]][1]")[0];
       // Test whether we're on the text layer
       } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")[0]) {
         nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)]][1]")[0];
@@ -634,8 +661,10 @@
       // Do we derive this information implicitly from number of apostropha components?
 
       element = (element ? $MEI(element) : selectedElement) || error("Can not insert note. No element to insert after.");
+      removeDummyState(element);
+      
       // We're copying the preceding note's properties (if existent)
-      var precedingNote = evaluateXPath(element,"(self::mei:note|preceding::mei:note)[last()]")[0];
+      var precedingNote = evaluateXPath(element,"(descendant-or-self::mei:note|preceding::mei:note)[not(@intm)][last()]")[0];
       var newNote = precedingNote ? setNewId(precedingNote.cloneNode(true)) : createMeiElement("<note pname='b' oct='4'/>");
       // If we're inserting a new new note after an apostropha that is inside the same ineume as the new note,
       // we want it to be an apostropha as well (i.e. retain the label attribute) because ineumes with apostrophae
@@ -669,6 +698,7 @@
     this.newUneumeAfter = function(element, leaveFocus) {
       // Returns new inserted neume element
       element = $MEI(element || selectedElement);
+      removeDummyState(element);
 
       var newUneume = createMeiElement("<uneume/>");
       insertElement(newUneume,{
@@ -687,6 +717,7 @@
     this.newIneumeAfter = function(element, leaveFocus) {
       // Returns new inserted neume element
       element = $MEI(element || selectedElement);
+      removeDummyState(element);
 
       var newIneume = createMeiElement("<ineume/>");
       newIneume = insertElement(newIneume,{
@@ -700,11 +731,11 @@
     };
 
 
-    this.setSylText = function(text, syl) {
+    this.setSylText = function(text, syl, dontRefresh) {
       syl = syl || selectedElement;
       syl = $MEI(syl, "syl", "setSylText() only accepts syl elements as first argument, no " + syl.nodeName + " elements.");
-      syl.textContent = text;
-      refresh(syl);
+      syl.textContent = text.trim();
+      if (!dontRefresh) {refresh(syl);}
     };
 
     this.newSyllableAfter = function(text, leaveFocus, element) {
@@ -746,7 +777,7 @@
       insertElement(newSb, {
         contextElement : element,
         parent : "ancestor-or-self::mei:layer[1]",
-        precedingSibling : "ancestor-or-self::syllable[1]",
+        precedingSibling : "ancestor-or-self::mei:syllable[1]",
         leaveFocus : leaveFocus
       });
 
@@ -756,12 +787,12 @@
     };
 
     // TODO: Test this
-    this.setPbData = function(folioNumber, rectoVerso, pb) {
+    this.setPbData = function(folioNumber, rectoVerso, pb, dontRefresh) {
       // Sets the folio number and recto/verso information for a page break.
       // folioNumber must be an integer or a string of an integer.
       // rectoVerso is optional and must be "recto" or "verso".
 
-      pb = $MEI(pb || selectedElement, "pb")
+      pb = $MEI(pb || selectedElement, "pb");
 
       if (rectoVerso && (rectoVerso !== "recto" || rectoVerso !== "verso")) {
         throw new Error("rectoVerso can only take on the values 'recto' and 'verso', not '" + rectoVerso + "'.");
@@ -774,7 +805,7 @@
       pb.setAttribute("n", folioNumber || "");
       pb.setAttribute("func", rectoVerso || "");
       
-      refresh(pb);
+      if (!dontRefresh) {refresh(pb);}
 
       return pb;
     };
@@ -793,8 +824,8 @@
         startid = properties.startid || oldProperties.startid || properties.endid,
         endid   = properties.endid   || oldProperties.endid   || properties.startid,
         type    = properties.type    || oldProperties.type,
-        label   = properties.label   || oldProperties.label,
-        text    = properties.text    || oldProperties.text;
+        label   = typeof(properties.label) === "string" ? properties.label : (oldProperties.label || ""),
+        text    = typeof(properties.text ) === "string" ? properties.text  : (oldProperties.text  || "");
        
       // properties.ids supercedes startid and endid 
       if (properties.ids) {
@@ -809,8 +840,8 @@
       }
 
       if (startid && endid) {
-        annot.setAttribute("startid", "#" + startid);
-        annot.setAttribute("endid"  , "#" + endid);
+        annot.setAttribute("startid", "#" + $ID(startid));
+        annot.setAttribute("endid"  , "#" + $ID(endid  ));
       } else {
         throw new Error("An annotation must be given a start or end id.");
       }
@@ -824,10 +855,14 @@
       annot.setAttribute("label",label);
       annot.textContent = text;
       
+      removeDummyState(startid);
       refresh(startid);
-      if (startid               !== endid)   {refresh(endid);}
+      if (startid !== endid)   {
+        removeDummyState(endid);
+        refresh(endid);
+      }
       if (oldProperties.startid !== startid) {refresh(oldProperties.startid);}
-      if (oldProperties.endid   !== endid)   {refresh(oldProperties.endid);}
+      if (oldProperties.endid   !== endid  ) {refresh(oldProperties.endid  );}
     };
     
     this.getAnnotProperties = function(annot) {
@@ -842,72 +877,6 @@
         text   : annot.textContent
       };
     };    
-
-    // TODO: Test this
-    /* TODO: Rethink annotations
-    this.newAnnot = function(annotType, annotLabel, annotText) {
-      // A new annot element will be created and inserted into the document.
-      // annotType and annotMode are mandatory (they will be passed to setAnnotType and setAnnotMode).
-      // annotLabel and annotText are optional. Both can be set later when edited by the user.
-    };
-
-    this.setAnnotType = function(annot, annotType) {
-      // annotType must be one of the following values:
-      // "internal", "public", "specialNeume", "apparatus", "typesetter"
-    };
-
-    this.getAnnotType = function(annot) {
-      // Name says it.
-    };
-
-    this.setAnnotText = function(annot, paragraphArray) {
-      // Name says it all.
-      // paragraphArray is an array of strings, each being a paragraph (content of a <p> element)
-    };
-
-    this.getAnnotText = function(annot) {
-      // Name says it.
-    };
-
-    this.setAnnotLabel = function(annot, label) {
-      // Name says it.
-      // This method will also update the labels on annotated elements.
-    };
-
-    this.getAnnotLabel = function(annot) {
-      // Name says it.
-    };
-
-    this.setAnnotElements = function(annot, idArray) {
-      // Depending on the annotation mode, this function will either set the plist attribute or the startid/endid attributes.
-    };
-
-    this.getElementsAddressedByAnnot = function(annot, all) {
-      // Returns an array of IDs. The IDs represent the elements that are addressed by an annotation.
-      // Parameter all is optional. If it is true and annotation mode is "startEnd", then all elements "in between" start and end are returned.
-      // Otherwise, only the specified elements are returned. Usually, this parameter should not be required.
-    };
-
-    this.getListOfAnnotations = function(element, type) {
-      // Returns an array of IDs. The IDs represent annotation elements.
-      // "element" must be an HTML or MEI element or an ID. It can also be "$ALL" or "$GLOBAL".
-      // TODO: Continue here:
-      // If "element" however is
-      // If optional parameter "type" is provided, only annotations of this type will be listed.
-    };
-
-    this.highlightElementsReferencedByAnnot = function(annot) {
-      // This function will modify styles that will highlight all elements that are referenced by
-      // the annotation that is supplied as parameter.
-    };*/
-
-    /* QUESTION: Do we still need this?  We probably won't list annotations, will we? 
-    this.toString = function(element, html) {
-      // Returns a short characterizing string representation for an element,
-      // e.g. "note e4 oriscus" or something similar.
-      // If optional parameter html is true, an html representation is created that incorporates CSS classes
-      // suitable for styling different types of elements differently.
-    };*/
 
     // TODO: Test this    
     this.getAccidental = function(element) {
@@ -1009,10 +978,12 @@
     };
 
     // TODO: Test this
-    this.setSbLabel = function(labelText, sb) {
+    this.setSbLabel = function(labelText, sb, dontRefresh) {
       sb = sb || selectedElement;
       sb = $MEI(sb, "sb", "System break labels can only be assigned to sb elements.");
       sb.setAttribute("label",labelText);
+      
+      if (!dontRefresh) {refresh(sb);}
     };
 
     this.deleteElement = function(element, leaveFocus) {
@@ -1022,7 +993,7 @@
 
       if (!element) {return;}
       var parent = element.parentNode;
-      if (parent && checkIfItemCanBeDeleted(element)) {
+      if (parent && checkIfElementCanBeDeleted(element) && element.getAttribute("label") !== "dummy") {
         if (!leaveFocus) {
           selectedElement = element;
           this.selectNextElement("preceding");
@@ -1098,7 +1069,7 @@
       return printDocument;
     };
     
-    this.getMeiDocument = function(){return mei};
+    //this.getMeiDocument = function(){return mei};
 
     // TODO: - getter/setter für Vorgangsnummer
     //       - method for generating print-ready HTML page

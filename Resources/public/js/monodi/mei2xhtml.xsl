@@ -117,7 +117,7 @@
             <xsl:call-template name="createStyleElement"/>
             <style type="text/css" id="highlightStyle"/>
           </head>
-          <!-- Here is some testing code for checking how highlighting can work. TODO: Remove this before productive use -->
+          <!-- onload can be used e.g. for supplying JavaScript that triggers the print dialog when the pages is loaded -->
           <body>
             <xsl:if test="string-length($onload) != 0">
               <xsl:attribute name="onload">
@@ -221,7 +221,7 @@
         stroke-width:<xsl:value-of select="$scaleStepSize * 2 * ($apostrophaNoteheadSize + $ledgerLineProtrusion) * $scaleStepSize"/>;
       }
       .liquescent {
-        fill:<xsl:value-of select="$liquescentColor"/>;
+        color:<xsl:value-of select="$liquescentColor"/>;
       }
       .dummy.note {
         opacity:.5;
@@ -267,17 +267,24 @@
            We create two empty inline-blocks.
            One (:after) makes sure the layout is reserving room,
            the other one (:before) is drawing the rectangle -->
-      *[contenteditable=true]:empty:after, *[contenteditable=true]:empty:before {
+      ._mei *[contenteditable=true]:empty:after, *[contenteditable=true]:empty:before {
         content:"";
         display:inline-block;
         height:1em;
         width:.5em;
         z-index:-1;
       }
-      *[contenteditable=true]:empty:before {
+      ._mei *[contenteditable=true]:empty:before {
         position:absolute;
         border:1px dotted black;
         opacity:.5;
+      }
+      <!-- We don't support line breaks in our contenteditable fields -->
+      ._mei [contenteditable] * {
+        display:inline;
+      }
+      ._mei [contenteditable] br {
+        display:none;
       }
 <!--    </style>
     <style type="text/css"> <!-\- Layout fine tuning -\->-->
@@ -383,8 +390,10 @@
         <!-- ...but we don't do it for these typical annotations: -->
         .note    > .annotLabel > a,
         .note    > .annotLabel:before,
+        .textLayer .annotLabel > a,
         .textLayer .annotLabel:before,  
-        .textLayer .annotLabel > a { 
+        .sb.edition .annotLabel > a,
+        .sb.edition .annotLabel:before { 
           margin-top:0;
         }
         <!-- This is the background for the label -->
@@ -468,12 +477,14 @@
         }-->
         
         <!-- Special styling for text layer annotations -->
-        .textLayer .annotLabel {
+        .textLayer .annotLabel,
+        .sb.edition .annotLabel {
           top:<xsl:value-of select="$textAnnotHeight * $scaleStepSize"/>px;
           left:-3px;
           padding-right:6px;
         }
-        .textLayer .annotLabel:before {
+        .textLayer .annotLabel:before,
+        .sb.edition .annotLabel:before {
           top:<xsl:value-of select="-$textAnnotHeight * $scaleStepSize"/>px;
         }
   
@@ -488,15 +499,18 @@
           border-radius:<xsl:value-of select="concat('0 ',$annotLabelBorderRadius,'px ',$annotLabelBorderRadius,'px 0')"/>;
           right:0;
         }
-        .startAnnot.multiLayerAnnot:before {
+        <!-- On the text layer, we don't multiLayerAnnots to have a top border (for music layer, an exception is defeind below) -->
+        .annotLabel.multiLayerAnnot:before {
+          border-top-color:transparent;
+        }
+        .annotLabel.startAnnot.multiLayerAnnot:before {
           border-radius:0 0 0 <xsl:value-of select="$annotLabelBorderRadius"/>px;
-          border-color:transparent transparent inherit inherit;
         }
         .musicLayer .annotLabel.startAnnot.multiLayerAnnot:before {
           border-radius:<xsl:value-of select="$annotLabelBorderRadius"/>px 0 0 0;
           border-color:currentColor transparent transparent currentColor;
         }
-        .endAnnot.multiLayerAnnot:before {
+        .annotLabel.endAnnot.multiLayerAnnot:before {
            border-radius:0 0 <xsl:value-of select="$annotLabelBorderRadius"/>px 0;
            border-color:transparent currentColor currentColor transparent;
         }
@@ -630,10 +644,12 @@
   
   <xsl:template match="mei:sb[not(@source)]">
     <div class="editionLine">
-      <div class="_mei sb edition" title="line label">
-        <xsl:call-template name="set-content-editable"/>
+      <div class="_mei sb edition">
         <xsl:apply-templates select="@xml:id"/>
-        <xsl:value-of select="@label"/>
+        <span title="line label">
+          <xsl:call-template name="set-content-editable"/>
+          <xsl:value-of select="@label"/>
+        </span>
       </div>
       <xsl:apply-templates select="following-sibling::*
         [not(self::mei:sb) or @source]
@@ -695,8 +711,7 @@
 
   <xsl:template match="@*"/>
 
-  <!-- This copies the ID and checks for annotations for this ID. 
-       TODO: Handle multiple annotations for same ID (currently one completely covers the others) -->
+  <!-- This copies the ID and checks for annotations for this ID. -->
   <xsl:template match="@xml:id">
     <xsl:attribute name="id">
       <xsl:value-of select="concat($idPrefix,.)"/>
@@ -725,24 +740,23 @@
               <xsl:when test="@endid  =$idRef"> endAnnot </xsl:when>
             </xsl:choose>
             <!-- We now test if both start and end of annotation are on the same "level"
-                   (count() will return 1 if on the music layer, 0 otherwise) -->
+                   (count() will return 1 if on the text layer, 0 otherwise) -->
             <xsl:if test="count(
-              key('id',substring(@startid,2))[descendant-or-self::mei:note][not(descendant-or-self::mei:syllable)][1]
+              key('id',substring(@startid,2))[ancestor-or-self::mei:syl or not(ancestor-or-self::mei:syllable)][1]
             ) != count(
-              key('id',substring(@endid  ,2))[descendant-or-self::mei:note][not(descendant-or-self::mei:syllable)][1]
+              key('id',substring(@endid  ,2))[ancestor-or-self::mei:syl or not(ancestor-or-self::mei:syllable)][1]
             )">
               <xsl:value-of select="' multiLayerAnnot '"/>
             </xsl:if>
           </xsl:attribute>
           <a href="#{$idPrefix}{@xml:id}" title="{@type} annotation:&#10;{.}">
-            <xsl:value-of select="@label"/>
+            <xsl:value-of select="concat(@label,'&#160;')"/>
             <span class="annotSelectionExtender"/>
           </a>
         </div>
       </xsl:for-each>
     </xsl:variable>
-    <!-- We copy the annotations here so that we can display one of them (and hopefully all their boxes) 
-         Currently, we hide all text except for the first one. (TODO: Better would be hiding by priority) --> 
+    <!-- We copy the annotations here so that we can display them on hover --> 
     <xsl:copy-of select="$annotationLabels"/>
     <xsl:if test="count($annotations) &gt; 1">
       <div class="annotLabel annotGroup">
@@ -769,8 +783,8 @@
   </xsl:template>
   
   <xsl:template match="mei:uneume">
-    <!-- QUESTION: Do we use/need @name here? -->
-    <div class="_mei uneume {@name}">
+    <!-- We do not use @name or @form in mono:di, but if they were there, it would make sense to hand them on as classes -->
+    <div class="_mei uneume {@name} {@form}">
       <xsl:apply-templates select="@xml:id"/>
       
       <!-- Add a slur for uneumes with more than one note 
@@ -809,14 +823,6 @@
     <xsl:copy-of select="-(number(translate(@pname,'cdefgab','01234567')) + 7*number(@oct) - 34)"/>
   </xsl:template>
   <!-- Notes without clear pitch orient themselves by their preceding note -->
-<!--  <xsl:template mode="get-notehead-step" match="mei:note[@intm='u' or @intm='d'][not(@pname)]">
-    <xsl:variable name="precedingStep">
-      <xsl:apply-templates select="preceding::mei:note[1]" mode="get-notehead-step"/>
-    </xsl:variable>
-    <!-\- Translate "d" to -1, "u" to 1 using this trick -\->
-    <xsl:variable name="direction" select="translate(@intm,'ud','02') - 1"/>
-    <xsl:copy-of select="$precedingStep + $direction"/>
-  </xsl:template>-->
   <xsl:template mode="get-notehead-step" match="mei:note[@intm='u' or @intm='d'][not(@pname)]">
     <xsl:apply-templates select="preceding::mei:note[1]" mode="get-notehead-step"/>
   </xsl:template>
@@ -847,7 +853,9 @@
         </xsl:choose>
         
         <xsl:if test="$requiredAccidentalSpace &gt; 0"> <!-- if > 0, we have an accidental -->
-          <svg:text class="accidental" x="{$scaleStepSize * (-.5*$noteSpace - $accidentalSpace)}" y="{$noteheadStep + 4}"><xsl:value-of select="$accidental"/></svg:text>
+          <svg:text class="accidental" x="{$scaleStepSize * (-.5*$noteSpace - $accidentalSpace)}" y="{$noteheadStep + 4}">
+            <xsl:value-of select="$accidental"/>
+          </svg:text>
           <!-- TODO: Don't use unicode glyphs. We have no guaranteed size or base line choice -->
         </xsl:if>
         
@@ -888,7 +896,7 @@
   </xsl:template>
   
   
-  <!-- Text formatting templates (mainly useful for annotations) -->
+  <!-- Text formatting templates (mainly useful for annotations). We're not using any of those right now. -->
   <xsl:template match="mei:list">
     <ul class="_mei list">
       <xsl:apply-templates select="@*|node()"/>

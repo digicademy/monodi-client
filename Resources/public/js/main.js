@@ -94,7 +94,7 @@ $(document).on('keydown', function(e) {
 			case 38: //up
 			case 40: //down
 				var change;
-				if (e.shiftKey) {
+				if (e.ctrlKey) {
 					change = (e.keyCode == 38)? 'u' : 'd';
 					monodi.document.setIntm(change);
 				} else {
@@ -102,8 +102,7 @@ $(document).on('keydown', function(e) {
 					monodi.document.changeScaleStep(change);
 				}
 			break;
-			case 173: //- (Lin)
-			case 189: //- (Mac)
+			case 16:  // Shift
 				monodi.document.newNoteAfter();
 			break;
 			case 66: //b
@@ -153,7 +152,7 @@ $(document).on('keydown', function(e) {
 	}
 
 	if (syl) {
-		var caret = getCaretCharacterOffsetWithin(e.target);
+		var caret = getCaretCharacterOffsetWithin(e.target),
 			$target = $(e.target),
 			text = $(e.target).text(),
 			open = text.indexOf('<'),
