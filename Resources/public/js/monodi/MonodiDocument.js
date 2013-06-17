@@ -189,6 +189,14 @@
       return newElement;
     }
 
+    function callUpdateViewCallbacks(element) {
+      var i;
+      for (i=0; i<callbacks.updateView.length; i+=1) {
+        callbacks.updateView[i]($HTML(element));
+      }
+    }
+    
+
     function isDrawable() {
       // Checks whether everything we need for drawing is there
       return musicContainer && staticStyleElement && dynamicStyleElement && mei && true;
@@ -242,11 +250,7 @@
       }
       
       htmlElement.parentElement.replaceChild(transform(element), htmlElement);
-    
-      var i;
-      for (i=0; i<callbacks.updateView.length; i+=1) {
-        callbacks.updateView[i](element);
-      }
+      callUpdateViewCallbacks(element);
     }
 
     function insertElement(newElement, p) {
@@ -445,7 +449,6 @@
       return newBreak;
     }
     
-
     //////// "Public methods" //////////
 
 
@@ -608,10 +611,9 @@
         
         dynamicStyleElement.textContent = "#" + idPrefix + $ID(selectedElement) + "{" + selectionStyle + "}";
         
-        for (i=0; i<callbacks.updateView.length; i+=1) {
-          callbacks.updateView[i](element);
-        }
+        callUpdateViewCallbacks(element);
       } else {
+        dynamicStyleElement.textContent = "";
         selectedElement = null;
       }
       
