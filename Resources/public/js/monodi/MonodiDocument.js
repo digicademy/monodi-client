@@ -731,7 +731,7 @@
     };
 
 
-    this.setSylText = function(text, syl, dontRefresh) {
+    this.setSylText = function(text, dontRefresh, syl) {
       syl = syl || selectedElement;
       syl = $MEI(syl, "syl", "setSylText() only accepts syl elements as first argument, no " + syl.nodeName + " elements.");
       syl.textContent = text.trim();
