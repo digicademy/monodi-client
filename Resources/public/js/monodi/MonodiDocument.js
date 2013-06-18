@@ -521,7 +521,7 @@
         return contentString;
       }
       
-      text = text || "";//|| prompt("Paste text")
+      text = text || "";// || prompt("Paste text")
       // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
       // escaped areas (using <>) and line breaks.
       var contentString = "",
@@ -603,7 +603,7 @@
         '</mei>'
       });
       
-      var elementsWithEmptySourceAttribute = evaluateXPath(mei, "//*[@source and @source='']");
+      var elementsWithEmptySourceAttribute = evaluateXPath(mei, "//*[@source[.='']]");
       for (i=0; i<elementsWithEmptySourceAttribute.length; i+=1) {
         addSourceAttribute(elementsWithEmptySourceAttribute[i]);
       }
@@ -907,7 +907,7 @@
 
     this.newSourcePbAfter = function(element, folioNumber, rectoVerso, leaveFocus) {
       var pb = newSourceBreakAfter(element, "pb", leaveFocus);
-      this.setPbData(folioNumber, rectoVerso, pb);
+      this.setPbData(folioNumber, rectoVerso, false, pb);
     };
     
     this.newEditionSbAfter = function(element, leaveFocus) {
@@ -929,7 +929,7 @@
     };
 
     // TODO: Test this
-    this.setPbData = function(folioNumber, rectoVerso, pb, dontRefresh) {
+    this.setPbData = function(folioNumber, rectoVerso, dontRefresh, pb) {
       // Sets the folio number and recto/verso information for a page break.
       // folioNumber must be an integer or a string of an integer.
       // rectoVerso is optional and must be "recto" or "verso".
@@ -1120,7 +1120,7 @@
     };
 
     // TODO: Test this
-    this.setSbLabel = function(labelText, sb, dontRefresh) {
+    this.setSbLabel = function(labelText, dontRefresh, sb) {
       sb = sb || selectedElement;
       sb = $MEI(sb, "sb", "System break labels can only be assigned to sb elements.");
       sb.setAttribute("label",labelText);
