@@ -24,6 +24,13 @@ var checkElement = function(el, attr) {
 	return result;
 };
 
+var setFocus = function(el, start) {
+	var $el = $(monodi.document.getHtmlElement(el)).find('[contenteditable]').focus();
+	if (!start) {
+		placeCaretAtEnd($el[0]);
+	}
+};
+
 var getCaretCharacterOffsetWithin = function (element) {
     var caretOffset = 0;
     if (typeof window.getSelection != "undefined") {
@@ -42,19 +49,36 @@ var getCaretCharacterOffsetWithin = function (element) {
     return caretOffset;
 };
 
+var placeCaretAtEnd = function(el) {
+    if (typeof window.getSelection != "undefined" && typeof document.createRange != "undefined") {
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    } else if (typeof document.body.createTextRange != "undefined") {
+        var textRange = document.body.createTextRange();
+        textRange.moveToElementText(el);
+        textRange.collapse(false);
+        textRange.select();
+    }
+};
+
 //callback for delete annotated element
 $(document).on('keydown', function(e) {
 	var note = checkElement('note'),
 		syl = checkElement('syl'),
 		sbS = checkElement('sb', 'source'),
-		pb = checkElement('pb');
+		pb = checkElement('pb'),
+		sb = checkElement('sb');
 
-	if (note || syl || sbS || pb) {
+	if (note || syl || sbS || pb || sb) {
 		if (e.ctrlKey && e.keyCode == 75) {
 			var sel = monodi.document.getSelectedElement();
 			monodi.document.selectElement(null);
 			var $modal = $('#annotationModal').find('form').on('submit', function() {
-				var $this = $(this);
+				var $this = $(this).off('submit');
 				monodi.document.newAnnot({
 					ids: [sel.getAttribute('xml:id')],
 					type: $this.find('select').val(),
@@ -71,21 +95,25 @@ $(document).on('keydown', function(e) {
 
 	if (note || sbS || pb) {
 		switch(e.keyCode) {
-			case 37: //left
-			case 39: //right
-				var prevOrNext = (e.keyCode == 37)? 'preceding' : 'following';
-				monodi.document.selectNextElement(prevOrNext);
-			break;
 			case 32: //space
 				monodi.document.newUneumeAfter();
 			break;
 			case 13: //enter
 				monodi.document.newIneumeAfter();
 			break;
+		}
+	}
+
+	if (note || sbS) {
+		switch(e.keyCode) {
+			case 37: //left
+			case 39: //right
+				var prevOrNext = (e.keyCode == 37)? 'preceding' : 'following';
+				monodi.document.selectNextElement(prevOrNext);
+			break;
 			case 8: //del
 				monodi.document.deleteElement();
 			break;
-			case 75: //k
 		}
 	}
 
@@ -102,7 +130,7 @@ $(document).on('keydown', function(e) {
 					monodi.document.changeScaleStep(change);
 				}
 			break;
-			case 16:  // Shift
+			case 16:  // shift
 				monodi.document.newNoteAfter();
 			break;
 			case 66: //b
@@ -147,11 +175,14 @@ $(document).on('keydown', function(e) {
 				var temp = monodi.document.getSelectedElement();
 				monodi.document.newSourcePbAfter();
 				monodi.document.deleteElement(temp, true);
+				setTimeout( function() {
+					setFocus(monodi.document.getSelectedElement());
+				}, 0);
 			break;
 		}
 	}
 
-	if (syl) {
+	if (syl || pb || sb) {
 		var caret = getCaretCharacterOffsetWithin(e.target),
 			$target = $(e.target),
 			text = $(e.target).text(),
@@ -159,12 +190,17 @@ $(document).on('keydown', function(e) {
 			close = text.indexOf('>');
 
 		switch(e.keyCode) {
+			case 8: //del
+				if (text == '') {
+					monodi.document.deleteElement();
+				}
+			break;
 			case 9: //tab
 				var dir = (e.shiftKey)? 'preceding' : 'following';
-				var $new = $(monodi.document.getHtmlElement(monodi.document.selectNextElement(dir)));
-				if ($new.length) {
+				var newEl = monodi.document.selectNextElement(dir);
+				if (newEl) {
 					setTimeout( function() {
-						$new.find('[contenteditable]').focus();
+						setFocus(newEl);
 					}, 10);
 				}
 			break;
@@ -172,39 +208,47 @@ $(document).on('keydown', function(e) {
 			case 39: //right
 				caret = getCaretCharacterOffsetWithin(e.target);
 				if (e.keyCode == 37 && caret == 0) {
-					var $prev = $(monodi.document.getHtmlElement(monodi.document.selectNextElement('preceding')));
-					if ($prev.length) {
-						$prev.find('[contenteditable]').focus();
+					var prev = monodi.document.selectNextElement('preceding');
+					if (prev) {
+						setFocus(prev);
 					}
+
+					return false;
 				}
 				if (e.keyCode == 39 && caret >= text.length) {
-					var $next = $(monodi.document.getHtmlElement(monodi.document.selectNextElement('following')));
-					if ($next.length) {
-						$next.find('[contenteditable]').focus();
+					var next = monodi.document.selectNextElement('following');
+					if (next) {
+						setFocus(next, true);
 					}
+
+					return false;
 				}
 			break;
+		}
+	}
+
+	if (syl) {
+		switch (e.keyCode) {
 			case 32: //space
-				if (open < 0 || close < 0 || caret > close) {
-					monodi.document.setSylText(text.substring(0,caret));
-					$target.data('saved', true);
+				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
+					monodi.document.setSylText(text.substring(0,caret), true);
 					monodi.document.newSyllableAfter(text.substring(caret+1));
-					$(monodi.document.getHtmlElement(monodi.document.selectNextElement('following'))).find('[contenteditable]').focus();
+					setFocus(monodi.document.selectNextElement('following'));
+					return false;
 				}
 			break;
 			case 13: //enter
 				monodi.document.newEditionSbAfter();
 			break;
 			default:
-				if (open < 0 || close < 0 || caret > close) {
+				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
 					setTimeout( function() {
 						var text = $(e.target).text();
 						switch(text.charAt(caret)) {
 							case '-':
-								monodi.document.setSylText(text.substring(0,caret+1));
-								$target.data('saved', true);
+								monodi.document.setSylText(text.substring(0,caret+1), true);
 								monodi.document.newSyllableAfter(text.substring(caret+1));
-								$(monodi.document.getHtmlElement(monodi.document.selectNextElement('following'))).find('[contenteditable]').focus();
+								setFocus(monodi.document.selectNextElement('following'));
 							break;
 							case '|':
 							break;
@@ -221,13 +265,13 @@ $(document).on('keydown', function(e) {
 		$target = $target.closest('._mei');
 		if ($target.length) { monodi.document.selectElement($target[0]); }
 	}
-}).on('focusout', '.syl span[contenteditable]', function(e) {
-	if (checkElement('syl')) {
-		var $target = $(e.target);
-		if (!$target.data('saved')) {
-			//monodi.document.setSylText($(e.target).text());
+}).on('keyup', '.syl span[contenteditable]', function(e) {
+	setTimeout( function() {
+		if (checkElement('syl')) {
+			var $target = $(e.target);
+			monodi.document.setSylText($(e.target).text(), true);
 		}
-	}
+	}, 0);
 }).on('focusout', '.sb.edition[contenteditable]', function(e) {
 	if (checkElement('sb')) {
 		monodi.document.setSbLabel($(e.target).text());

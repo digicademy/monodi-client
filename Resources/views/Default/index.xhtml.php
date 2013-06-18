@@ -276,8 +276,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                     </p>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-warning" data-dismiss="modal">cancel</button>
                     <button class="btn btn-primary" type="submit">save comment</button>
+                    <button class="btn btn-warning" data-dismiss="modal" style="float:left">cancel</button>
                 </div>
             </form>
         </div>
