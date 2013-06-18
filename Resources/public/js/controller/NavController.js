@@ -1,32 +1,26 @@
 function NavCtrl($scope, $http) {
 	$scope.login = function(id) {
-        $.ajax({
-            url: baseurl + 'oauth/v2/auth?client_id=' + client_id + '&response_type=token&redirect_uri=' + client_uri
-        }).done(function(data) {
-            var form = data.match(/(<form(.|[\r\n])*\/form>)/)[0];
-            if (form.length) {
-                var $modal = $('#loginModal').empty();
-                var $iframe = $('<iframe />').on('load',function() {
-                    $iframe.contents().find('body').append(form);
-                    $iframe.off('load').on('load', function() {
-                        var hash = this.contentWindow.location.hash;
-                        var start = hash.indexOf('access_token');
-                        if (start > -1) {
-                            hash.substr(start).split('&').forEach( function(val) {
-                                val = val.split('=');
-                                if (val[0] == 'access_token') { $scope.setAccessToken(val[1]); }
-                                if (val[0] == 'refresh_token') { $scope.setRefreshToken(val[1]); }
-                            });
+        var url = baseurl + 'oauth/v2/auth?client_id=' + client_id + '&response_type=token&redirect_uri=' + client_uri,
+            $modal = $('#loginModal').css({ width: 300, height: 260, marginLeft: -150 }).empty(),
+            $iframe = $('<iframe />').attr('src', url).css({ width: 300, height: 260 });
 
-                            $scope.$emit('reloadDocuments', {});
-                            $modal.modal('hide');
-                        }
-                    });
+        $iframe.off('load').on('load', function() {
+            var hash = this.contentWindow.location.hash;
+            var start = hash.indexOf('access_token');
+            if (start > -1) {
+                hash.substr(start).split('&').forEach( function(val) {
+                    val = val.split('=');
+                    if (val[0] == 'access_token') { $scope.setAccessToken(val[1]); }
+                    if (val[0] == 'refresh_token') { $scope.setRefreshToken(val[1]); }
                 });
-                $iframe.appendTo($modal);
-                $modal.modal('show');
+
+                $scope.$emit('reloadDocuments', {});
+                $modal.modal('hide');
             }
         });
+
+        $iframe.appendTo($modal);
+        $modal.modal('show');
         return false;
     };
 

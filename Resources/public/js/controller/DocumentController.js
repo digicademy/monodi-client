@@ -24,8 +24,21 @@ function DocumentCtrl($scope, $http) {
 
 	$scope.$on('saveDocument', function() {
 		$scope.active.content = monodi.document.getSerializedDocument();
-		$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson($scope.active)).success(function (data) {
-            console.log(data);
-        });
+		/*$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson($scope.active)).success(function (data) {
+            //console.log(data);
+        });*/
+
+        localStorage['document' + $scope.active.id] = JSON.stringify($scope.active);
+        var documentList = localStorage['documentList'];
+        if (documentList) {
+            if (documentList.indexOf(' ' + id + ',') < 0) {
+                localStorage['documentList'] += ' ' + id + ',';
+            }
+        } else {
+            localStorage['documentList'] = ' ' + id + ',';
+        }
+        $scope.setLocal($scope.active.id, true);
+
+        $('#savedModal').modal('show');
 	});
 }

@@ -78,7 +78,7 @@ $(document).on('keydown', function(e) {
 			var sel = monodi.document.getSelectedElement();
 			monodi.document.selectElement(null);
 			var $modal = $('#annotationModal').find('form').on('submit', function() {
-				var $this = $(this).off('submit');
+				var $this = $(this);
 				monodi.document.newAnnot({
 					ids: [sel.getAttribute('xml:id')],
 					type: $this.find('select').val(),
@@ -87,9 +87,12 @@ $(document).on('keydown', function(e) {
 				});
 
 				$modal.modal('hide');
+				monodi.document.selectElement(sel);
 
 				return false;
-			}).find('input').val('').end().find('textarea').val('').end().end().modal('show');
+			}).find('input').val('').end().find('textarea').val('').end().end().find('.btn-danger').hide().end().modal('show').on('hide.annotation', function(e) {
+				$(this).off('.annotation').find('form').off('submit');
+			});
 		}
 	}
 
@@ -195,15 +198,6 @@ $(document).on('keydown', function(e) {
 					monodi.document.deleteElement();
 				}
 			break;
-			case 9: //tab
-				var dir = (e.shiftKey)? 'preceding' : 'following';
-				var newEl = monodi.document.selectNextElement(dir);
-				if (newEl) {
-					setTimeout( function() {
-						setFocus(newEl);
-					}, 10);
-				}
-			break;
 			case 37: //left
 			case 39: //right
 				caret = getCaretCharacterOffsetWithin(e.target);
@@ -265,18 +259,18 @@ $(document).on('keydown', function(e) {
 		$target = $target.closest('._mei');
 		if ($target.length) { monodi.document.selectElement($target[0]); }
 	}
-}).on('keyup', '.syl span[contenteditable]', function(e) {
+}).on('input', '.syl span[contenteditable]', function(e) {
 	setTimeout( function() {
 		if (checkElement('syl')) {
 			var $target = $(e.target);
 			monodi.document.setSylText($(e.target).text(), true);
 		}
 	}, 0);
-}).on('focusout', '.sb.edition[contenteditable]', function(e) {
+}).on('input', '.sb.edition[contenteditable]', function(e) {
 	if (checkElement('sb')) {
 		monodi.document.setSbLabel($(e.target).text());
 	}
-}).on('focusout', '.folioDescription[contenteditable]', function(e) {
+}).on('input', '.folioDescription[contenteditable]', function(e) {
 	if (checkElement('pb')) {
 		var text = $(e.target).text(),
 			end = text.charAt(text.length - 1);
@@ -288,12 +282,16 @@ $(document).on('keydown', function(e) {
 
 		monodi.document.setPbData(text, end);
 	}
+}).on('focus', '[contenteditable]', function(e) {
+	setTimeout( function() {
+		monodi.document.selectElement(e.target);
+	}, 10);
 }).on('click', '.annotLabel a' , function(e) {
 	var annot = $(e.target).closest('.annotLabel').data('annotation-id'),
 		properties = monodi.document.getAnnotProperties(annot);
 
 	var $modal = $('#annotationModal').find('form').on('submit', function() {
-		var $this = $(this).off('submit');
+		var $this = $(this);
 		monodi.document.setAnnotProperties(annot, {
 			type: $this.find('select').val(),
 			label: $this.find('input').val(),
@@ -303,7 +301,11 @@ $(document).on('keydown', function(e) {
 		$modal.modal('hide');
 
 		return false;
-	}).find('input').val(properties.label).end().find('textarea').val(properties.text).end().end().modal('show');
+	}).find('input').val(properties.label).end().find('textarea').val(properties.text).end().end().find('.btn-danger').show().end().modal('show').on('hide.annotation', function(e) {
+				$(this).find('form').off('submit');
+			}).find('.btn-danger').on('click', function(e) {
+				monodi.document.deleteElement(annot, true);
+			});
 
 	return false;
 }).on('click', '.annotSelectionExtender', function(e) {

@@ -91,9 +91,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                         <td><button class="btn btn-link" ng-click="openDocument(el.id)">{{el.filename}}</button></td>
                                         <td>
                                             <div class="actions btn-group">
-                                                <button class="btn btn-danger"><i class="icon-trash icon-white" ng-show="online"></i></button>
                                                 <button class="btn btn-inverse" ng-click="print(el.id)"><i class="icon-print icon-white"></i></button>
-                                                <button class="btn btn-info" ng-click="saveLocal(el.id)" ng-hide="el.local" ng-show="online"><i class="icon-arrow-down icon-white"></i></button>
+                                                <button class="btn btn-info" ng-click="saveLocal(el.id)" ng-hide="el.local"><i class="icon-arrow-down icon-white"></i></button>
                                                 <button class="btn btn-warning" ng-click="removeLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>
                                                 <button class="btn btn-primary" ng-click="documentinfo(el.id)" data-toggle="modal"><i class="icon-info-sign icon-white"></i></button>
                                             </div>
@@ -124,7 +123,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         <div id="fileInfosModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="FileInfosLabel" aria-hidden="true">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="myModalLabel">Dokumenteneigenschaften</h3>
+            <h3 id="myModalLabel">Document Properties</h3>
           </div>
           <div class="modal-body">
             <table class="table table-bordered table-striped">
@@ -135,12 +134,12 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                         <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
                     </tr>
                     <tr>
-                        <th class="span2">Dateiname</th>
+                        <th class="span2">Filename</th>
                         <td>{{info.filename}}</td>
                         <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
                     </tr>
                     <tr>
-                        <th class="span2">Speicherort</th>
+                        <th class="span2">Path</th>
                         <td>{{info.path}}</td>
                         <td></td>
                     </tr>
@@ -150,7 +149,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                         <td></td>
                     </tr>
                     <tr>
-                        <th class="span2">Lokal vefügbar</th>
+                        <th class="span2">Locally available</th>
                         <td>nein</td>
                         <td><button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button></td>
                     </tr>
@@ -173,7 +172,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                             <ul class="nav">
                                 <li>
                                     <div class="btn-group">
-                                        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown" ng-click="showView('main')">Dokument <span class="caret"></span></button>
+                                        <button class="btn btn-link dropdown-toggle" data-toggle="dropdown" ng-click="showView('main')">Document <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
                                             <li><button class="btn btn-link" ng-click="saveDocument()">Save</button></li>
                                             <li><button class="btn btn-link" ng-click="showDocumentInfo()">Properties</button></li>
@@ -278,6 +277,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                 <div class="modal-footer">
                     <button class="btn btn-primary" type="submit">save comment</button>
                     <button class="btn btn-warning" data-dismiss="modal" style="float:left">cancel</button>
+                    <button class="btn btn-danger" data-dismiss="modal" style="float:left"><i class="icon-trash icon-white"></i></button>
                 </div>
             </form>
         </div>

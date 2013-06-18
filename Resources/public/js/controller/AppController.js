@@ -65,12 +65,12 @@ function AppCtrl($scope, $http) {
     });
 
     $scope.getDocument = function(id, callback) {
-        if ($scope.online && $scope.access_token) {
+        if (localStorage['document' + id]) {
+            callback.bind(JSON.parse(localStorage['document' + id]))();
+        } else if ($scope.online && $scope.access_token) {
             $http.get(baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token).success(function (data) {
                 callback.bind(data)();
             });
-        } else if (localStorage['document' + id]) {
-            callback.bind(localStorage['document' + id])();
         } else if (!$scope.online) {
             alert('Es ist keine Verbindung zum Server möglich und lokal sind keine gecachten Dateien vorhanden.');
         }
