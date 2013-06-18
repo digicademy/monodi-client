@@ -266,7 +266,7 @@ $(document).on('keydown', function(e) {
 			monodi.document.setSylText($(e.target).text(), true);
 		}
 	}, 0);
-}).on('input', '.sb.edition[contenteditable]', function(e) {
+}).on('input', '.sb.edition [contenteditable]', function(e) {
 	if (checkElement('sb')) {
 		monodi.document.setSbLabel($(e.target).text());
 	}
