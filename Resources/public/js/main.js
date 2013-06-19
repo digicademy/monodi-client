@@ -123,15 +123,10 @@ $(document).on('keydown', function(e) {
 	if (note) {
 		switch(e.keyCode) {
 			case 38: //up
+				monodi.document.changeScaleStep(1);
+			break;
 			case 40: //down
-				var change;
-				if (e.ctrlKey) {
-					change = (e.keyCode == 38)? 'u' : 'd';
-					monodi.document.setIntm(change);
-				} else {
-					change = (e.keyCode == 38)? 1 : -1;
-					monodi.document.changeScaleStep(change);
-				}
+				monodi.document.changeScaleStep(1);
 			break;
 			case 16:  // shift
 				monodi.document.newNoteAfter();
@@ -165,6 +160,16 @@ $(document).on('keydown', function(e) {
 			break;
 			case 76: //l
 				monodi.document.toggleLiquescence();
+			break;
+			case 190: //.
+				monodi.document.changeScaleStep(0); // This turns a dummy note into persistent one
+				monodi.document.selectNextElement("following");
+			break;
+			case 65: //a 
+				monodi.document.setIntm("u");
+			break;
+			case 68: //d
+				monodi.document.setIntm("d");
 			break;
 			default: //console.log(e);
 		}
@@ -259,17 +264,20 @@ $(document).on('keydown', function(e) {
 		$target = $target.closest('._mei');
 		if ($target.length) { monodi.document.selectElement($target[0]); }
 	}
+}).on('focus', '[contenteditable]', function(e) {
+	monodi.document.selectElement(e.target);
 }).on('input', '.syl span[contenteditable]', function(e) {
-	setTimeout( function() {
-		if (checkElement('syl')) {
-			var $target = $(e.target);
-			monodi.document.setSylText($(e.target).text(), true);
-		}
-	}, 0);
-}).on('input', '.sb.edition [contenteditable]', function(e) {
-	if (checkElement('sb')) {
-		monodi.document.setSbLabel($(e.target).text());
+	if (checkElement('syl')) {
+		monodi.document.setSylText($(e.target).text(), true);
 	}
+}).on('input', '.sbLabel[contenteditable]', function(e) {
+	if (checkElement('sb')) {
+		monodi.document.setSbLabel($(e.target).text(), true);
+	} 
+}).on('input', '.sbN[contenteditable]', function(e) {
+	if (checkElement('sb')) {
+		monodi.document.setSbN($(e.target).text(), true);
+	} 
 }).on('input', '.folioDescription[contenteditable]', function(e) {
 	if (checkElement('pb')) {
 		var text = $(e.target).text(),
@@ -280,7 +288,7 @@ $(document).on('keydown', function(e) {
 			end = '';
 		}
 
-		monodi.document.setPbData(text, end);
+		monodi.document.setPbData(text, end, true);
 	}
 }).on('focus', '[contenteditable]', function(e) {
 	setTimeout( function() {

@@ -292,6 +292,10 @@
         min-width:<xsl:value-of select="$lineLeftMargin - $lineLabelPadding"/>px;
         padding-right:<xsl:value-of select="$lineLabelPadding"/>px;
       }
+      .sb.edition .sbLabel {
+        margin-bottom:2em;
+        margin-right:1em;
+      }
       <!-- We want to visualize wrapped lines by indenting the part(s) that don't fit on the first line.
            This is kind of a "reverse indent" as usually you have the first paragraph of a text indented.
            Because text-indent applies to the first part of the wrapped line, we need to make it negative 
@@ -646,9 +650,13 @@
     <div class="editionLine">
       <div class="_mei sb edition">
         <xsl:apply-templates select="@xml:id"/>
-        <span title="line label">
+        <div title="rubric caption" class="sbLabel">
           <xsl:call-template name="set-content-editable"/>
           <xsl:value-of select="@label"/>
+        </div>
+        <span title="line label" class="sbN">
+          <xsl:call-template name="set-content-editable"/>
+          <xsl:value-of select="@n"/>
         </span>
       </div>
       <xsl:apply-templates select="following-sibling::*

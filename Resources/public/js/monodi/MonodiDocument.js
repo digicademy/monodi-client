@@ -134,8 +134,8 @@
         if (!expectedElementName || element.localName === expectedElementName) {
           return element;
         }
-        throw new Error(                         // TODO: Check whether getAttribute("xml:id") actually works in FF and Chrome
-          element.localName + " element " + element.getAttribute("xml:id") + ":" + (
+        throw new Error(
+          element.localName + " element " + element.getAttributeNS(xmlNS,"id") + ":" + (
             errorMessage || "Expected " + expectedElementName + " element, but got " + element.localName + " element."
           )
         );
@@ -416,9 +416,9 @@
         /*jslint bitwise:true*/ // compareDocumentPosition() returns a bitmask where bitwise operations are most appropriate
         if (
           !(mei.compareDocumentPosition(emptyElements[i]) & Node.DOCUMENT_POSITION_DISCONNECTED) &&
+          // checkIfElementCanBeDeleted() will check for annotations and delete them if the user confirms it
           checkIfElementCanBeDeleted(emptyElements[i])
         ) {
-          // TODO: Check for annotations!
           var parent = emptyElements[i].parentNode;
           parent.removeChild(emptyElements[i]);
           refresh(parent);
@@ -488,12 +488,12 @@
       // If we don't succeed, we signal this to the user and ask the user to either fix the input
       // or make use of the fallback mode which interprets the input as one column of sung text.
       
-      function processSyllables(string, sbLabel, folioInfo) {
+      function processSyllables(columns, rubricCaption) {
         /*jslint regexp: true*/
-        folioInfo = folioInfo || "";
-        sbLabel = sbLabel || "";
-        var contentString = '<sb label="' + sbLabel + '"/>',
-          syllables = string.match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g),
+        var folioInfo = columns[2] || "",
+          sbN = columns[0] || "",
+          contentString = '<sb label="' + rubricCaption + '" n="' + sbN + '"/>',
+          syllables = columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g),
           breakMarkerString = "",
           folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)(v?)$/) || [],
           i;
@@ -548,9 +548,9 @@
           // is a rubric caption.
           if (columns[0] === "" && columns[1].match(/^[A-Z\s]+$/)) {
             // This is the rubric caption for the next line
-            rubricCaption = " " + columns[1];
+            rubricCaption = columns[1];
           } else {
-            contentString += processSyllables(columns[1], columns[0] + rubricCaption, columns[2]);
+            contentString += processSyllables(columns, rubricCaption);
             rubricCaption = "";
           }        
         } else {
@@ -928,7 +928,6 @@
       return newSb;
     };
 
-    // TODO: Test this
     this.setPbData = function(folioNumber, rectoVerso, dontRefresh, pb) {
       // Sets the folio number and recto/verso information for a page break.
       // folioNumber must be an integer or a string of an integer.
@@ -1020,7 +1019,6 @@
       };
     };    
 
-    // TODO: Test this    
     this.getAccidental = function(element) {
       // Returns the current accidental value: "s", "f", "n" (or null, if no accidental is set).
       element = $MEI(element, "note", "Can not return accidental of none-note element");
@@ -1119,11 +1117,19 @@
       );
     };
 
-    // TODO: Test this
+    // TODO: Unify similar setter functions
     this.setSbLabel = function(labelText, dontRefresh, sb) {
       sb = sb || selectedElement;
       sb = $MEI(sb, "sb", "System break labels can only be assigned to sb elements.");
       sb.setAttribute("label",labelText);
+      
+      if (!dontRefresh) {refresh(sb);}
+    };
+    
+    this.setSbN = function(nText, dontRefresh, sb) {
+      sb = sb || selectedElement;
+      sb = $MEI(sb, "sb", "System break n attributes can only be assigned to sb elements.");
+      sb.setAttribute("n",nText);
       
       if (!dontRefresh) {refresh(sb);}
     };
@@ -1166,7 +1172,6 @@
       }
     };
 
-    // TODO: Test this
     this.addCallback = function(callbackEvent, callbackFunction) {
       // A function can be registered here that will be called on the specified callbackEvent.
       // Available events are:
@@ -1185,7 +1190,6 @@
       }
     };
 
-    // TODO: Test this
     this.removeCallback = function(callbackEvent, callbackFunction) {
       var i = callbacks[callbackEvent].indexOf(callbackFunction);
       if (i>0) {callbacks[callbackEvent].splice(i,1);}
@@ -1214,7 +1218,6 @@
     //this.getMeiDocument = function(){return mei};
 
     // TODO: - getter/setter für Vorgangsnummer
-    //       - method for generating print-ready HTML page
 
 
     //////// "Initialization" //////////
