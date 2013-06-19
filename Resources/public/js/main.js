@@ -126,7 +126,7 @@ $(document).on('keydown', function(e) {
 				monodi.document.changeScaleStep(1);
 			break;
 			case 40: //down
-				monodi.document.changeScaleStep(1);
+				monodi.document.changeScaleStep(-1);
 			break;
 			case 16:  // shift
 				monodi.document.newNoteAfter();
