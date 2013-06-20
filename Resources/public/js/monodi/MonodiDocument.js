@@ -49,7 +49,8 @@
     // To this list, "event handlers" will be added that shall be called after any visualization refresh.
     var callbacks = {
       updateView: [],
-      deleteAnnotatedElement: []
+      deleteAnnotatedElement: [],
+      selectElement: []
     };
 
     var xmlNS = "http://www.w3.org/XML/1998/namespace";
@@ -134,8 +135,8 @@
         if (!expectedElementName || element.localName === expectedElementName) {
           return element;
         }
-        throw new Error(                         // TODO: Check whether getAttribute("xml:id") actually works in FF and Chrome
-          element.localName + " element " + element.getAttribute("xml:id") + ":" + (
+        throw new Error(
+          element.localName + " element " + element.getAttributeNS(xmlNS,"id") + ":" + (
             errorMessage || "Expected " + expectedElementName + " element, but got " + element.localName + " element."
           )
         );
@@ -416,9 +417,9 @@
         /*jslint bitwise:true*/ // compareDocumentPosition() returns a bitmask where bitwise operations are most appropriate
         if (
           !(mei.compareDocumentPosition(emptyElements[i]) & Node.DOCUMENT_POSITION_DISCONNECTED) &&
+          // checkIfElementCanBeDeleted() will check for annotations and delete them if the user confirms it
           checkIfElementCanBeDeleted(emptyElements[i])
         ) {
-          // TODO: Check for annotations!
           var parent = emptyElements[i].parentNode;
           parent.removeChild(emptyElements[i]);
           refresh(parent);
@@ -488,12 +489,12 @@
       // If we don't succeed, we signal this to the user and ask the user to either fix the input
       // or make use of the fallback mode which interprets the input as one column of sung text.
       
-      function processSyllables(string, sbLabel, folioInfo) {
+      function processSyllables(columns, rubricCaption) {
         /*jslint regexp: true*/
-        folioInfo = folioInfo || "";
-        sbLabel = sbLabel || "";
-        var contentString = '<sb label="' + sbLabel + '"/>',
-          syllables = string.match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g),
+        var folioInfo = columns[2] || "",
+          sbN = columns[0] || "",
+          contentString = '<sb label="' + rubricCaption + '" n="' + sbN + '"/>',
+          syllables = columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g),
           breakMarkerString = "",
           folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)(v?)$/) || [],
           i;
@@ -521,7 +522,7 @@
         return contentString;
       }
       
-      text = text || "";//|| prompt("Paste text")
+      text = text || "";
       // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
       // escaped areas (using <>) and line breaks.
       var contentString = "",
@@ -548,9 +549,9 @@
           // is a rubric caption.
           if (columns[0] === "" && columns[1].match(/^[A-Z\s]+$/)) {
             // This is the rubric caption for the next line
-            rubricCaption = " " + columns[1];
+            rubricCaption = columns[1];
           } else {
-            contentString += processSyllables(columns[1], columns[0] + rubricCaption, columns[2]);
+            contentString += processSyllables(columns, rubricCaption);
             rubricCaption = "";
           }        
         } else {
@@ -580,10 +581,47 @@
                 '<title/>' +
               '</titleStmt>' +
               '<pubStmt/>' +
-              '<sourceDesc>' +
-                '<source/>' +
+              '<seriesStmt>' +
+                '<title>Corpus monodicum</title>' +
+                '<seriesStmt>' +
+                  '<title type="section"><num/></title>' +
+                  '<identifier type="volume"><num/></identifier>' +
+                '</seriesStmt>' +
+              '</seriesStmt>' +
+              '<sourceDesc n="">' +
+                '<source>' +
+                  '<physDesc>' +
+                    '<provenance>' +
+                      '<geogName/>' +
+                    '</provenance>' +
+                  '</physDesc>' +
+                  '<physLoc>' +
+                    '<repository>' +
+                      '<geogName/>' +
+                      '<corpName/>' +
+                      '<identifier/>' +
+                    '</repository>' +
+                  '</physLoc>' +
+                '</source>' +
               '</sourceDesc>' +
             '</fileDesc>' +
+            '<workDesc>' +
+              '<work n="">' +
+                '<incip>' +
+                  '<incipText><p/></incipText>' +
+                '</incip>' +
+                '<classification>' +
+                  '<termList>' +
+                    '<term label="feast"/>' +       
+                    '<term label="service"/>' + 
+                    '<term label="baseChantGenre"/>' +
+                  '</termList>' +
+                '</classification>' +
+                '<relationList>' +
+                  '<relation rel="hasComplement" label=""/>' +
+                '</relationList>' +
+              '</work>' +
+            '</workDesc>' +
           '</meiHead>' +
           '<music>' +
             '<body>' +
@@ -733,7 +771,7 @@
         selectedElement = element && evaluateXPath(
           $MEI(element),
           // We only allow selection of sepcific types of elements 
-          "descendant-or-self::*[self::mei:note or self::mei:syllable[not(descendant::mei:note)] or self::mei:syl or self::mei:sb or self::mei:pb][1]"
+          "descendant-or-self::*[self::mei:note or self::mei:syllable[not(descendant::mei:note)] or self::mei:syl or self::mei:sb or self::mei:pb or ancestor::mei:meiHead][1]"
         )[0];
         
         if (selectedElement === previouslySelectedElement) {return;}
@@ -742,7 +780,7 @@
         // If we select a syllable element (*not* its syl element), we're operating on the music layer.
         // If there are no notes in this syllable element, we need to generate a dummy note that we can edit.
         if (selectedElement.nodeName === "syllable" && !selectedElement.getElementsByTagName("note")[0]) {
-          var newIneume = this.newIneumeAfter(element);
+          var newIneume = this.newIneumeAfter(element, true);
           var note = newIneume.getElementsByTagName("note")[0];
           note.setAttribute("label", "dummy");
           refresh(note);
@@ -758,6 +796,10 @@
       }
       
       removeEmptyElements(previouslySelectedElement);
+      
+      // TODO: Some code like this should go into main.js 
+      /*var contenteditable = evaluateXPath($HTML(selectedElement),"descendant-or-self::*[@contenteditable]")[0]
+      if (contenteditable) contenteditable.focus()*/
       
       return selectedElement;
     };
@@ -873,13 +915,6 @@
     };
 
 
-    this.setSylText = function(text, dontRefresh, syl) {
-      syl = syl || selectedElement;
-      syl = $MEI(syl, "syl", "setSylText() only accepts syl elements as first argument, no " + syl.nodeName + " elements.");
-      syl.textContent = text.trim();
-      if (!dontRefresh) {refresh(syl);}
-    };
-
     this.newSyllableAfter = function(text, leaveFocus, element) {
       text = text || '';
       element = $MEI(element || selectedElement);
@@ -896,7 +931,7 @@
         precedingSibling: "ancestor-or-self::mei:syllable[1]",
         leaveFocus: true
       });
-      this.setSylText(text, false, syl);
+      this.setTextContent(text, false, syl);
       if (!leaveFocus) {this.selectElement(syl);}
       return newSyllable;
     };
@@ -919,16 +954,15 @@
       insertElement(newSb, {
         contextElement : element,
         parent : "ancestor-or-self::mei:layer[1]",
-        precedingSibling : "ancestor-or-self::mei:syllable[1]",
-        leaveFocus : leaveFocus
+        precedingSibling : "ancestor-or-self::mei:syllable[1]"
       });
 
       this.newSyllableAfter("", true, newSb); // We can't have empty lines
+      if (!leaveFocus) {this.selectElement(newSb);}
       
       return newSb;
     };
 
-    // TODO: Test this
     this.setPbData = function(folioNumber, rectoVerso, dontRefresh, pb) {
       // Sets the folio number and recto/verso information for a page break.
       // folioNumber must be an integer or a string of an integer.
@@ -936,13 +970,14 @@
 
       pb = $MEI(pb || selectedElement, "pb");
 
-      if (rectoVerso && (rectoVerso !== "recto" || rectoVerso !== "verso")) {
+      if (rectoVerso && !(rectoVerso === "recto" || rectoVerso === "verso")) {
         throw new Error("rectoVerso can only take on the values 'recto' and 'verso', not '" + rectoVerso + "'.");
       }
       // We're requiring folio numbers to only contain alphanumeric characters. We could be more strict
-      if (folioNumber && ( typeof folioNumber !== "string" || !folioNumber.match(/^[\w]+$/)[0])) {
+      // We're removing this check right now because we'd risk a quiet error and having something on the screen that does not reflect the data
+      /*if (folioNumber && ( typeof folioNumber !== "string" || !folioNumber.match(/^[\w]+$/)[0])) {
         throw new Error("Malformed folio number '" + folioNumber + "'");
-      }
+      }*/
 
       pb.setAttribute("n", folioNumber || "");
       pb.setAttribute("func", rectoVerso || "");
@@ -1020,7 +1055,6 @@
       };
     };    
 
-    // TODO: Test this    
     this.getAccidental = function(element) {
       // Returns the current accidental value: "s", "f", "n" (or null, if no accidental is set).
       element = $MEI(element, "note", "Can not return accidental of none-note element");
@@ -1119,13 +1153,22 @@
       );
     };
 
-    // TODO: Test this
-    this.setSbLabel = function(labelText, dontRefresh, sb) {
-      sb = sb || selectedElement;
-      sb = $MEI(sb, "sb", "System break labels can only be assigned to sb elements.");
-      sb.setAttribute("label",labelText);
+    this.setAttribute = function(attributeName, value, dontRefresh, element) {
+      element = $MEI(element) || selectedElement;
+      element.setAttribute(attributeName, value);
       
-      if (!dontRefresh) {refresh(sb);}
+      if (!dontRefresh) {
+        refresh(element);
+      }
+      if (element.nodeName === "sb") {
+        refresh(document.getElementsByClassName("relationList")[0]);
+      }
+    };
+    
+    this.setTextContent = function(value, dontRefresh, element) {
+      element = $MEI(element) || selectedElement;
+      element.textContent = value.trim();
+      if (!dontRefresh) {refresh(element);}
     };
 
     this.deleteElement = function(element, leaveFocus) {
@@ -1166,7 +1209,6 @@
       }
     };
 
-    // TODO: Test this
     this.addCallback = function(callbackEvent, callbackFunction) {
       // A function can be registered here that will be called on the specified callbackEvent.
       // Available events are:
@@ -1185,7 +1227,6 @@
       }
     };
 
-    // TODO: Test this
     this.removeCallback = function(callbackEvent, callbackFunction) {
       var i = callbacks[callbackEvent].indexOf(callbackFunction);
       if (i>0) {callbacks[callbackEvent].splice(i,1);}
@@ -1214,7 +1255,6 @@
     //this.getMeiDocument = function(){return mei};
 
     // TODO: - getter/setter für Vorgangsnummer
-    //       - method for generating print-ready HTML page
 
 
     //////// "Initialization" //////////
