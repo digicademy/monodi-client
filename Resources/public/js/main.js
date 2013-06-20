@@ -123,7 +123,7 @@ $(document).on('keydown', function(e) {
         monodi.document.changeScaleStep(1);
       break;
 			case 40: //down
-        monodi.document.changeScaleStep(1);
+        monodi.document.changeScaleStep(-1);
       break;
 			case 16:  // shift
 				monodi.document.newNoteAfter();
@@ -236,8 +236,8 @@ $(document).on('keydown', function(e) {
 		switch (e.keyCode) {
 			case 32: //space
 				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
-					monodi.document.setSylText(text.substring(0,caret), true);
-					monodi.document.newSyllableAfter(text.substring(caret+1));
+					monodi.document.setTextContent(text.substring(0,caret), true);
+					monodi.document.newSyllableAfter(text.substring(caret));
 					setFocus(monodi.document.selectNextElement('following'));
 					return false;
 				}
@@ -251,7 +251,7 @@ $(document).on('keydown', function(e) {
 						var text = $(e.target).text();
 						switch(text.charAt(caret)) {
 							case '-':
-								monodi.document.setSylText(text.substring(0,caret+1), true);
+								monodi.document.setTextContent(text.substring(0,caret+1), true);
 								monodi.document.newSyllableAfter(text.substring(caret+1));
 								setFocus(monodi.document.selectNextElement('following'));
 							break;
@@ -272,25 +272,22 @@ $(document).on('keydown', function(e) {
 	}
 }).on('focus', '[contenteditable]', function(e) {
   monodi.document.selectElement(e.target);
-}).on('input', '.syl span[contenteditable]', function(e) {
-	if (checkElement('syl')) {
-		monodi.document.setSylText($(e.target).text(), true);
-	}
-}).on('input', '.sb.edition [contenteditable]', function(e) {
-	if (checkElement('sb')) {
-		monodi.document.setSbLabel($(e.target).text(), true);
-	} 
+}).on('input', '[contenteditable]:not([data-editable-attribute]):not(.folioDescription)', function(e) {
+	monodi.document.setTextContent($(e.target).text(), true);
+}).on('input', '[contenteditable][data-editable-attribute]', function(e) {
+	$target = $(e.target);
+	monodi.document.setAttribute($target.attr("data-editable-attribute"), $target.text(), true);
 }).on('input', '.folioDescription[contenteditable]', function(e) {
 	if (checkElement('pb')) {
 		var text = $(e.target).text(),
-			end = text.charAt(text.length - 1);
-		if (end == 'r' || end == 'v') {
-			text = text.substr(0, text.length - 1);
+			// We're splitting the folio description into the components folio number and recto/verso info
+			components = text.match(/\s*(.*)\s*([rv])\s*$/);
+		if (components) {
+			monodi.document.setPbData(components[1], {r:"recto", v:"verso"}[components[2]], true);
 		} else {
-			end = '';
+			// As a fallback, we set the folio number to the text and leave rectoVerso blank
+			monodi.document.setPbData(text.trim(), "", true);
 		}
-
-		monodi.document.setPbData(text, end, true);
 	}
 }).on('click', '.annotLabel a' , function(e) {
 	var annot = $(e.target).closest('.annotLabel').data('annotation-id'),
