@@ -1,6 +1,6 @@
 <input type="checkbox" name="{{el.id}}" /><button class="btn btn-link" ng-click="openDocument(el.id)">{{el.filename}}</button>
 <div class="actions btn-group">
-    <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
+    <button class="btn btn-danger" ng-click="deleteDocument(el.id)"><i class="icon-trash icon-white"></i></button>
     <button class="btn btn-inverse" ng-click="print(el.id)"><i class="icon-print icon-white"></i></button>
     <button class="btn btn-info" ng-click="saveLocal(el.id)" ng-hide="el.local"><i class="icon-arrow-down icon-white"></i></button>
     <button class="btn btn-warning" ng-click="removeLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>

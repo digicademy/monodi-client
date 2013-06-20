@@ -23,22 +23,71 @@ function DocumentCtrl($scope, $http) {
 	});
 
 	$scope.$on('saveDocument', function() {
-		$scope.active.content = monodi.document.getSerializedDocument();
-		/*$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson($scope.active)).success(function (data) {
-            //console.log(data);
-        });*/
+		if ($scope.online && $scope.access_token) {
+			$scope.active.content = monodi.document.getSerializedDocument();
+			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson($scope.active)).success(function (data) {
+				console.log(data);
+			});
+		} else {
+			$scope.saveToSyncList();
+		}
 
-        localStorage['document' + $scope.active.id] = JSON.stringify($scope.active);
-        var documentList = localStorage['documentList'];
-        if (documentList) {
-            if (documentList.indexOf(' ' + id + ',') < 0) {
-                localStorage['documentList'] += ' ' + id + ',';
-            }
-        } else {
-            localStorage['documentList'] = ' ' + id + ',';
-        }
-        $scope.setLocal($scope.active.id, true);
+		$('#savedModal').modal('show');
+	});
 
-        $('#savedModal').modal('show');
+	$scope.$on('newDocument', function() {
+		if ($scope.active) {
+			if (!confirm('Dismiss open document?')) {
+				return;
+			}
+		}
+
+		$scope.setActive({
+			content: '<?xml version="1.0" encoding="UTF-8"?>\
+<mei xmlns="http://www.music-encoding.org/ns/mei">\
+  <meiHead>\
+	<fileDesc>\
+	  <titleStmt>\
+		<title/>\
+	  </titleStmt>\
+	  <pubStmt/>\
+	  <sourceDesc>\
+		<source/>\
+	  </sourceDesc>\
+	</fileDesc>\
+  </meiHead>\
+  <music>\
+	<body>\
+	  <mdiv>\
+		<score>\
+		  <section>\
+			<staff>\
+			  <layer>\
+				<sb label=""/>\
+				<syllable>\
+				  <syl></syl>\
+				</syllable>\
+			  </layer>\
+			</staff>\
+		  </section>\
+		</score>\
+	  </mdiv>\
+	</body>\
+  </music>\
+</mei>'
+		});
+
+		$scope.$broadcast('openDocument');
+		$scope.showView('main');
+	});
+
+	$scope.$on('saveNewDocument', function() {
+		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
+			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function() {
+				$files.fadeOut( function() {
+					$(this).removeClass('chooseDirectory');
+					$bg.remove();
+				});
+		});
 	});
 }

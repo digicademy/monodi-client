@@ -69,8 +69,17 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 
                     <div class="fileviews">
                         <div class="fileStructure clearfix">
+                            <div class="fileproperties form-horizontal">
+                                <div class="control-group">
+                                    <label for="fileName" class="control-label">file name</label>
+                                    <div class="controls">
+                                        <input type="text" id="fileName" ng-model="active.filename"  />
+                                    </div>
+                                </div>
+                            </div>
                             <ul>
                                 <li ng-repeat="el in documents" ng-include="'/bundles/digitalwertmonodiclient/js/templates/tree.html'"></li>
+                                <li><button class="btn btn-mini" ng-click="addFolder()">add folder</button></li>
                             </ul>
                         </div>
 
@@ -91,6 +100,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                         <td><button class="btn btn-link" ng-click="openDocument(el.id)">{{el.filename}}</button></td>
                                         <td>
                                             <div class="actions btn-group">
+                                                <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
                                                 <button class="btn btn-inverse" ng-click="print(el.id)"><i class="icon-print icon-white"></i></button>
                                                 <button class="btn btn-info" ng-click="saveLocal(el.id)" ng-hide="el.local"><i class="icon-arrow-down icon-white"></i></button>
                                                 <button class="btn btn-warning" ng-click="removeLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>
@@ -102,6 +112,26 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                             </table>
                         </div>
                     </div>
+                </div>
+
+                <!-- createFolder -->
+                <div id="createFolderModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="directoryLabel" aria-hidden="true">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3>New directory name</h3>
+                    </div>
+                    <form name="createFolderForm" ng-submit="createFolder(foldername)">
+                        <div class="modal-body">
+                            <p>
+                                <input type="text" name="foldername" ng-model="foldername" placeholder="Foldername" required="required" />
+                                <span class="error" ng-show="createFolder.foldername.$error.required">!</span>
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" type="submit">create folder</button>
+                            <button class="btn btn-warning" data-dismiss="modal" style="float:left">cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -174,8 +204,10 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                     <div class="btn-group">
                                         <button class="btn btn-link dropdown-toggle" data-toggle="dropdown" ng-click="showView('main')">Document <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
-                                            <li><button class="btn btn-link" ng-click="saveDocument()">Save</button></li>
-                                            <li><button class="btn btn-link" ng-click="showDocumentInfo()">Properties</button></li>
+                                            <li><button class="btn btn-link" ng-click="newDocument()">New</button></li>
+                                            <li><button class="btn btn-link" ng-click="saveDocument()" ng-show="active">Save</button></li>
+                                            <li><button class="btn btn-link" ng-click="saveNewDocument()" ng-show="active">Save as ...</button></li>
+                                            <li><button class="btn btn-link" ng-click="showDocumentInfo()" ng-show="active">Properties</button></li>
                                             <li class="divider"></li>
                                             <li><button class="open btn btn-link" ng-click="showView('files')">Open</button></li>
                                         </ul>
@@ -260,12 +292,12 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         </nav>
 
         <!-- annotation -->
-        <div id="annotationModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ChangePasswordLabel" aria-hidden="true">
+        <div id="annotationModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="annotationLabel" aria-hidden="true">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3>Comment</h3>
             </div>
-            <form name="changePassword" ng-submit="changePass(pass)">
+            <form name="changeAnnotation" ng-submit="changeAnnotation()">
                 <div class="modal-body">
                     <p>
                         <input type="text" placeholder="Label" />

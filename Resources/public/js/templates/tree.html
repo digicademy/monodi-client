@@ -1,4 +1,6 @@
 <button class="btn btn-link"><i class="icon-folder-close"></i>{{el.title}}</button>
+<button class="addFolder btn btn-mini" ng-click="addFolder(el.path)">add folder</button>
+<button class="saveNewDocumentHere btn btn-mini" ng-click="saveNewDocumentHere(el.path)">save document here</button>
 <ul ng-if="el.document_count > 0">
     <li ng-repeat="el in el.documents" ng-include="'/bundles/digitalwertmonodiclient/js/templates/tree-doc.html'"></li>
 </ul>

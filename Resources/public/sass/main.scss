@@ -67,6 +67,10 @@ body {
     margin-top: 10px;
 }
 
+.modal form {
+    margin-bottom: 0;
+}
+
 .views>.container {
     display: none;
 }
@@ -162,7 +166,7 @@ body {
         }
 
         &:last-child:before {
-            height: 15px;
+            height: 100%;
             border-left: 1px solid #fff;
         }
     }
@@ -181,12 +185,71 @@ body {
         float: right;
     }
 
-    .showChildren ~ ul {
-        display: block;
+    .showChildren {
+        & ~ ul {
+            display: block;
+        }
+
+        .icon-folder-close {
+            background-position: -408px -120px;
+        }
     }
 
-    .showChildren .icon-folder-close {
-        background-position: -408px -120px;
+    .addFolder,
+    .saveNewDocumentHere {
+        position: absolute;
+        left: 20px;
+        top: 29px;
+        opacity: 0;
+        transition: opacity 0.4s;
+        -webkit-transition: opacity 0.4s;
+        z-index: 1;
+    }
+
+    .showChildren:hover  .addFolder,
+    .showChildren ~ .addFolder:hover,
+    .showChildren:hover ~ .saveNewDocumentHere,
+    .showChildren ~ .saveNewDocumentHere:hover {
+        opacity: 1;
+    }
+
+    .fileproperties,
+    .saveNewDocumentHere {
+        display: none;
+    }
+
+    .form-horizontal .control-label {
+        width: 60px;
+    }
+    
+    .form-horizontal .controls {
+        margin-left: 70px;
+    }
+}
+
+.chooseDirectory {
+    width: 600px;
+    height: 65%;
+    margin-left: -300px;
+    padding: 2em;
+    position: absolute;
+    left: 50%;
+    top: 10%;
+    background: #fff;
+    overflow: auto;
+    z-index: 1050;
+
+    .fileviewToggle,
+    .batch,
+    .addFolder,
+    .actions,
+    .fileStructure > ul > li:last-child {
+        display: none;
+    }
+
+    .fileproperties,
+    .fileStructure ul ul ul .saveNewDocumentHere {
+        display: block;
     }
 }
 
