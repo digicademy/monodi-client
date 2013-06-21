@@ -6420,8 +6420,7 @@ body {
   .chooseDirectory .fileviewToggle,
   .chooseDirectory .batch,
   .chooseDirectory .addFolder,
-  .chooseDirectory .actions,
-  .chooseDirectory .fileStructure > ul > li:last-child {
+  .chooseDirectory .actions {
     display: none; }
   .chooseDirectory .fileproperties,
   .chooseDirectory .fileStructure ul ul ul .saveNewDocumentHere {

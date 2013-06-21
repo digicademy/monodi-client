@@ -30,41 +30,58 @@ function DocumentCtrl($scope, $http) {
 		$scope.showView('main');
 	});
 
-	var getParentId = function(id, data) {
+	var getParent = function(id, data) {
         var result = false;
         angular.forEach(data, function(el) {
-            if (!result && el.document_count > 0) {
-                var path = el.path;
+            if (!result) {
                 angular.forEach(el.documents, function(child) {
                     if (child.id == id ) {
-                        result = el.id;
+                        result = el;
                     }
                 });
+
+				angular.forEach(el.folders, function(child) {
+                    if (child.id == id ) {
+                        result = el;
+                    }
+                });                
             }
 
             if (!result && el.children_count > 0) {
-                result = getParentId(id, el.folders);
+                result = getParent(id, el.folders);
             }
         });
 
         return result;
     };
-	$scope.$on('saveDocument', function() {
+	$scope.$on('saveDocument', function(e, data) {
 		if ($scope.online && $scope.access_token) {
-			$scope.active.content = monodi.document.getSerializedDocument();
+			if (data) {
+				var temp = $scope.active,
+					doc = localStorage['document' + data.id];
+				$scope.setActive(JSON.parse(doc));
+			} else {
+				$scope.active.content = monodi.document.getSerializedDocument();
+			}
 
 			var putObject = {
 				filename: $scope.active.filename,
 				content: $scope.active.content,
-				folder: getParentId($scope.active.id, $scope.documents)
+				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
 			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject));
-		} else {
+
+			if (data) {
+				$scope.setActive(temp);
+			}
+		} else if (!data) {
 			$scope.saveToSyncList();
 		}
 
-		$('#savedModal').modal('show');
+		if (!data) {
+			$('#savedModal').modal('show');
+		}
 	});
 
 	$scope.$on('newDocument', function() {
@@ -97,17 +114,57 @@ function DocumentCtrl($scope, $http) {
 		});
 	});
 
-	$scope.$on('postNewDocument', function() {
+	$scope.$on('syncDocument', function(id) {
+        $scope.$broadcast('saveDocument', { id: id });
+	});
+
+	$scope.$on('syncNewDocument', function(e, data) {
+		var parent = getParent(data.id, $scope.documents),
+			parentId = parent.id,
+			temp;
+		if ((parentId + '').indexOf('temp') > -1) {
+			while (temp.id != parentId && (parentId + '').indexOf('temp') > -1) {
+				temp = parent;
+				debugger;
+				parent = getParent(parentId, $scope.documents);
+				parentId = parent.id;
+			}
+
+			if ((parentId + '').indexOf('temp') < 0) {
+				$scope.postNewFolderToServer(parent.path, temp.title, function() {
+					$scope.$broadcast('syncNewDocument', { id: data.id });
+				});
+			}
+		} else {
+			$scope.$broadcast('postNewDocument', { id: data.id });
+		}
+	});
+
+	$scope.$on('postNewDocument', function(e, data) {
 		if ($scope.online && $scope.access_token) {
+			if (data) {
+				debugger;
+				var temp = $scope.active,
+					doc = localStorage['document' + data.id];
+				$scope.setActive(JSON.parse(doc));
+			} else {
+				$scope.active.content = monodi.document.getSerializedDocument();
+			}
             var putObject = {
                 filename: $scope.active.filename,
                 content: $scope.active.content,
-                folder: getParentId($scope.active.id, $scope.documents)
+                folder: getParent($scope.active.id, $scope.documents).id
             };
 
             $http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject));
+
+            if (data) {
+				$scope.setActive(temp);
+			}
         } else {
-            $scope.saveToSyncList();
+        	if (!data) {
+        		$scope.saveToSyncList();
+        	}
         }
 	});
 }

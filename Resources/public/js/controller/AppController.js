@@ -13,7 +13,7 @@ function AppCtrl($scope, $http) {
             if (!navigator.onLine) {
                 access_token = false;
             } else {
-                $scope.broadcast('sync');
+                $scope.$broadcast('sync');
             }
         };
 
@@ -22,24 +22,21 @@ function AppCtrl($scope, $http) {
     }
 
     $scope.$on('sync', function() {
-        var syncList = localStorage['syncList'];
-        if (syncList) {
-            var temp = $scope.active;
-            angular.forEach(syncList.split(','), function(el) {
-                var doc = localStorage['document' + el];
-                if (doc) {
-                    $scope.active = JSON.parse(doc);
-                    if ($scope.active) {
-                        if (el.indexOf('temp') < 0) {
-                            $scope.saveDocument();
+        if ($scope.online && $scope.access_token) {
+            var syncList = localStorage['syncList'];
+            if (syncList) {
+                angular.forEach(syncList.split(','), function(id) {
+                    id = id.trim();
+                    if (localStorage['document' + id]) {
+                        if ((id + '').indexOf('temp') < 0) {
+                            $scope.$broadcast('syncDocument', { id: id });
                         } else {
-                            $scope.saveNewDocument();
+                            $scope.$broadcast('syncNewDocument', { id: id });
                         }
                     }
-                }
-            });
-            $scope.active = temp;
-            localStorage['syncList'] = '';
+                });
+                localStorage['syncList'] = '';
+            }
         }
     });
 
@@ -131,7 +128,7 @@ function AppCtrl($scope, $http) {
         localStorage['documents'] = JSON.stringify($scope.documents);
         localStorage['files'] = JSON.stringify($scope.files);
 
-        if (id.indexOf('temp') < 0) {
+        if ((id + '').indexOf('temp') < 0) {
             //delete request
         }
     };
@@ -176,10 +173,12 @@ function AppCtrl($scope, $http) {
         $scope.$broadcast('postNewDocument');
     };
 
-    $scope.postNewFolderToServer = function(path, title) {
+    $scope.postNewFolderToServer = function(path, title, callback) {
         if ($scope.online && $scope.access_token) {
-            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).error( function() {
-                
+            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).success( function() {
+                if (callback) callback();
+            }).error( function() {
+
             });
         }
     };
