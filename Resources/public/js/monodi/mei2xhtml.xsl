@@ -294,11 +294,7 @@
         min-width:<xsl:value-of select="$lineLeftMargin - $lineLabelPadding"/>px;
         padding-right:<xsl:value-of select="$lineLabelPadding"/>px;
       }
-<<<<<<< HEAD
-      .sb.edition .sbLabel {
-=======
       .sb.edition .att_label {
->>>>>>> thomas
         margin-bottom:2em;
         margin-right:1em;
       }
@@ -724,19 +720,8 @@
     <div class="editionLine">
       <div class="_mei sb edition">
         <xsl:apply-templates select="@xml:id"/>
-<<<<<<< HEAD
-        <div title="rubric caption" class="sbLabel">
-          <xsl:call-template name="set-content-editable"/>
-          <xsl:value-of select="@label"/>
-        </div>
-        <span title="line label" class="sbN">
-          <xsl:call-template name="set-content-editable"/>
-          <xsl:value-of select="@n"/>
-        </span>
-=======
         <xsl:apply-templates select="@label" mode="process-editable-attributes"/>
         <xsl:apply-templates select="@n" mode="process-editable-attributes"/>
->>>>>>> thomas
       </div>
       <xsl:apply-templates select="following-sibling::*
         [not(self::mei:sb) or @source]

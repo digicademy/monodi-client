@@ -200,15 +200,11 @@ $(document).on('keydown', function(e) {
 		switch(e.keyCode) {
 			case 8: //del
 				if (text == '') {
-<<<<<<< HEAD
-					monodi.document.deleteElement();
-=======
 					if (syl) {
 						monodi.document.selectNextElement("preceding");
 					} else {
 						monodi.document.deleteElement();
 					}
->>>>>>> thomas
 				}
 			break;
 			case 37: //left
@@ -238,13 +234,8 @@ $(document).on('keydown', function(e) {
 		switch (e.keyCode) {
 			case 32: //space
 				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
-<<<<<<< HEAD
-					monodi.document.setSylText(text.substring(0,caret), true);
-					monodi.document.newSyllableAfter(text.substring(caret+1));
-=======
 					monodi.document.setTextContent(text.substring(0,caret), true);
 					monodi.document.newSyllableAfter(text.substring(caret));
->>>>>>> thomas
 					setFocus(monodi.document.selectNextElement('following'));
 					return false;
 				}
@@ -258,11 +249,7 @@ $(document).on('keydown', function(e) {
 						var text = $(e.target).text();
 						switch(text.charAt(caret)) {
 							case '-':
-<<<<<<< HEAD
-								monodi.document.setSylText(text.substring(0,caret+1), true);
-=======
 								monodi.document.setTextContent(text.substring(0,caret+1), true);
->>>>>>> thomas
 								monodi.document.newSyllableAfter(text.substring(caret+1));
 								setFocus(monodi.document.selectNextElement('following'));
 							break;
@@ -282,28 +269,12 @@ $(document).on('keydown', function(e) {
 		if ($target.length) { monodi.document.selectElement($target[0]); }
 	}
 }).on('focus', '[contenteditable]', function(e) {
-<<<<<<< HEAD
-	monodi.document.selectElement(e.target);
-}).on('input', '.syl span[contenteditable]', function(e) {
-	if (checkElement('syl')) {
-		monodi.document.setSylText($(e.target).text(), true);
-	}
-}).on('input', '.sbLabel[contenteditable]', function(e) {
-	if (checkElement('sb')) {
-		monodi.document.setSbLabel($(e.target).text(), true);
-	} 
-}).on('input', '.sbN[contenteditable]', function(e) {
-	if (checkElement('sb')) {
-		monodi.document.setSbN($(e.target).text(), true);
-	} 
-=======
   monodi.document.selectElement(e.target);
 }).on('input', '[contenteditable]:not([data-editable-attribute]):not(.folioDescription)', function(e) {
 	monodi.document.setTextContent($(e.target).text(), true);
 }).on('input', '[contenteditable][data-editable-attribute]', function(e) {
 	$target = $(e.target);
 	monodi.document.setAttribute($target.attr("data-editable-attribute"), $target.text(), true);
->>>>>>> thomas
 }).on('input', '.folioDescription[contenteditable]', function(e) {
 	if (checkElement('pb')) {
 		var text = $(e.target).text(),
@@ -314,11 +285,6 @@ $(document).on('keydown', function(e) {
 		} else {
 			monodi.document.setPbData(text.trim(), "", true);
 		}
-<<<<<<< HEAD
-
-		monodi.document.setPbData(text, end, true);
-=======
->>>>>>> thomas
 	}
 }).on('focus', '[contenteditable]', function(e) {
 	setTimeout( function() {

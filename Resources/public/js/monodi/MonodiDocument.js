@@ -496,13 +496,8 @@
         /*jslint regexp: true*/
         var folioInfo = columns[2] || "",
           sbN = columns[0] || "",
-<<<<<<< HEAD
-          contentString = '<sb label="' + rubricCaption + '" n="' + sbN + '"/>',
-          syllables = columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g),
-=======
           contentString = '<sb label="' + (rubricCaption || "") + '" n="' + sbN + '"/>',
           syllables = columns[1] ? columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : ["",""],
->>>>>>> thomas
           breakMarkerString = "",
           folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)(v?)$/) || [],
           i;
@@ -530,43 +525,8 @@
         return contentString;
       }
       
-<<<<<<< HEAD
-      text = text || "";// || prompt("Paste text")
-      // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
-      // escaped areas (using <>) and line breaks.
-=======
->>>>>>> thomas
       var contentString = "",
         i;
-<<<<<<< HEAD
-      for (i=0; i<lines.length; i+=1) {
-        line = lines[i];
-        // Line that consists of:
-        // - Line label (or nothing)
-        // - Tab
-        // - Line content
-        // - optional:
-        //   - tab
-        //   - /|| f. \d+v?/ // 
-        /*jslint regexp: true*/
-        if (line.match(/^(\d*|[A-Z]?)\t([^\t]+)\t?(\|*\s*f\.\s*\d+v?)?\s*$/)) {
-          var columns = line.split(/\s*\t\s*/);
-          // A line that has no line label in the left column,
-          // only capital letters in the center column
-          // and optionally folio information of the form /f\. \d+v?/ in the third column
-          // is a rubric caption.
-          if (columns[0] === "" && columns[1].match(/^[A-Z\s]+$/)) {
-            // This is the rubric caption for the next line
-            rubricCaption = columns[1];
-          } else {
-            contentString += processSyllables(columns, rubricCaption);
-            rubricCaption = "";
-          }        
-        } else {
-          contentStringHasValidColumns = false;
-          break; 
-=======
-      
       if (text) {
         // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
         // escaped areas (using <>) and line breaks.
@@ -601,7 +561,6 @@
             contentStringHasValidColumns = false;
             break; 
           }
->>>>>>> thomas
         }
         if (!contentStringHasValidColumns) {
           // We're offering a fallback method here that does not rely on strict syntax,
@@ -1200,17 +1159,9 @@
       );
     };
 
-<<<<<<< HEAD
-    // TODO: Unify similar setter functions
-    this.setSbLabel = function(labelText, dontRefresh, sb) {
-      sb = sb || selectedElement;
-      sb = $MEI(sb, "sb", "System break labels can only be assigned to sb elements.");
-      sb.setAttribute("label",labelText);
-=======
     this.setAttribute = function(attributeName, value, dontRefresh, element) {
       element = $MEI(element) || selectedElement;
       element.setAttribute(attributeName, value);
->>>>>>> thomas
       
       if (!dontRefresh) {
         refresh(element);
