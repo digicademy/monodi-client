@@ -120,11 +120,11 @@ $(document).on('keydown', function(e) {
 	if (note) {
 		switch(e.keyCode) {
 			case 38: //up
-        monodi.document.changeScaleStep(1);
-      break;
+				monodi.document.changeScaleStep(1);
+			break;
 			case 40: //down
-        monodi.document.changeScaleStep(-1);
-      break;
+				monodi.document.changeScaleStep(-1);
+			break;
 			case 16:  // shift
 				monodi.document.newNoteAfter();
 			break;
@@ -159,8 +159,8 @@ $(document).on('keydown', function(e) {
 				monodi.document.toggleLiquescence();
 			break;
 			case 190: //.
-			  monodi.document.changeScaleStep(0); // This turns a dummy note into persistent one
-			  monodi.document.selectNextElement("following");
+				monodi.document.changeScaleStep(0); // This turns a dummy note into persistent one
+				monodi.document.selectNextElement("following");
 			break;
 			case 65: //a 
 				monodi.document.setIntm("u");
