@@ -82,7 +82,7 @@ function DocumentListCtrl($scope, $http) {
 
 	var addFolder = function(documents, folder, pathParts, level) {
 		var path = '',
-			found = false;
+			parent = false;
 
 		if (pathParts) {
 			for (var i = 0; i <= level; i++) {
@@ -99,18 +99,19 @@ function DocumentListCtrl($scope, $http) {
                     folder.root = el.id;
                     folder.path = path + '/' + folder.path;
 					el.folders.push(folder);
+                    parent = path;
 					return true;
 				}
 
-				if (!found && el.children_count > 0) {
-					found = addFolder(el.folders, folder, pathParts, level);
+				if (!parent && el.children_count > 0) {
+					parent = addFolder(el.folders, folder, pathParts, level);
 				}
 			}
 		});
 
-		return found;
+		return parent;
 	};
-	$scope.createFolder = function(filename) {
+	$scope.createFolder = function(foldername) {
 		var path = $scope.createFolder.path,
 			pathParts = (path)? path.split('/') : false,
             id = 'temp' + new Date().getTime(),
@@ -120,18 +121,18 @@ function DocumentListCtrl($scope, $http) {
 				document_count: 0,
 				documents: [],
 				folders: [],
-				path: filename.toLowerCase().replace(' ', '_'),
+				path: foldername.toLowerCase().replace(' ', '_'),
 				root: id,
-				title: filename
+				title: foldername
 			};
 
         if (pathParts) {
-            addFolder($scope.documents, folder, pathParts, 0);
+            path = addFolder($scope.documents, folder, pathParts, 0);
         } else {
             $scope.documents.push(folder);
         }
 
-        //postNewFolderToServer
+        $scope.postNewFolderToServer(path, foldername);
 		$('#createFolderModal').modal('hide');
 	};
 
@@ -181,7 +182,7 @@ function DocumentListCtrl($scope, $http) {
             localStorage['files'] = JSON.stringify($scope.files);
 			$scope.setLocal($scope.active.id, true);
 
-			$scope.postNewToServer();
+			$scope.postNewDocumentToServer();
 
 			$('.files.container').hide().removeClass('chooseDirectory');
 			$('.modal-backdrop').remove();

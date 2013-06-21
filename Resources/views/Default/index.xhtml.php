@@ -79,7 +79,6 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                             </div>
                             <ul>
                                 <li ng-repeat="el in documents" ng-include="'/bundles/digitalwertmonodiclient/js/templates/tree.html'"></li>
-                                <li><button class="btn btn-mini" ng-click="addFolder()">add folder</button></li>
                             </ul>
                         </div>
 

@@ -172,8 +172,16 @@ function AppCtrl($scope, $http) {
         $scope.setLocal(id, true);
     };
 
-    $scope.postNewToServer = function() {
+    $scope.postNewDocumentToServer = function() {
         $scope.$broadcast('postNewDocument');
+    };
+
+    $scope.postNewFolderToServer = function(path, title) {
+        if ($scope.online && $scope.access_token) {
+            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).error( function() {
+                
+            });
+        }
     };
 
     $scope.$on('openDocumentRequest', function(e, data) {
