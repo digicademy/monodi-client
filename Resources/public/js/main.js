@@ -197,16 +197,11 @@ $(document).on('keydown', function(e) {
 		switch(e.keyCode) {
 			case 8: //del
 				if (text == '') {
-					monodi.document.deleteElement();
-				}
-			break;
-			case 9: //tab
-				var dir = (e.shiftKey)? 'preceding' : 'following';
-				var newEl = monodi.document.selectNextElement(dir);
-				if (newEl) {
-					setTimeout( function() {
-						setFocus(newEl);
-					}, 10);
+					if (syl) {
+						monodi.document.selectNextElement("preceding");
+					} else {
+						monodi.document.deleteElement();
+					}
 				}
 			break;
 			case 37: //left
@@ -285,7 +280,6 @@ $(document).on('keydown', function(e) {
 		if (components) {
 			monodi.document.setPbData(components[1], {r:"recto", v:"verso"}[components[2]], true);
 		} else {
-			// As a fallback, we set the folio number to the text and leave rectoVerso blank
 			monodi.document.setPbData(text.trim(), "", true);
 		}
 	}
