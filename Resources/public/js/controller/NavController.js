@@ -14,6 +14,7 @@ function NavCtrl($scope, $http) {
                     if (val[0] == 'refresh_token') { $scope.setRefreshToken(val[1]); }
                 });
 
+                $scope.$emit('sync');
                 $scope.$emit('reloadDocuments', {});
                 $modal.modal('hide');
             }

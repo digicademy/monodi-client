@@ -13,28 +13,35 @@ function AppCtrl($scope, $http) {
             if (!navigator.onLine) {
                 access_token = false;
             } else {
-                var syncList = localStorage['syncList'];
-                if (syncList) {
-                    var temp = $scope.active;
-                    angular.forEach(syncList.split(','), function(el) {
-                        $scope.active = JSON.parse(localStorage['document' + el]);
-                        if ($scope.active) {
-                            if (el.indexOf('temp') < 0) {
-                                $scope.saveDocument();
-                            } else {
-                                $scope.saveNewDocument();
-                            }
-                        }
-                    });
-                    $scope.active = temp;
-                    localStorage['syncList'] = '';
-                }
+                $scope.broadcast('sync');
             }
         };
 
         window.addEventListener("online", $scope.setOnlineStatus, false);
         window.addEventListener("offline", $scope.setOnlineStatus, false);
     }
+
+    $scope.$on('sync', function() {
+        var syncList = localStorage['syncList'];
+        if (syncList) {
+            var temp = $scope.active;
+            angular.forEach(syncList.split(','), function(el) {
+                var doc = localStorage['document' + el];
+                if (doc) {
+                    $scope.active = JSON.parse(doc);
+                    if ($scope.active) {
+                        if (el.indexOf('temp') < 0) {
+                            $scope.saveDocument();
+                        } else {
+                            $scope.saveNewDocument();
+                        }
+                    }
+                }
+            });
+            $scope.active = temp;
+            localStorage['syncList'] = '';
+        }
+    });
 
     var filterFiles = function(documents) {
         var result = [];
@@ -166,12 +173,7 @@ function AppCtrl($scope, $http) {
     };
 
     $scope.postNewToServer = function() {
-        if ($scope.online && $scope.access_token && false) {
-            //http-request post
-            //http-request getDocuments
-        } else {
-            $scope.saveToSyncList();
-        }
+        $scope.$broadcast('postNewDocument');
     };
 
     $scope.$on('openDocumentRequest', function(e, data) {

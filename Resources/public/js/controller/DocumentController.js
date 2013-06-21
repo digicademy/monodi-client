@@ -74,42 +74,16 @@ function DocumentCtrl($scope, $http) {
 			}
 		}
 
-		$scope.setActive({
-			content: '<?xml version="1.0" encoding="UTF-8"?>\
-<mei xmlns="http://www.music-encoding.org/ns/mei">\
-  <meiHead>\
-	<fileDesc>\
-	  <titleStmt>\
-		<title/>\
-	  </titleStmt>\
-	  <pubStmt/>\
-	  <sourceDesc>\
-		<source/>\
-	  </sourceDesc>\
-	</fileDesc>\
-  </meiHead>\
-  <music>\
-	<body>\
-	  <mdiv>\
-		<score>\
-		  <section>\
-			<staff>\
-			  <layer>\
-				<sb label=""/>\
-				<syllable>\
-				  <syl></syl>\
-				</syllable>\
-			  </layer>\
-			</staff>\
-		  </section>\
-		</score>\
-	  </mdiv>\
-	</body>\
-  </music>\
-</mei>'
+		monodi.document = new MonodiDocument({
+			staticStyleElement	: document.getElementById("staticStyle"),
+			dynamicStyleElement	: document.getElementById("dynamicStyle"),
+			musicContainer		: document.getElementById("musicContainer"),
+			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl"
 		});
 
-		$scope.$broadcast('openDocument');
+		monodi.document.newDocument();
+		$scope.setActive({ content: monodi.document.getSerializedDocument() });
+
 		$scope.showView('main');
 	});
 
@@ -121,5 +95,19 @@ function DocumentCtrl($scope, $http) {
 					$bg.remove();
 				});
 		});
+	});
+
+	$scope.$on('postNewDocument', function() {
+		if ($scope.online && $scope.access_token) {
+            var putObject = {
+                filename: $scope.active.filename,
+                content: $scope.active.content,
+                folder: getParentId($scope.active.id, $scope.documents)
+            };
+
+            $http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject));
+        } else {
+            $scope.saveToSyncList();
+        }
 	});
 }
