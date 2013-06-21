@@ -26,6 +26,8 @@ function AppCtrl($scope, $http) {
                             }
                         }
                     });
+                    $scope.active = temp;
+                    localStorage['syncList'] = '';
                 }
             }
         };
@@ -88,6 +90,42 @@ function AppCtrl($scope, $http) {
             callback.bind(JSON.parse(localStorage['document' + id]))();
         } else if (!$scope.online) {
             alert('Es ist keine Verbindung zum Server möglich und lokal sind keine gecachten Dateien vorhanden.');
+        }
+    };
+
+    var removeDocument = function(id, data) {
+        var removed = false;
+        angular.forEach(data, function(el) {
+            if (!removed && el.document_count > 0) {
+                var path = el.path;
+                angular.forEach(el.documents, function(child, i) {
+                    if (child.id == id ) {
+                        el.document_count--;
+                        el.documents.splice(i,1);
+                    }
+                });
+            }
+
+            if (!removed && el.children_count > 0) {
+                removed = filterDocumentsById(id, el.folders);
+            }
+        });
+
+        return removed;
+    };
+    $scope.deleteDocument = function(id) {
+        removeDocument(id, $scope.documents);
+        angular.forEach($scope.files, function(el, i) {
+            if (el.id == id) {
+                $scope.files.splice(i,1);
+            }
+        });
+
+        localStorage['documents'] = JSON.stringify($scope.documents);
+        localStorage['files'] = JSON.stringify($scope.files);
+
+        if (id.indexOf('temp') < 0) {
+            //delete request
         }
     };
 

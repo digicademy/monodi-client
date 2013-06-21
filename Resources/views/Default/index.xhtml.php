@@ -60,10 +60,10 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                     <div class="batch btn-group span4">
                         <button class="btn dropdown-toggle btn-block" data-toggle="dropdown">Batch functions <span class="caret"></span></button>
                         <ul class="dropdown-menu">
-                            <li><button class="btn btn-link">print</button></li>
-                            <li><button class="btn btn-link">delete</button></li>
-                            <li><button class="btn btn-link">save locally</button></li>
-                            <li><button class="btn btn-link">delete locally</button></li>
+                            <li><button class="btn btn-link" ng-click="printBatch()">print</button></li>
+                            <li><button class="btn btn-link" ng-click="deleteBatch()">delete</button></li>
+                            <li><button class="btn btn-link" ng-click="saveLocalBatch()">save locally</button></li>
+                            <li><button class="btn btn-link" ng-click="removeLocalBatch()">delete locally</button></li>
                         </ul>
                     </div>
 
@@ -84,7 +84,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                         </div>
 
                         <div class="fileList clearfix">
-                            <table class="table table-bordered table-striped span12">
+                            <table class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
                                         <th class="span1"><input type="checkbox" ng-click="toggle()" /></th>
@@ -180,8 +180,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                     </tr>
                     <tr>
                         <th class="span2">Locally available</th>
-                        <td>nein</td>
-                        <td><button class="btn btn-info"><i class="icon-arrow-down icon-white"></i></button></td>
+                        <td>{{info.local}}</td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>

@@ -22,12 +22,36 @@ function DocumentCtrl($scope, $http) {
 		$scope.showView('main');
 	});
 
+	var getParentId = function(id, data) {
+        var result = false;
+        angular.forEach(data, function(el) {
+            if (!result && el.document_count > 0) {
+                var path = el.path;
+                angular.forEach(el.documents, function(child) {
+                    if (child.id == id ) {
+                        result = el.id;
+                    }
+                });
+            }
+
+            if (!result && el.children_count > 0) {
+                result = getParentId(id, el.folders);
+            }
+        });
+
+        return result;
+    };
 	$scope.$on('saveDocument', function() {
 		if ($scope.online && $scope.access_token) {
 			$scope.active.content = monodi.document.getSerializedDocument();
-			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson($scope.active)).success(function (data) {
-				console.log(data);
-			});
+
+			var putObject = {
+				filename: $scope.active.filename,
+				content: $scope.active.content,
+				folder: getParentId($scope.active.id, $scope.documents)
+			};
+
+			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject));
 		} else {
 			$scope.saveToSyncList();
 		}

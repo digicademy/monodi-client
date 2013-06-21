@@ -8,20 +8,31 @@ function DocumentListCtrl($scope, $http) {
 		}
 	};
 
-    $scope.deleteDocument = function(id) {
-        $scope.getDocument(id, function() {
-            $scope.removeLocal(id);
-
-            if (this.id.indexOf('temp') < 0) {
-                //delete request
-            }
-        });
-    };
-
 	$scope.openDocument = function(id) {
 		$scope.setInfoDocument(id);
 		$scope.$emit('openDocumentRequest', { id: id });
 	};
+
+    $scope.removeDocument = function(id) {
+        $scope.removeLocal(id);
+        localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
+        $scope.deleteDocument(id);
+    };
+
+    $scope.removeDocumentBatch = function() {
+        angular.forEach(getBatchDocuments(), function(el) {
+            $scope.removeDocument(el);
+        });
+    };
+
+    $scope.print = function(id) {
+        $scope.getDocument(id, function() {
+            console.log(monodi.document.getPrintHtml([this.content]));
+        });
+    };
+
+    $scope.printBatch = function() {
+    };
 
 	$scope.saveLocal = function(id) {
 		$scope.getDocument(id, function() {
@@ -38,6 +49,12 @@ function DocumentListCtrl($scope, $http) {
 		});
 	};
 
+    $scope.saveLocalBatch = function() {
+        angular.forEach(getBatchDocuments(), function(el) {
+            $scope.saveLocal(el);
+        });
+    };
+
 	$scope.removeLocal = function(id) {
 		localStorage.removeItem('document' + id);
 		var documentList = localStorage['documentList'];
@@ -46,6 +63,12 @@ function DocumentListCtrl($scope, $http) {
 		}
 		$scope.setLocal(id, false);
 	};
+
+    $scope.removeLocalBatch = function() {
+        angular.forEach(getBatchDocuments(), function(el) {
+            $scope.removeLocal(el);
+        });
+    };
 
 	$scope.documentinfo = function(id) {
 		$scope.setInfoDocument(id);
@@ -165,4 +188,10 @@ function DocumentListCtrl($scope, $http) {
 			$('#savedModal').modal('show');
 		}
 	};
+
+    var getBatchDocuments = function() {
+        return $('.fileviews').children(':visible').find(':checked').map( function() {
+            return this.name;
+        });
+    };
 };
