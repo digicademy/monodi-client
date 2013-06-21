@@ -49,7 +49,8 @@
     // To this list, "event handlers" will be added that shall be called after any visualization refresh.
     var callbacks = {
       updateView: [],
-      deleteAnnotatedElement: []
+      deleteAnnotatedElement: [],
+      selectElement: []
     };
 
     var xmlNS = "http://www.w3.org/XML/1998/namespace";
@@ -318,12 +319,16 @@
       element = element ? $MEI(element) : selectedElement;
       
       // For syllable elements we check whether we have at least one neighboring syllable element.
-      // If not, we don't wan to delete as we'd get a line without a syllable which we don't support
-      // as the user needs at least one syllable to select for adding content to the line. 
-      if (element.nodeName === "syllable" && evaluateXPath(
-        element, 
-        "(following-sibling::*[1]|preceding-sibling::*[1])[self::mei:syllable]"
-      ).length === 0) {
+      // If not, we don't want to delete as we'd get a line without a syllable which we don't support
+      // as the user needs at least one syllable to select for adding content to the line.
+      // Same for edition system breaks: If there is no preceding system break, we can't delete  
+      if (evaluateXPath(
+        element,
+        "self::mei:sb[not(@source)][not(preceding-sibling::mei:sb[not(@source)])][concat(@n,@label)!=''] | " +
+        "self::mei:syllable[count((following-sibling::*[1]|preceding-sibling::*[1])[self::mei:syllable])=0] | " +
+        "self::mei:syl | " +
+        "ancestor-or-self::mei:meiHead"
+      )[0]) {
         return false;
       }
       
@@ -463,9 +468,8 @@
 
     this.newDocument = function(text, textValidationCallback) {
       // Creates a new document and loads it into the document area.
-      // Parameter "text" is optional. If provided, the text layer will be
-      // generated from the hyphenated text so that only the music layer has to be added.
-      
+      // Parameters are optional. If text is provided, also textValidationCallback must be provided.
+      // The text layer will begenerated from the hyphenated text so that only the music layer has to be added.
       
       // This function can be tested with the following call:
       /* monodi.document.newDocument(null,function(problemLine, problemLineNumber){
@@ -492,8 +496,13 @@
         /*jslint regexp: true*/
         var folioInfo = columns[2] || "",
           sbN = columns[0] || "",
+<<<<<<< HEAD
           contentString = '<sb label="' + rubricCaption + '" n="' + sbN + '"/>',
           syllables = columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g),
+=======
+          contentString = '<sb label="' + (rubricCaption || "") + '" n="' + sbN + '"/>',
+          syllables = columns[1] ? columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : ["",""],
+>>>>>>> thomas
           breakMarkerString = "",
           folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)(v?)$/) || [],
           i;
@@ -521,15 +530,15 @@
         return contentString;
       }
       
+<<<<<<< HEAD
       text = text || "";// || prompt("Paste text")
       // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
       // escaped areas (using <>) and line breaks.
+=======
+>>>>>>> thomas
       var contentString = "",
-        contentStringHasValidColumns = true,
-        rubricCaption = "",
-        lines = text.split(/\s*[\n\r]+/),
-        line,
         i;
+<<<<<<< HEAD
       for (i=0; i<lines.length; i+=1) {
         line = lines[i];
         // Line that consists of:
@@ -556,21 +565,60 @@
         } else {
           contentStringHasValidColumns = false;
           break; 
-        }
-      }
-      if (!contentStringHasValidColumns) {
-        // We're offering a fallback method here that does not rely on strict syntax,
-        // but can not transcribe all
-        contentString = "";
-        // Using textValidationCallback, The user is asked whether he wants to process the text in fallback mode
-        // (no culomn interpretation) 
-        if (textValidationCallback(line, i)) {
-          for (i=0; i<lines.length; i+=1) {
-            contentString += processSyllables(lines[i]);
+=======
+      
+      if (text) {
+        // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
+        // escaped areas (using <>) and line breaks.
+        var contentStringHasValidColumns = true,
+          rubricCaption = "",
+          lines = text.split(/\s*[\n\r]+/),
+          line;
+        for (i=0; i<lines.length; i+=1) {
+          line = lines[i];
+          // Line that consists of:
+          // - Line label (or nothing)
+          // - Tab
+          // - Line content
+          // - optional:
+          //   - tab
+          //   - /|| f. \d+v?/ // 
+          /*jslint regexp: true*/
+          if (line.match(/^(\d*|[A-Z]?)\t([^\t]+)\t?(\|*\s*f\.\s*\d+v?)?\s*$/)) {
+            var columns = line.split(/\s*\t\s*/);
+            // A line that has no line label in the left column,
+            // only capital letters in the center column
+            // and optionally folio information of the form /f\. \d+v?/ in the third column
+            // is a rubric caption.
+            if (columns[0] === "" && columns[1].match(/^[A-Z\s]+$/)) {
+              // This is the rubric caption for the next line
+              rubricCaption = columns[1];
+            } else {
+              contentString += processSyllables(columns, rubricCaption);
+              rubricCaption = "";
+            }        
+          } else {
+            contentStringHasValidColumns = false;
+            break; 
           }
-        } else {
-          return;
+>>>>>>> thomas
         }
+        if (!contentStringHasValidColumns) {
+          // We're offering a fallback method here that does not rely on strict syntax,
+          // but can not transcribe all
+          contentString = "";
+          // Using textValidationCallback, The user is asked whether he wants to process the text in fallback mode
+          // (no culomn interpretation) 
+          if (textValidationCallback(line, i)) {
+            for (i=0; i<lines.length; i+=1) {
+              contentString += processSyllables(lines[i]);
+            }
+          } else {
+            return;
+          }
+        }
+      } else {
+        contentString = processSyllables([]);
       }
       this.loadDocument({meiString: 
         '<mei xmlns="http://www.music-encoding.org/ns/mei">' +
@@ -580,10 +628,47 @@
                 '<title/>' +
               '</titleStmt>' +
               '<pubStmt/>' +
-              '<sourceDesc>' +
-                '<source/>' +
+              '<seriesStmt>' +
+                '<title>Corpus monodicum</title>' +
+                '<seriesStmt>' +
+                  '<title type="section"><num/></title>' +
+                  '<identifier type="volume"><num/></identifier>' +
+                '</seriesStmt>' +
+              '</seriesStmt>' +
+              '<sourceDesc n="">' +
+                '<source>' +
+                  '<physDesc>' +
+                    '<provenance>' +
+                      '<geogName/>' +
+                    '</provenance>' +
+                  '</physDesc>' +
+                  '<physLoc>' +
+                    '<repository>' +
+                      '<geogName/>' +
+                      '<corpName/>' +
+                      '<identifier/>' +
+                    '</repository>' +
+                  '</physLoc>' +
+                '</source>' +
               '</sourceDesc>' +
             '</fileDesc>' +
+            '<workDesc>' +
+              '<work n="">' +
+                '<incip>' +
+                  '<incipText><p/></incipText>' +
+                '</incip>' +
+                '<classification>' +
+                  '<termList>' +
+                    '<term label="feast"/>' +       
+                    '<term label="service"/>' + 
+                    '<term label="baseChantGenre"/>' +
+                  '</termList>' +
+                '</classification>' +
+                '<relationList>' +
+                  '<relation rel="hasComplement" label=""/>' +
+                '</relationList>' +
+              '</work>' +
+            '</workDesc>' +
           '</meiHead>' +
           '<music>' +
             '<body>' +
@@ -733,7 +818,7 @@
         selectedElement = element && evaluateXPath(
           $MEI(element),
           // We only allow selection of sepcific types of elements 
-          "descendant-or-self::*[self::mei:note or self::mei:syllable[not(descendant::mei:note)] or self::mei:syl or self::mei:sb or self::mei:pb][1]"
+          "descendant-or-self::*[self::mei:note or self::mei:syllable[not(descendant::mei:note)] or self::mei:syl or self::mei:sb or self::mei:pb or ancestor::mei:meiHead][1]"
         )[0];
         
         if (selectedElement === previouslySelectedElement) {return;}
@@ -742,7 +827,7 @@
         // If we select a syllable element (*not* its syl element), we're operating on the music layer.
         // If there are no notes in this syllable element, we need to generate a dummy note that we can edit.
         if (selectedElement.nodeName === "syllable" && !selectedElement.getElementsByTagName("note")[0]) {
-          var newIneume = this.newIneumeAfter(element);
+          var newIneume = this.newIneumeAfter(element, true);
           var note = newIneume.getElementsByTagName("note")[0];
           note.setAttribute("label", "dummy");
           refresh(note);
@@ -758,6 +843,10 @@
       }
       
       removeEmptyElements(previouslySelectedElement);
+      
+      // TODO: Some code like this should go into main.js 
+      /*var contenteditable = evaluateXPath($HTML(selectedElement),"descendant-or-self::*[@contenteditable]")[0]
+      if (contenteditable) contenteditable.focus()*/
       
       return selectedElement;
     };
@@ -873,13 +962,6 @@
     };
 
 
-    this.setSylText = function(text, dontRefresh, syl) {
-      syl = syl || selectedElement;
-      syl = $MEI(syl, "syl", "setSylText() only accepts syl elements as first argument, no " + syl.nodeName + " elements.");
-      syl.textContent = text.trim();
-      if (!dontRefresh) {refresh(syl);}
-    };
-
     this.newSyllableAfter = function(text, leaveFocus, element) {
       text = text || '';
       element = $MEI(element || selectedElement);
@@ -896,7 +978,7 @@
         precedingSibling: "ancestor-or-self::mei:syllable[1]",
         leaveFocus: true
       });
-      this.setSylText(text, false, syl);
+      this.setTextContent(text, false, syl);
       if (!leaveFocus) {this.selectElement(syl);}
       return newSyllable;
     };
@@ -914,16 +996,16 @@
       // We put edition system breaks on the "text layer", i.e. inside <syllable>
       // (as opposed to source system breaks) 
       element = $MEI(element || selectedElement);
-      var newSb = createMeiElement("<sb/>");
+      var newSb = createMeiElement("<sb n='' label=''/>");
 
       insertElement(newSb, {
         contextElement : element,
         parent : "ancestor-or-self::mei:layer[1]",
-        precedingSibling : "ancestor-or-self::mei:syllable[1]",
-        leaveFocus : leaveFocus
+        precedingSibling : "ancestor-or-self::mei:syllable[1]"
       });
 
       this.newSyllableAfter("", true, newSb); // We can't have empty lines
+      if (!leaveFocus) {this.selectElement(newSb);}
       
       return newSb;
     };
@@ -935,13 +1017,14 @@
 
       pb = $MEI(pb || selectedElement, "pb");
 
-      if (rectoVerso && (rectoVerso !== "recto" || rectoVerso !== "verso")) {
+      if (rectoVerso && !(rectoVerso === "recto" || rectoVerso === "verso")) {
         throw new Error("rectoVerso can only take on the values 'recto' and 'verso', not '" + rectoVerso + "'.");
       }
       // We're requiring folio numbers to only contain alphanumeric characters. We could be more strict
-      if (folioNumber && ( typeof folioNumber !== "string" || !folioNumber.match(/^[\w]+$/)[0])) {
+      // We're removing this check right now because we'd risk a quiet error and having something on the screen that does not reflect the data
+      /*if (folioNumber && ( typeof folioNumber !== "string" || !folioNumber.match(/^[\w]+$/)[0])) {
         throw new Error("Malformed folio number '" + folioNumber + "'");
-      }
+      }*/
 
       pb.setAttribute("n", folioNumber || "");
       pb.setAttribute("func", rectoVerso || "");
@@ -1117,13 +1200,30 @@
       );
     };
 
+<<<<<<< HEAD
     // TODO: Unify similar setter functions
     this.setSbLabel = function(labelText, dontRefresh, sb) {
       sb = sb || selectedElement;
       sb = $MEI(sb, "sb", "System break labels can only be assigned to sb elements.");
       sb.setAttribute("label",labelText);
+=======
+    this.setAttribute = function(attributeName, value, dontRefresh, element) {
+      element = $MEI(element) || selectedElement;
+      element.setAttribute(attributeName, value);
+>>>>>>> thomas
       
-      if (!dontRefresh) {refresh(sb);}
+      if (!dontRefresh) {
+        refresh(element);
+      }
+      if (element.nodeName === "sb") {
+        refresh(document.getElementsByClassName("relationList")[0]);
+      }
+    };
+    
+    this.setTextContent = function(value, dontRefresh, element) {
+      element = $MEI(element) || selectedElement;
+      element.textContent = value.trim();
+      if (!dontRefresh) {refresh(element);}
     };
     
     this.setSbN = function(nText, dontRefresh, sb) {
@@ -1245,8 +1345,11 @@
       }
     }
 
-
-    this.loadDocument(parameters);
+    if (parameters.meiUrl || parameters.meiString || parameters.meiDOM) {
+      this.loadDocument(parameters);
+    } else {
+      this.newDocument();
+    }
     this.hookUpToSurroundingHTML(
       parameters.musicContainer,
       parameters.staticStyleElement,

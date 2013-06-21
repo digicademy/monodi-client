@@ -158,10 +158,10 @@
         position:relative;
       }
       /* Exceptions to the above display:inline-block:*/
-      .annotLabel,.meiHead,.annot {
+      .annotLabel, <!--.meiHead,--> .annot {
         display:none;
       }
-      .editionLine {
+      .editionLine, .fileDesc > .seriesStmt {
         display:block;
       }
       .syllable {
@@ -177,7 +177,6 @@
         height:<xsl:value-of select="$musicAreaHeight"/>px;
       }
 
-      <!-- todo an die richtige Stelle -->
       .uneume {
         white-space: nowrap;
       }
@@ -271,11 +270,14 @@
         content:"";
         display:inline-block;
         height:1em;
-        width:.5em;
+        min-width:.5em;
         z-index:-1;
       }
-      ._mei *[contenteditable=true]:empty:before {
-        position:absolute;
+      .meiHead *[contenteditable=true]:empty:before {
+        content:attr(title);
+      }
+      ._mei *[contenteditable=true]:not(:focus):empty:before {
+        position:relative;
         border:1px dotted black;
         opacity:.5;
       }
@@ -292,7 +294,11 @@
         min-width:<xsl:value-of select="$lineLeftMargin - $lineLabelPadding"/>px;
         padding-right:<xsl:value-of select="$lineLabelPadding"/>px;
       }
+<<<<<<< HEAD
       .sb.edition .sbLabel {
+=======
+      .sb.edition .att_label {
+>>>>>>> thomas
         margin-bottom:2em;
         margin-right:1em;
       }
@@ -339,7 +345,43 @@
       .apostropha .note + .note {
         margin-left:<xsl:value-of select="($apostrophaSpace - $noteSpace)*$scaleStepSize"/>px;
       }
-    <!--</style>-->
+      
+      <!-- Header Styles -->
+      <!--.relationList > .sbN, .classification .term, .repository > * {-->
+      .work {
+        margin-top:2em;
+      }
+      .work *, .seriesStmt > *, .repository > *, .sourceDesc > * {
+        display:inline;
+        padding:.2em;
+      }
+      .work > .att_n {
+         border: 1px solid black;
+       }
+      .repository > *:after {
+        content:","
+      }
+      .classification, .sourceDesc * {
+        display:inline;
+      }
+      .incip, .physLoc, .sourceDesc, .repository, .work, .meiHead > * {
+        display:block;
+      }
+      .incip {
+        position:absolute;
+        padding:0;
+        margin-top:-3em;
+      }
+      .relation > .att_label:before {
+        content:"(";
+      }
+      .relation > .att_label:after {
+        content:")";
+      }
+      .meiHead [contenteditable]:empty:before {
+        position:relative;
+      }
+      <!--</style>-->
     <!-- TODO: Fix the following annotation display -->
     <xsl:if test="$displayAnnotations = 'true'">
       <!--<style type="text/css"> <!-\- Annotation styling -\->-->
@@ -631,11 +673,43 @@
       <xsl:apply-templates select="*|text()"/>
     </div>
   </xsl:template>
-
+  
+  <xsl:template match="mei:relationList">
+    <div class="_mei relationList">
+      <xsl:apply-templates select="@*"/>
+      <xsl:for-each select="//mei:sb[not(@source)]/@n">
+        <div class="sbN"><xsl:value-of select="."/></div>
+      </xsl:for-each>
+      <xsl:apply-templates/>
+    </div>
+  </xsl:template>
+  
   <xsl:template match="mei:*">
     <div class="_mei {local-name()}">
+      <xsl:attribute name="class">
+        <xsl:value-of select="concat('_mei ',local-name())"/>
+        <xsl:apply-templates select="@*" mode="generate-classes"/>
+      </xsl:attribute>
       <xsl:apply-templates select="." mode="create-title"/>
-      <xsl:apply-templates select="@*|*|text()"/>
+      <xsl:apply-templates select="." mode="create-contenteditable"/>
+      <xsl:apply-templates select="@xml:id"/>
+      <xsl:apply-templates select="@*" mode="process-editable-attributes"/>
+      <xsl:apply-templates select="@*[not(local-name()='id')]|*|text()"/>
+    </div>
+  </xsl:template>
+  
+  <xsl:template match="@*" mode="generate-classes"/>
+  <!-- TODO: We probably want to move away from @label -->
+  <xsl:template match="mei:seriesStmt/@label" mode="generate-classes">
+    <xsl:value-of select="concat(' ',.,' ')"/>
+  </xsl:template>  
+  
+  <xsl:template match="@*" mode="process-editable-attributes"/>
+  <xsl:template match="mei:sourceDesc/@n|mei:work/@n|mei:relation/@label|mei:sb/@label|mei:sb/@n" mode="process-editable-attributes">
+    <div data-editable-attribute="{local-name()}" class="att_{local-name()}">
+      <xsl:call-template name="set-content-editable"/>
+      <xsl:apply-templates select="." mode="create-title"/>
+      <xsl:value-of select="."/>
     </div>
   </xsl:template>
   
@@ -650,6 +724,7 @@
     <div class="editionLine">
       <div class="_mei sb edition">
         <xsl:apply-templates select="@xml:id"/>
+<<<<<<< HEAD
         <div title="rubric caption" class="sbLabel">
           <xsl:call-template name="set-content-editable"/>
           <xsl:value-of select="@label"/>
@@ -658,6 +733,10 @@
           <xsl:call-template name="set-content-editable"/>
           <xsl:value-of select="@n"/>
         </span>
+=======
+        <xsl:apply-templates select="@label" mode="process-editable-attributes"/>
+        <xsl:apply-templates select="@n" mode="process-editable-attributes"/>
+>>>>>>> thomas
       </div>
       <xsl:apply-templates select="following-sibling::*
         [not(self::mei:sb) or @source]
@@ -684,11 +763,45 @@
   </xsl:template>
   
   <!-- By default, don't create title element -->
-  <xsl:template match="*" mode="create-title"/>
+  <xsl:template match="*|@*" mode="create-title"/>
   <!-- For specific elements, create a title -->
   <xsl:template match="mei:sb" mode="create-title">
     <xsl:attribute name="title">line break in the source</xsl:attribute>
   </xsl:template>
+  <xsl:template match="mei:seriesStmt/mei:title/mei:num" mode="create-title">
+    <xsl:attribute name="title">section no.</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:seriesStmt/mei:identifier/mei:num" mode="create-title">
+    <xsl:attribute name="title">volume no.</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:term[@label]" mode="create-title">
+    <xsl:attribute name="title"><xsl:value-of select="@label"/></xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:term[@label='baseChantGenre']" mode="create-title" priority="1">
+    <xsl:attribute name="title">base chant genre</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:relation/@label" mode="create-title">
+    <xsl:attribute name="title">text edition</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:sourceDesc/@n" mode="create-title">
+    <xsl:attribute name="title">source no.</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:source/mei:physDesc/mei:provenance/mei:geogName">
+    <xsl:attribute name="title">source provenance</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:repository/mei:geogName">
+    <xsl:attribute name="title">source location</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:repository/mei:corpName">
+    <xsl:attribute name="title">institution</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:repository/mei:identifier">
+    <xsl:attribute name="title">shelf mark</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:incipText/mei:p">
+    <xsl:attribute name="title">incipit</xsl:attribute>
+  </xsl:template>
+  <!-- TODO: Add more titles -->
   
   <xsl:template match="mei:syl">
     <div class="_mei {local-name()}">
@@ -706,7 +819,8 @@
     <span class="hyphen">-</span>
   </xsl:template>
   
-  <xsl:template name="set-content-editable">
+  <xsl:template mode="create-contenteditable" match="*"/>
+  <xsl:template name="set-content-editable" mode="create-contenteditable" match="mei:seriesStmt//mei:num|mei:term|mei:p|mei:repository/*|mei:geogName">
     <xsl:if test="$setContentEditable='true'">
       <xsl:attribute name="contenteditable">true</xsl:attribute>
       <xsl:if test="$onblurWorkaroundForEmptyEditableElements='true'">
@@ -903,77 +1017,5 @@
     <xsl:value-of select="'&#9838;'"/>
   </xsl:template>
   
-  
-  <!-- Text formatting templates (mainly useful for annotations). We're not using any of those right now. -->
-  <xsl:template match="mei:list">
-    <ul class="_mei list">
-      <xsl:apply-templates select="@*|node()"/>
-    </ul>
-  </xsl:template>
-  
-  <xsl:template match="mei:item">
-    <li class="_mei item">
-      <xsl:apply-templates select="@*|node()"/>
-    </li>
-  </xsl:template>
-  
-  <xsl:template match="mei:p">
-    <p class="_mei p">
-      <xsl:apply-templates select="@*|node()"/>
-    </p>
-  </xsl:template>
-  
-  <xsl:template match="mei:lb">
-    <br class="_mei lb"/>
-  </xsl:template>
-  
-  <xsl:template match="@color|@fontfam|@fontstyle|@fontweight|@halign|@rend|@rotation|@valign">
-    <xsl:attribute name="style">
-      <xsl:apply-templates select="../@*" mode="generate-style"/>
-    </xsl:attribute>
-  </xsl:template>
-  
-  <xsl:template match="@color" mode="generate-style">
-    <xsl:value-of select="concat('color:',.,';')"/>
-  </xsl:template>
-  <xsl:template match="@fontfam" mode="generate-style">
-    <xsl:value-of select="concat('font-family:',.,';')"/>
-  </xsl:template>
-  <xsl:template match="@fontweight">
-    <xsl:value-of select="concat('font-weight:',.,';')"/>
-  </xsl:template>
-  <xsl:template match="@fontstyle">
-    <xsl:value-of select="concat('font-style:',.,';')"/>
-  </xsl:template>
-  <xsl:template match="@fontstyle[string()='ital']">
-    <xsl:value-of select="'font-style:italic;'"/>
-  </xsl:template>
-  <xsl:template match="@halign">
-    <xsl:value-of select="concat('text-align:',.,';')"/>
-  </xsl:template>
-  <xsl:template match="@valign">
-    <xsl:value-of select="concat('vertical-align:',.,';')"/>
-  </xsl:template>
-  <xsl:template match="@rotation">
-    <!-- TODO: Add vendor prefixed versions -->
-    <xsl:value-of select="concat('transform:rotate(',.,'deg);')"/>
-  </xsl:template>
-  <xsl:template match="@rend[string()='box']">
-    <xsl:value-of select="'border:1pt solid black;'"/>
-  </xsl:template>
-  <xsl:template match="@rend[string()='smcaps']">
-    <xsl:value-of select="'font-variant:small-caps;'"/>
-  </xsl:template>
-  <xsl:template match="@rend[string()='strike']">
-    <xsl:value-of select="'text-decoration:line-through;'"/>
-  </xsl:template>
-  <xsl:template match="@rend[string()='sup']">
-    <xsl:value-of select="'font-size:x-small;vertical-align:top;'"/>
-  </xsl:template>
-  <xsl:template match="@rend[string()='sub']">
-    <xsl:value-of select="'font-size:x-small;vertical-align:bottom;'"/>
-  </xsl:template>
-  <xsl:template match="@rend[string()='underline']">
-    <xsl:value-of select="'text-decoration:underline;'"/>
-  </xsl:template>
 </xsl:stylesheet>
+

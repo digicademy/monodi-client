@@ -12,6 +12,14 @@ function DocumentCtrl($scope, $http) {
 			return confirm('Do you want to delete the ' + data.length + ' Annotations associated with this element?');
 		});
 
+		monodi.document.addCallback("updateView",function(element){
+			var offset = $(element).offset().top - $(window).scrollTop();
+
+			if(offset > window.innerHeight || offset < 0){
+				element.scrollIntoView(offset > 0);
+			}
+		});
+
 		var typesrc = monodi.document.ANNOTATION_TYPES || {};
 		types = '<p><select>';
 		for (var type in typesrc) {
