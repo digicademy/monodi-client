@@ -319,12 +319,16 @@
       element = element ? $MEI(element) : selectedElement;
       
       // For syllable elements we check whether we have at least one neighboring syllable element.
-      // If not, we don't wan to delete as we'd get a line without a syllable which we don't support
-      // as the user needs at least one syllable to select for adding content to the line. 
-      if (element.nodeName === "syllable" && evaluateXPath(
-        element, 
-        "(following-sibling::*[1]|preceding-sibling::*[1])[self::mei:syllable]"
-      ).length === 0) {
+      // If not, we don't want to delete as we'd get a line without a syllable which we don't support
+      // as the user needs at least one syllable to select for adding content to the line.
+      // Same for edition system breaks: If there is no preceding system break, we can't delete  
+      if (evaluateXPath(
+        element,
+        "self::mei:sb[not(@source)][not(preceding-sibling::mei:sb[not(@source)])][concat(@n,@label)!=''] | " +
+        "self::mei:syllable[count((following-sibling::*[1]|preceding-sibling::*[1])[self::mei:syllable])=0] | " +
+        "self::mei:syl | " +
+        "ancestor-or-self::mei:meiHead"
+      )[0]) {
         return false;
       }
       
@@ -464,9 +468,8 @@
 
     this.newDocument = function(text, textValidationCallback) {
       // Creates a new document and loads it into the document area.
-      // Parameter "text" is optional. If provided, the text layer will be
-      // generated from the hyphenated text so that only the music layer has to be added.
-      
+      // Parameters are optional. If text is provided, also textValidationCallback must be provided.
+      // The text layer will begenerated from the hyphenated text so that only the music layer has to be added.
       
       // This function can be tested with the following call:
       /* monodi.document.newDocument(null,function(problemLine, problemLineNumber){
@@ -493,8 +496,8 @@
         /*jslint regexp: true*/
         var folioInfo = columns[2] || "",
           sbN = columns[0] || "",
-          contentString = '<sb label="' + rubricCaption + '" n="' + sbN + '"/>',
-          syllables = columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g),
+          contentString = '<sb label="' + (rubricCaption || "") + '" n="' + sbN + '"/>',
+          syllables = columns[1] ? columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : ["",""],
           breakMarkerString = "",
           folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)(v?)$/) || [],
           i;
@@ -522,56 +525,60 @@
         return contentString;
       }
       
-      text = text || "";
-      // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
-      // escaped areas (using <>) and line breaks.
       var contentString = "",
-        contentStringHasValidColumns = true,
-        rubricCaption = "",
-        lines = text.split(/\s*[\n\r]+/),
-        line,
         i;
-      for (i=0; i<lines.length; i+=1) {
-        line = lines[i];
-        // Line that consists of:
-        // - Line label (or nothing)
-        // - Tab
-        // - Line content
-        // - optional:
-        //   - tab
-        //   - /|| f. \d+v?/ // 
-        /*jslint regexp: true*/
-        if (line.match(/^(\d*|[A-Z]?)\t([^\t]+)\t?(\|*\s*f\.\s*\d+v?)?\s*$/)) {
-          var columns = line.split(/\s*\t\s*/);
-          // A line that has no line label in the left column,
-          // only capital letters in the center column
-          // and optionally folio information of the form /f\. \d+v?/ in the third column
-          // is a rubric caption.
-          if (columns[0] === "" && columns[1].match(/^[A-Z\s]+$/)) {
-            // This is the rubric caption for the next line
-            rubricCaption = columns[1];
+      
+      if (text) {
+        // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
+        // escaped areas (using <>) and line breaks.
+        var contentStringHasValidColumns = true,
+          rubricCaption = "",
+          lines = text.split(/\s*[\n\r]+/),
+          line;
+        for (i=0; i<lines.length; i+=1) {
+          line = lines[i];
+          // Line that consists of:
+          // - Line label (or nothing)
+          // - Tab
+          // - Line content
+          // - optional:
+          //   - tab
+          //   - /|| f. \d+v?/ // 
+          /*jslint regexp: true*/
+          if (line.match(/^(\d*|[A-Z]?)\t([^\t]+)\t?(\|*\s*f\.\s*\d+v?)?\s*$/)) {
+            var columns = line.split(/\s*\t\s*/);
+            // A line that has no line label in the left column,
+            // only capital letters in the center column
+            // and optionally folio information of the form /f\. \d+v?/ in the third column
+            // is a rubric caption.
+            if (columns[0] === "" && columns[1].match(/^[A-Z\s]+$/)) {
+              // This is the rubric caption for the next line
+              rubricCaption = columns[1];
+            } else {
+              contentString += processSyllables(columns, rubricCaption);
+              rubricCaption = "";
+            }        
           } else {
-            contentString += processSyllables(columns, rubricCaption);
-            rubricCaption = "";
-          }        
-        } else {
-          contentStringHasValidColumns = false;
-          break; 
-        }
-      }
-      if (!contentStringHasValidColumns) {
-        // We're offering a fallback method here that does not rely on strict syntax,
-        // but can not transcribe all
-        contentString = "";
-        // Using textValidationCallback, The user is asked whether he wants to process the text in fallback mode
-        // (no culomn interpretation) 
-        if (textValidationCallback(line, i)) {
-          for (i=0; i<lines.length; i+=1) {
-            contentString += processSyllables(lines[i]);
+            contentStringHasValidColumns = false;
+            break; 
           }
-        } else {
-          return;
         }
+        if (!contentStringHasValidColumns) {
+          // We're offering a fallback method here that does not rely on strict syntax,
+          // but can not transcribe all
+          contentString = "";
+          // Using textValidationCallback, The user is asked whether he wants to process the text in fallback mode
+          // (no culomn interpretation) 
+          if (textValidationCallback(line, i)) {
+            for (i=0; i<lines.length; i+=1) {
+              contentString += processSyllables(lines[i]);
+            }
+          } else {
+            return;
+          }
+        }
+      } else {
+        contentString = processSyllables([]);
       }
       this.loadDocument({meiString: 
         '<mei xmlns="http://www.music-encoding.org/ns/mei">' +
@@ -949,7 +956,7 @@
       // We put edition system breaks on the "text layer", i.e. inside <syllable>
       // (as opposed to source system breaks) 
       element = $MEI(element || selectedElement);
-      var newSb = createMeiElement("<sb/>");
+      var newSb = createMeiElement("<sb n='' label=''/>");
 
       insertElement(newSb, {
         contextElement : element,
@@ -1282,8 +1289,11 @@
       }
     }
 
-
-    this.loadDocument(parameters);
+    if (parameters.meiUrl || parameters.meiString || parameters.meiDOM) {
+      this.loadDocument(parameters);
+    } else {
+      this.newDocument();
+    }
     this.hookUpToSurroundingHTML(
       parameters.musicContainer,
       parameters.staticStyleElement,
