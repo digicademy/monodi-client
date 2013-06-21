@@ -1251,9 +1251,14 @@
     };
 
     this.getPrintHtml = function(documents) {
+      var i;
+      for (i=0; i<documents.length; i+=1) {
+        if (typeof documents[i] === "string") {
+          documents[i] = loadXML({xmlString: documents[i]});
+        }
+      }      
       var printDocument = transform(documents[0], "d0"),
-        printDocumentBody = printDocument.getElementsByTagName("body")[0],
-        i;
+        printDocumentBody = printDocument.getElementsByTagName("body")[0];
       for (i=1; i<documents.length; i+=1) {
         var contentToAppend = transform(documents[i], "d" + i).getElementsByTagName("body")[0].firstElementChild;
         var defElements = contentToAppend.getElementsByTagName("defs");
