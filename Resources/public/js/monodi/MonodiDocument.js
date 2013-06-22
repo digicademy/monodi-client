@@ -3,7 +3,7 @@
 // is used to find the corresponding MEI element.
 
 /*jslint vars:true, browser:true, indent:2 */
-/*global HTMLElement: false, SVGElement: false, Element: false, Node: false, Document: false,
+/*global HTMLElement: false, SVGElement: false, Element: false, Node: false, Attr: false, Document: false,
          XPathResult: false, XSLTProcessor: false,
          DOMParser: false, XMLSerializer: false */
 
@@ -111,6 +111,10 @@
         return evaluateXPath(element,'ancestor-or-self::*[@id][1]/@id')[0].value.substr(idPrefixLength);
       }
 
+      if (element instanceof Attr) {
+        element = element.parentNode;
+      }
+
       if (element instanceof Element && element.namespaceURI === meiNS) {
         return element.getAttributeNS(xmlNS,"id") || error(element.nodeName + " element has no ID.");
       }
@@ -124,7 +128,11 @@
     function $MEI(element, expectedElementName, errorMessage) {
       // Takes an ID, an HTML or an MEI element and returns the proper MEI element.
       if (element instanceof HTMLElement) {
+        var attributeName = element.getAttribute("data-editable-attribute"); 
         element = $ID(element);
+        if (attributeName) {
+          return $MEI($ID(element)).attributes.getNamedItem(attributeName);
+        }
       }
 
       if (typeof(element) === 'string') {
@@ -558,7 +566,7 @@
               rubricCaption = "";
             }        
           } else {
-            contentStringHasValidColumns = false;
+            contentStringHasValidColumns = line.trim() === "";
             break; 
           }
         }
@@ -773,12 +781,21 @@
  
       var previouslySelectedElement = selectedElement;
       
+      element = $MEI(element);
       if (element) {
-        selectedElement = element && evaluateXPath(
-          $MEI(element),
-          // We only allow selection of sepcific types of elements 
-          "descendant-or-self::*[self::mei:note or self::mei:syllable[not(descendant::mei:note)] or self::mei:syl or self::mei:sb or self::mei:pb or ancestor::mei:meiHead][1]"
-        )[0];
+        if (element instanceof Attr) {
+          selectedElement = element;
+        } else {
+          selectedElement = element && evaluateXPath(
+            element,
+            // We only allow selection of sepcific types of elements 
+            "descendant-or-self::*[" + 
+              "self::mei:note or self::mei:syllable[not(descendant::mei:note)] " +
+              "or self::mei:syl or self::mei:sb or self::mei:pb " +
+              "or ancestor::mei:meiHead " +
+            "][1]"
+          )[0];
+        }
         
         if (selectedElement === previouslySelectedElement) {return;}
         if (previouslySelectedElement) {removeDummyNotes(previouslySelectedElement);} 
@@ -793,7 +810,11 @@
           selectedElement = note;
         }
         
-        dynamicStyleElement.textContent = "#" + idPrefix + $ID(selectedElement) + "{" + selectionStyle + "}";
+        dynamicStyleElement.textContent = (
+          "#" + idPrefix + $ID(selectedElement) + 
+          (selectedElement instanceof Attr ? (" > att_" + selectedElement.localName) : "") +
+          "{" + selectionStyle + "}" 
+        );
         
         callUpdateViewCallbacks(element);
       } else {
