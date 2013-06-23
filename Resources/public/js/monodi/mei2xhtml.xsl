@@ -47,6 +47,7 @@
   <!-- TODO: Think about adding oriscus/liquescent/quilisma space -->
   <xsl:param name="accidentalSpace" select="1.5"/>
   <xsl:param name="sbPbWidth" select="6"/>
+  <xsl:param name="sbPbMarkerHeight" select="5"/>
   <xsl:param name="pbLineDistance" select="1"/>
   <xsl:param name="paddingAfterIneume" select="4"/>
   <xsl:param name="paddingBeforeFirstSyllable" select="2"/>
@@ -66,21 +67,22 @@
 
   <!-- GRAPHICAL PROPERTIES OF INDIVIDUAL SYMBOLS -->
   <xsl:param name="noteheadSize" select="1"/>
-  <xsl:param name="noteheadEllipticity" select="1.1"/>
-  <xsl:param name="noteheadSkew" select="10"/>
   <xsl:param name="liquescentNoteheadSize" select=".7"/>
   <xsl:param name="liquescentColor" select="'#31a'"/>
-  <xsl:param name="apostrophaNoteheadSize" select=".5*($noteheadSize + $liquescentNoteheadSize)"/>
   
   <xsl:param name="staffLineWidth" select=".25"/>
   <xsl:param name="ledgerLineWidth" select="$staffLineWidth * 1.3"/>
   <xsl:param name="ledgerLineProtrusion" select=".7"/>
-  <xsl:param name="slurLineWidth" select=".6"/>
+  <xsl:param name="slurLineWidth" select=".4"/>
   <!-- sbPbLineWidth is in pixels -->
   <xsl:param name="sbPbLineWidth" select="2"/>
 
   <xsl:param name="annotLabelBorderRadius" select="3"/>
-  <xsl:param name="musicLineSpacing" select="0"/><!-- This is the distance in pixels -->
+  <xsl:param name="musicTextDistance" select="0"/><!-- This is the distance in pixels -->
+
+  <xsl:param name="paddingSlurEndNotes" select="3"/>
+  <xsl:param name="paddingSlurCenterNotes" select="2"/>
+  <xsl:param name="lowestSlurPosition" select="1"/>
   
   <xsl:param name="annotationColorCodes" select="'
     internal:#c11;
@@ -176,19 +178,15 @@
       .note > svg { <!-- Width of notes varies depending on accidentals, therefore we don't give a width here -->
         height:<xsl:value-of select="$musicAreaHeight"/>px;
       }
-
       .uneume {
         white-space: nowrap;
       }
-
       ._mei.mei, ._mei.music, ._mei.body, ._mei.mdiv, ._mei.score, ._mei.section, ._mei.staff, ._mei.layer, ._mei.editionLine  {
         width: 100%;
       }
 <!--    </style>
     <style type="text/css"> <!-\- Music styling -\->-->
-      @namespace xlink url(http://www.w3.org/1999/xlink);
-      
-      .stafflines,.slur {
+      .stafflines, .slur {
         stroke:currentColor;
         fill:none;
         position:absolute;
@@ -203,10 +201,6 @@
         fill:currentColor;
         stroke:none;
       }
-      .apostropha use {
-        stroke:currentColor;
-        stroke-width:<xsl:value-of select="$apostrophaNoteheadSize - $liquescentNoteheadSize"/>;
-      }
       .ledgerlines {
         stroke:currentColor;
         stroke-width:<xsl:value-of select="$scaleStepSize * 2 * ($noteheadSize + $ledgerLineProtrusion)"/>;
@@ -216,23 +210,15 @@
       .liquescent .ledgerlines {
         stroke-width:<xsl:value-of select="$scaleStepSize * 2 * ($liquescentNoteheadSize + $ledgerLineProtrusion)"/>;
       }
-      .apostropha .ledgerlines {
-        stroke-width:<xsl:value-of select="$scaleStepSize * 2 * ($apostrophaNoteheadSize + $ledgerLineProtrusion) * $scaleStepSize"/>;
-      }
       .liquescent {
         color:<xsl:value-of select="$liquescentColor"/>;
       }
       .dummy.note {
         opacity:.5;
       }
-      .accidental {
-        font-size:<xsl:value-of select="100 * $scaleStepSize div 3"/>%;
-      }
       .musicLayer > .sb, .musicLayer > .pb {
         min-width:<xsl:value-of select="$scaleStepSize * $sbPbWidth"/>px;
-        height:<xsl:value-of select="$scaleStepSize * 8"/>px;
-        <!--margin-top:<xsl:value-of select="$spaceAboveStaff * $scaleStepSize"/>px;-->
-        bottom:<xsl:value-of select="$scaleStepSize * $spaceBelowStaff"/>px;
+        height:100%;
       }
       <!-- We create the sort-of barlines that mark a page or system break in the source 
            using borders of pseudo-elements before and after -->
@@ -241,24 +227,27 @@
         border-left:<xsl:value-of select="$sbPbLineWidth"/>px solid;
         position:absolute;
         left:<xsl:value-of select=".5*($sbPbWidth * $scaleStepSize - $sbPbLineWidth)"/>px;
-        height:<xsl:value-of select="$scaleStepSize * 8"/>px;
-        bottom:25px;
+        height:<xsl:value-of select="$scaleStepSize * $sbPbMarkerHeight"/>px;
+        bottom:0;
         z-index:-1;
       }
       .musicLayer > .pb:after {
         border-right:<xsl:value-of select="$sbPbLineWidth"/>px solid;
         width:<xsl:value-of select="$pbLineDistance * $scaleStepSize"/>px;
-        <!--left:<xsl:value-of select=".5*(($sbPbWidth - $pbLineDistance) * $scaleStepSize - $sbPbLineWidth)"/>px;-->
       }
       .folioDescription {
         position:relative;
         border:1px solid black;
-        margin:-1px 0;
         font-style:italic;
         min-width:1em;
-        height:1em;
-        <!--top:<xsl:value-of select="$scaleStepSize * 7"/>px;-->
+        min-height:1em;
+        top:<xsl:value-of select="$musicAreaHeight - $scaleStepSize * $sbPbMarkerHeight"/>px;
+        margin-top:-1em;
         background-color:rgba(255,255,255,.9);
+      }
+      .pb {
+        margin-right:1em;
+        vertical-align:bottom;
       }
 <!--    </style>
     <style type="text/css"><!-\- Text styling -\->-->
@@ -275,8 +264,10 @@
       }
       .meiHead *[contenteditable=true]:empty:before {
         content:attr(title);
+        opacity:.5;
+        color:black;
       }
-      ._mei *[contenteditable=true]:not(:focus):empty:before {
+      ._mei *[contenteditable=true]:empty:not(:focus):before {
         position:relative;
         border:1px dotted black;
         opacity:.5;
@@ -293,10 +284,22 @@
       .sb.edition {
         min-width:<xsl:value-of select="$lineLeftMargin - $lineLabelPadding"/>px;
         padding-right:<xsl:value-of select="$lineLabelPadding"/>px;
-      }
-      .sb.edition .att_label {
-        margin-bottom:2em;
+        vertical-align:top;
         margin-right:1em;
+      }
+      .sb.edition > .att_label {
+        position:absolute;
+        white-space:nowrap;
+        margin-top:-1em;
+      }
+      .sb.edition > .att_n {
+        <!-- We want to center this field centered vertically before the staff, which is at 
+             half the $musicAreaHeight.  We have to take into account the 1em height taken away
+             by the rubric caption that's placed above and half this field's own em height. -->
+        vartical-align:top;
+        margin-top:<xsl:value-of select=".5*$musicAreaHeight"/>px;
+        -webkit-transform:translatey(-.25em);
+        transform:translatey(-.25em);
       }
       <!-- We want to visualize wrapped lines by indenting the part(s) that don't fit on the first line.
            This is kind of a "reverse indent" as usually you have the first paragraph of a text indented.
@@ -311,7 +314,7 @@
       }
       .syl {
         <!-- We left-align the syllable text with the first notehead and shift by the desired value -->
-        margin-left:<xsl:value-of select="(.5*($noteSpace - $noteheadEllipticity * $noteheadSize) - $leftShiftOfSyllableText)*$scaleStepSize"/>px;
+        margin-left:<xsl:value-of select="(.5*($noteSpace - $noteheadSize) - $leftShiftOfSyllableText)*$scaleStepSize"/>px;
         margin-right:<xsl:value-of select="$paddingAfterSyllableText * $scaleStepSize"/>px;
       }
       <!-- It's more pleasing to have a little more space to the left of the first notes, so we shift all the "first" music and text elements in the line -->
@@ -321,14 +324,15 @@
         margin-left:<xsl:value-of select="$paddingBeforeFirstSyllable * $scaleStepSize"/>px;
       }
       .musicLayer {
-        margin-bottom:<xsl:value-of select="$musicLineSpacing * $scaleStepSize"/>px;
+        margin-bottom:<xsl:value-of select="$musicTextDistance * $scaleStepSize"/>px;
       }
       .sb.source:after {
         padding-right:<xsl:value-of select="$paddingAfterSyllableText * $scaleStepSize"/>px;
       }
       .hyphen {
         margin-left:<xsl:value-of select="$paddingAroundHyphen * $scaleStepSize"/>px;
-        <!-- After hyphens, we don't need as much space as after usual syllables, therefore subtract something from the margin --> 
+        <!-- After hyphens, we don't need as much space as after usual syllables, 
+             therefore subtract the usual padding and "replace" it with the hyphen padding --> 
         margin-right:<xsl:value-of select="($paddingAroundHyphen - $paddingAfterSyllableText)*$scaleStepSize"/>px;
       }
       .ineume {
@@ -344,8 +348,11 @@
       
       <!-- Header Styles -->
       <!--.relationList > .sbN, .classification .term, .repository > * {-->
-      .work {
-        margin-top:2em;
+      .relationList > .sbN:empty {
+        display:none;
+      }
+      .workDesc {
+        margin-top:3em;
       }
       .work *, .seriesStmt > *, .repository > *, .sourceDesc > * {
         display:inline;
@@ -354,9 +361,10 @@
       .work > .att_n {
          border: 1px solid black;
        }
-      .repository > *:after {
+      .repository > *:not(:last-of-type):after {
         content:","
       }
+      
       .classification, .sourceDesc * {
         display:inline;
       }
@@ -366,7 +374,7 @@
       .incip {
         position:absolute;
         padding:0;
-        margin-top:-3em;
+        margin-top:-4em;
       }
       .relation > .att_label:before {
         content:"(";
@@ -566,6 +574,29 @@
         }
         
         <xsl:call-template name="create-annotation-color-styles"/>
+      
+      
+      <!-- "Spell checking" detecting some weird situations/bad encoding -->
+      
+      .note.unpitched, .liquescent.uLiquescentFollowing, .liquescent.dLiquescentFollowing {
+        background-color:rgba(100%,10%,0%,.5);
+      }
+      .note.unpitched:after, .liquescent.uLiquescentFollowing:after, .liquescent.dLiquescentFollowing:after {
+        color:black;
+        left:0;
+        position:absolute;
+        white-space: nowrap;
+        background-color:rgba(100%,100%,100%,.5);
+      }
+      
+      <!-- This is a warning: Liquescents with these class only occur when there are two consecutive liquescents
+             with unknown pitch, which is basically wrong -->
+      .note.unpitched:after {
+        content: "Error: Can't display unknown pitch";
+      }
+      .liquescent.uLiquescentFollowing:after, .liquescent.dLiquescentFollowing:after {
+        content: "Warning: Liquescent followed by liquescent with unkown pitch"
+      }
       <!--</style>-->
     </xsl:if>
     <xsl:if test="$interactiveCSS='true'">
@@ -598,6 +629,9 @@
         .annotLabel.endAnnot > a:hover {
           left:auto;
         }
+        [contenteditable]:not(:empty):hover, [contenteditable]:empty:focus:hover, [contenteditable=true]:not(:focus):hover:empty:before {
+          background-color:rgba(0%,53%,80%,.1);
+        }
       <!--</style>-->
     </xsl:if>
     </style>
@@ -626,44 +660,27 @@
       <xsl:apply-templates select="@*"/>
       <svg:svg style="display:none">
         <svg:defs>
-          <svg:circle id="standardNotehead" 
-              r="{$scaleStepSize}" transform="scale({$noteheadEllipticity},1) skewX({-$noteheadSkew})"/>
-          <svg:path id="oriscusNotehead" transform="scale({$scaleStepSize})" stroke="none"
-            d="M-1 -1.25
-               C 0 -3
-                 0  0.75
-                 1 -1.25
-               L 1  1.25
-               C 0  3
-                 0 -0.75
-                -1  1.25 z"/>
-          <svg:path id="quilismaNotehead" transform="scale({.03125 * $scaleStepSize})" stroke="none"
-            d="M -48 -40
-               c   8  15
-                  16  29
-                  32  -3
-               c   8  15
-                  16  29
-                  32  -3
-               c   8  15
-                  16  29
-                  32  -3
-               v  80
-               c -16  32
-                 -24  18
-                 -32   3
-               c -16  32
-                 -24  18
-                 -32   3
-               c -16  32
-                 -24  18
-                 -32   3 z"/>
-          <svg:g id="apostrophaNotehead">
-            <svg:use xlink:href="#standardNotehead"/>
-            <svg:path class="apostrophaMark" d="M1 0 C 1 1.5 .5 2 0 2" transform="scale({$scaleStepSize})"/>
-          </svg:g>
-          <svg:path id="dNotehead" d="M-1,.5 1,2" stroke="currentColor" transform="scale({$scaleStepSize})" stroke-linecap="round"/>
-          <svg:use id="uNotehead" xlink:href="#dNotehead" transform="scale(1,-1)"/>
+          <svg:path id="{$idPrefix}standardNotehead" transform="scale({.006 * $scaleStepSize}) scale(1,-1) translate(-189)"
+              d="M152 -174c-80 0 -152 54 -152 143c0 99 108 204 224 204c102 0 154 -68 154 -140c0 -118 -114 -207 -226 -207z" />
+          <svg:path id="{$idPrefix}oriscusNotehead" transform="scale({.006 * $scaleStepSize}) scale(1,-1) translate(-218)" stroke="none"
+              d="M32 -180c-54 0 -33 186 9 340c5 17 24 18 41 18c-3 -100 -8 -165 30 -165c43 0 238 168 292 168s33 -186 -9 -340c-4 -17 -24 -18 -40 -18c3 100 7 165 -30 165c-44 0 -239 -168 -293 -168z"/>
+          <svg:path id="{$idPrefix}quilismaNotehead" transform="scale({.006 * $scaleStepSize}) scale(1,-1) translate(-275)"
+              d="M0 32c0 32 84 119 111 119c26 0 110 -126 140 -126c31 0 228 105 279 139c25 17 27 -18 10 -42c-48 -68 -303 -288 -363 -288c-33 0 -177 164 -177 198z"/>
+          <svg:path id="{$idPrefix}apostrophaNotehead" transform="scale({.006 * $scaleStepSize}) scale(1,-1) translate(-129)"
+              d="M122 108c25 0 136 -78 136 -105c0 -42 -156 -237 -202 -270c-18 -12 -48 -9 -39 7c18 32 88 149 88 174c0 26 -105 69 -105 86c0 24 93 108 122 108z" />
+          <svg:path id="{$idPrefix}dLiquescentFollowingNotehead" transform="scale({.006 * $scaleStepSize}) scale(1,-1) translate(-189)"
+            d="M378 34v-9v-440c0 -16 -16 -22 -42 -21c4 99 9 235 10 367c-41 -63 -118 -104 -194 -104c-80 0 -152 54 -152 143c0 99 108 204 224 204c102 0 154 -68 154 -140z" />
+          <svg:path id="{$idPrefix}uLiquescentFollowingNotehead" transform="scale({.006 * $scaleStepSize}) scale(1,-1) translate(-189)"
+              d="M152 -174c-80 0 -152 54 -152 143c0 99 108 204 224 204c58 0 97 -26 117 -53l1 2c-1 12 -3 28 -4 66l-6 228c0 18 22 25 46 19v-402c0 -118 -114 -207 -226 -207z" />
+          <svg:path id="{$idPrefix}sAccidental" transform="scale({.006 * $scaleStepSize}) scale(1,-1)"
+              d="M0 -149c0 -7 -1 -10 -9 -12l-76 -24v-175c0 -8 -20 -15 -33 -12c0 46 -1 108 -1 177l-101 -32v-183c0 -8 -20 -14 -33 -12c0 48 -1 113 -1 185l-68 -21c-11 -3 -17 0 -17 12v93c0 6 2 8 9 10l75 23c-1 62 -2 125 -2 186l-65 -20c-11 -3 -17 0 -17 12v93c0 6 2 9 9 11
+               l72 22c-1 71 -1 133 -1 174c0 18 22 26 46 18c-2 -35 -3 -100 -4 -180l92 29c-1 74 -1 139 -1 181c0 20 24 26 47 20c-2 -36 -3 -105 -4 -188l70 21c9 3 13 0 13 -9v-94c0 -8 -1 -9 -9 -12l-75 -23c0 -62 -1 -126 -1 -189l72 23c9 3 13 0 13 -9v-95zM-121 -79l-2 187
+               l-96 -30c0 -61 0 -125 -1 -187z"/>
+          <svg:path id="{$idPrefix}fAccidental" transform="scale({.006 * $scaleStepSize}) scale(1,-1)"
+              d="M-228 427c-3 -60 -5 -174 -6 -289c26 40 80 78 132 78c64 0 102 -50 102 -125c0 -144 -203 -306 -245 -306c-13 0 -25 6 -25 30c-3 137 -8 491 -8 597c0 15 24 17 50 15zM-156 148c-29 0 -60 -30 -79 -55c-1 -103 -1 -203 -1 -261c84 63 128 151 128 234
+                c0 51 -18 82 -48 82z" />
+          <svg:path id="{$idPrefix}nAccidental" transform="scale({.006 * $scaleStepSize}) scale(1,-1)"
+              d="M-7 183c0 -193 7 -395 7 -548c0 -15 -16 -20 -42 -20c2 59 4 156 4 257l-157 -70c-12 -5 -16 3 -16 15c0 235 -8 409 -8 547c0 15 17 20 42 20c-2 -60 -3 -156 -4 -257l156 68c12 4 18 -2 18 -12zM-181 24v-113l144 64v113z" />
         </svg:defs>
       </svg:svg>
       <xsl:apply-templates select="*|text()"/>
@@ -771,19 +788,22 @@
   <xsl:template match="mei:sourceDesc/@n" mode="create-title">
     <xsl:attribute name="title">source no.</xsl:attribute>
   </xsl:template>
-  <xsl:template match="mei:source/mei:physDesc/mei:provenance/mei:geogName">
+  <xsl:template match="mei:sb[not(@source)]/@label" mode="create-title">
+    <xsl:attribute name="title">rubric caption</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:source/mei:physDesc/mei:provenance/mei:geogName" mode="create-title">
     <xsl:attribute name="title">source provenance</xsl:attribute>
   </xsl:template>
-  <xsl:template match="mei:repository/mei:geogName">
+  <xsl:template match="mei:repository/mei:geogName" mode="create-title">
     <xsl:attribute name="title">source location</xsl:attribute>
   </xsl:template>
-  <xsl:template match="mei:repository/mei:corpName">
+  <xsl:template match="mei:repository/mei:corpName" mode="create-title">
     <xsl:attribute name="title">institution</xsl:attribute>
   </xsl:template>
-  <xsl:template match="mei:repository/mei:identifier">
+  <xsl:template match="mei:repository/mei:identifier" mode="create-title">
     <xsl:attribute name="title">shelf mark</xsl:attribute>
   </xsl:template>
-  <xsl:template match="mei:incipText/mei:p">
+  <xsl:template match="mei:incipText/mei:p" mode="create-title">
     <xsl:attribute name="title">incipit</xsl:attribute>
   </xsl:template>
   <!-- TODO: Add more titles -->
@@ -896,28 +916,52 @@
       
       <!-- Add a slur for uneumes with more than one note 
            QUESTION: Do we at all have uneumes with only one element? Maybe this would not make sense. -->
-      <xsl:if test="count(descendant::mei:note) &gt; 1 and not(@name='apostropha')">
-        <xsl:variable name="accidentalOnFirstNote">
-          <xsl:apply-templates select="descendant::mei:note[1]" mode="get-accidental"/>
-        </xsl:variable>
-        <xsl:variable name="accidentals"> <!-- This holds all accidentals (including for first note) as unicode glyphs -->
-          <xsl:apply-templates select="descendant::mei:note" mode="get-accidental"/>
-        </xsl:variable>
-        <xsl:variable name="width" select="$scaleStepSize * ($noteSpace * count(descendant::mei:note) + $accidentalSpace * (string-length($accidentals) - string-length($accidentalOnFirstNote)))"/>
+      <xsl:if test="count(descendant::mei:note/@pname) &gt; 1">
+        <xsl:variable name="width" select="$scaleStepSize * ($noteSpace * count(descendant::mei:note/@pname) + $accidentalSpace * count(descendant::mei:note[position() &gt; 1]/@accid))"/>
         
         <svg:svg width="{$width}px" height="{$musicAreaHeight}px" 
             viewBox="0 {-$scaleStepSize * ($spaceAboveStaff + 4)} {$width} {$musicAreaHeight}" class="slur">
-          <xsl:variable name="startNoteheadStep">
-            <xsl:apply-templates select="descendant::mei:note[1]" mode="get-notehead-step"/>
+          <xsl:variable name="highestEndNoteStep">
+            <xsl:call-template name="get-highest-notehead-step">
+              <xsl:with-param name="noteheads" select="descendant::mei:note[@pname][position() = 1 or position() = last()]"/>
+            </xsl:call-template>
           </xsl:variable>
-          <xsl:variable name="endNoteheadStep">
-            <xsl:apply-templates select="descendant::mei:note[last()]" mode="get-notehead-step"/>
+          
+          <xsl:variable name="highestCenterNoteStep">
+            <xsl:call-template name="get-highest-notehead-step">
+              <xsl:with-param name="noteheads" select="descendant::mei:note[@pname]"/>
+            </xsl:call-template>
           </xsl:variable>
-          <svg:path transform="translate({$scaleStepSize * $accidentalSpace * string-length($accidentalOnFirstNote)},{-.5*$scaleStepSize * $noteSpace})"
-              d="M{.5*$noteSpace * $scaleStepSize} {$startNoteheadStep * $scaleStepSize}
-                 C{$width*.25} {(2*$startNoteheadStep + $endNoteheadStep)*$scaleStepSize div 3 - ($noteSpace*$scaleStepSize+$width)div$noteSpace div $scaleStepSize *4} 
-                  {$width*.75} {(2*$endNoteheadStep + $startNoteheadStep)*$scaleStepSize div 3 - ($noteSpace*$scaleStepSize+$width)div$noteSpace div $scaleStepSize *4}
-                  {$width - .5*$noteSpace * $scaleStepSize} {$endNoteheadStep * $scaleStepSize}" />
+          
+          <xsl:variable name="preliminarySlurStep">
+            <xsl:choose>
+              <!-- We must avoid that slurs disappear "into the invisible sky" -->
+              <xsl:when test="($highestCenterNoteStep - $paddingSlurCenterNotes - 2)*$scaleStepSize &lt; -.5*$musicAreaHeight">
+                <xsl:copy-of select="-.5*$musicAreaHeight div $scaleStepSize + 2"/>
+              </xsl:when>
+              <!-- We also have a lowest slur position -->
+              <xsl:when test="$highestCenterNoteStep - $paddingSlurCenterNotes &gt; $lowestSlurPosition">
+                <xsl:copy-of select="1"/>
+              </xsl:when>
+              <xsl:when test="$highestEndNoteStep - $paddingSlurEndNotes &lt; $highestCenterNoteStep - $paddingSlurCenterNotes">
+                <xsl:copy-of select="$highestEndNoteStep - $paddingSlurEndNotes"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:copy-of select="$highestCenterNoteStep - $paddingSlurCenterNotes"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
+          
+          <!-- If preliminarySlurEndStep is on a staff line (i.e. $preliminarySlurStep is even), we have to move the slur one step up -->
+          <xsl:variable name="y1" select="($preliminarySlurStep - (($preliminarySlurStep * $preliminarySlurStep + 1) mod 2)) * $scaleStepSize"/>
+          <xsl:variable name="y2" select="$y1 - 2*$scaleStepSize"/>
+          <xsl:variable name="x1" select=".5*($noteSpace - 1) * $scaleStepSize"/>
+          <xsl:variable name="x2" select="$width - $x1"/>
+          
+          <svg:path transform="translate({$scaleStepSize * $accidentalSpace * count(mei:note[1]/@accid)},0)"
+              d="M{$x1} {$y1}
+                 C{$x1} {$y2} {$x1} {$y2} {.5*($x1 + $x2)} {$y2}
+                 C{$x2} {$y2} {$x2} {$y2} {$x2           } {$y1}"/>
         </svg:svg>
       </xsl:if>
       
@@ -926,31 +970,51 @@
   </xsl:template>
   
   <!-- notehead step of b4 will be 0 because it's in the center of the staff (symmetry makes things easier) -->
-  <xsl:template mode="get-notehead-step" match="mei:note[@pname and @oct]">
-    <xsl:copy-of select="-(number(translate(@pname,'cdefgab','01234567')) + 7*number(@oct) - 34)"/>
+  <xsl:template mode="get-notehead-step" match="mei:note[@pname and @oct]" name="get-highest-notehead-step">
+    <xsl:param name="noteheads" select="."/>
+    <xsl:variable name="sortedSteps">
+      <!-- We create a string of integers, each occupying 4 characters (filled up with spaces) -->
+      <xsl:for-each select="$noteheads">
+        <xsl:sort select="number(translate(@pname,'cdefgab','01234567')) + 7*number(@oct)" order="descending"/>
+        <xsl:value-of select="substring(
+            concat(
+              -(number(translate(@pname,'cdefgab','01234567')) + 7*number(@oct) - 34),
+              '    '
+            ),1,4
+          )"/>
+      </xsl:for-each>
+    </xsl:variable>
+    <xsl:copy-of select="number(substring($sortedSteps,1,4))"/>
   </xsl:template>
-  <!-- Notes without clear pitch orient themselves by their preceding note -->
-  <xsl:template mode="get-notehead-step" match="mei:note[@intm='u' or @intm='d'][not(@pname)]">
+  <!-- Notes without clear pitch orient themselves by their preceding note 
+       We only need this template for erroneous consecutive liquescents with unknown pitch -->
+  <xsl:template mode="get-notehead-step" match="mei:note[not(@pname and @oct)]">
     <xsl:apply-templates select="preceding::mei:note[1]" mode="get-notehead-step"/>
   </xsl:template>
-  
+
+  <!-- We don't render properly encoded liquescents of unknown pitch when preceded by a normal note as both pitches are unified in one symbol -->
+  <xsl:template match="mei:note[@intm and @mfunc='liquescent' and not(@pname and @oct)]
+                               [preceding-sibling::*[1]/self::mei:note[@pname and @oct][not(@label)]]"/>
   <xsl:template match="mei:note">
-    <div class="_mei note {@label} {@mfunc}">
+    <div>
+      <xsl:variable name="noteheadType">
+        <xsl:apply-templates select="." mode="get-notehead-type"/>
+      </xsl:variable>
+      <xsl:attribute name="class">
+        <xsl:value-of select="concat('_mei note ',@label,' ',@mfunc,' ',$noteheadType,' ')"/>
+        <xsl:if test="not(@pname and @oct)">unpitched</xsl:if>
+      </xsl:attribute>
       <xsl:apply-templates select="@xml:id"/>
       
       <xsl:variable name="noteheadStep"><!-- $noteheadStep = 0 means note is on center line (i.e. a "b") -->
         <xsl:apply-templates mode="get-notehead-step" select="."/>
       </xsl:variable>
-      <xsl:variable name="accidental"> <!-- This will hold the unicode char for the to be rendered accidental (or nothing) -->
-        <xsl:apply-templates select="." mode="get-accidental"/>
-      </xsl:variable>
-      <xsl:variable name="requiredAccidentalSpace" select="$scaleStepSize * $accidentalSpace * string-length($accidental)"/>
+      <xsl:variable name="requiredAccidentalSpace" select="$scaleStepSize * $accidentalSpace * count(@accid)"/>
       
       <svg:svg width="{$noteSpace * $scaleStepSize + $requiredAccidentalSpace}px" height="{$musicAreaHeight}px" 
           viewBox="{-.5*$noteSpace * $scaleStepSize - $requiredAccidentalSpace} {-$scaleStepSize*(4 + $spaceAboveStaff)} {$noteSpace * $scaleStepSize + $requiredAccidentalSpace} {$musicAreaHeight}">
         <!-- Choose if and where to draw ledger lines. Ledgerlines will be styled with dash pattern. -->
         <xsl:choose>
-          <xsl:when test="not(@pname) and (@intm='u' or @intm='d')"/>
           <xsl:when test="$noteheadStep &lt; -5">
             <svg:line y1="{($ledgerLineWidth - 6)*$scaleStepSize}" y2="{(-.5 + $noteheadStep) * $scaleStepSize}" class="ledgerlines"/>
           </xsl:when>
@@ -959,16 +1023,12 @@
           </xsl:when>
         </xsl:choose>
         
-        <xsl:if test="$requiredAccidentalSpace &gt; 0"> <!-- if > 0, we have an accidental -->
-          <svg:text class="accidental" x="{$scaleStepSize * (-.5*$noteSpace - $accidentalSpace)}" y="{$noteheadStep + 4}">
-            <xsl:value-of select="$accidental"/>
-          </svg:text>
+        <xsl:if test="@accid"> <!-- if > 0, we have an accidental -->
+          <svg:use class="accidental" xlink:href="#{@accid}Accidental"
+              x="{$scaleStepSize * (-.5*$noteSpace) + 1.2 * $accidentalSpace}" y="{$noteheadStep * $scaleStepSize}"/>
           <!-- TODO: Don't use unicode glyphs. We have no guaranteed size or base line choice -->
         </xsl:if>
         
-        <xsl:variable name="noteheadType">
-          <xsl:apply-templates select="." mode="get-notehead-type"/>
-        </xsl:variable>
         <svg:use xlink:href="#{$idPrefix}{$noteheadType}Notehead">
           <xsl:attribute name="transform">
             translate(0,<xsl:value-of select="$noteheadStep * $scaleStepSize"/>)
@@ -985,22 +1045,11 @@
   <xsl:template match="*" mode="get-notehead-type">
     <xsl:value-of select="'standard'"/>
   </xsl:template>
-  <xsl:template match="*[not(@pname)][@intm='d' or @intm='u']" mode="get-notehead-type">
-    <xsl:value-of select="@intm"/>
+  <xsl:template match="*[following-sibling::*[1]/self::mei:note[not(@label)][@mfunc='liquescent' and @intm and not(@pname and @oct)]]" mode="get-notehead-type" priority="1">
+    <xsl:value-of select="concat(following-sibling::*[1]/self::mei:note/@intm,'LiquescentFollowing')"/>
   </xsl:template>
   <xsl:template match="*[@label='oriscus' or @label='quilisma' or @label='apostropha']" mode="get-notehead-type">
     <xsl:value-of select="@label"/>
   </xsl:template>
   
-  <xsl:template match="mei:note[@accid.ges='s' or @accid='s']" mode="get-accidental">
-    <xsl:value-of select="'&#9839;'"/>
-  </xsl:template>
-  <xsl:template match="mei:note[@accid.ges='f' or @accid='f']" mode="get-accidental">
-    <xsl:value-of select="'&#9837;'"/>
-  </xsl:template>
-  <xsl:template match="mei:note[@accid.ges='n' or @accid='n']" mode="get-accidental">
-    <xsl:value-of select="'&#9838;'"/>
-  </xsl:template>
-  
 </xsl:stylesheet>
-

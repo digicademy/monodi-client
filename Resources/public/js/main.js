@@ -166,10 +166,10 @@ $(document).on('keydown', function(e) {
 				monodi.document.selectNextElement("following");
 			break;
 			case 65: //a 
-				monodi.document.setIntm("u");
+				monodi.document.toggleFollowingUnpitchedLiquescent("u");
 			break;
 			case 68: //d
-				monodi.document.setIntm("d");
+				monodi.document.toggleFollowingUnpitchedLiquescent("d");
 			break;
 			default: //console.log(e);
 		}

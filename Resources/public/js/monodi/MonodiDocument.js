@@ -35,7 +35,7 @@
         xsltProcessor,
         idPrefix,
         idPrefixLength,
-        selectionStyle = parameters.selectionStyle || "color:red",
+        selectionStyle = parameters.selectionStyle || "color:#d21",
         selectedElement,
         self = this;
 
@@ -768,6 +768,26 @@
       refresh(note);
       return note;
     };
+    
+    this.toggleFollowingUnpitchedLiquescent = function(intmValue, note) {
+      note = $MEI(note || selectedElement, "note");
+      var followingLiquescent = (
+        evaluateXPath(note, "following-sibling::*[1]/self::mei:note[@mfunc='liquescent']")[0] || 
+        this.newNoteAfter(note, true)
+      ),
+      currentIntm = followingLiquescent.getAttribute("intm"),
+      oppositeIntm = intmValue === "u" ? "u" : "d";
+      
+      if (intmValue === currentIntm) {
+        this.deleteElement(followingLiquescent);
+      } else {
+        this.setIntm(
+          (intmValue === currentIntm) ? oppositeIntm : intmValue,
+          followingLiquescent
+        );
+      }
+      refresh(note);
+    };
 
     this.selectElement = function(element) {
       // CAUTION: I removed the callback for annotated element selection.
@@ -833,7 +853,7 @@
     //selectElement = this.selectElement; // We need this because otherwise, private methods obviously 
                                         // can't use this public method without violating strict mode.
 
-    this.selectNextElement = function(precedingOrFollowing) {
+    this.selectNextElement = function(precedingOrFollowing, allowSelectionOfLiquescentsWithUnkownPitch) {
       if (precedingOrFollowing !== "following" && precedingOrFollowing !== "preceding") {
         throw new Error("Argument passed to selectNextElement() must be string 'preceding' or 'following'");
       }
@@ -842,7 +862,12 @@
       
       // Test whether we're on the music layer
       if (evaluateXPath(selectedElement, "(ancestor-or-self::mei:ineume|self::mei:pb|self::mei:sb/@source)[1]")[0]) {
-        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:note|self::mei:pb|self::mei:sb/@source|self::mei:syllable[count(*)=1]][1]")[0];
+        nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[" + 
+          "self::mei:note" + (allowSelectionOfLiquescentsWithUnkownPitch ? "|" : "[@pname]|") + 
+          "self::mei:pb|" + 
+          "self::mei:sb/@source|" +
+          "self::mei:syllable[count(*)=1]" +
+        "][1]")[0];
       // Test whether we're on the text layer
       } else if (evaluateXPath(selectedElement, "(self::mei:syl|self::mei:sb[not(@source)])[1]")[0]) {
         nextElement = evaluateXPath(selectedElement, precedingOrFollowing + "::*[self::mei:syl|self::mei:sb[not(@source)]][1]")[0];
