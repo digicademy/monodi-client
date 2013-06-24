@@ -6439,7 +6439,7 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  background: white !important;
+  background: #fff;
   z-index: 1100;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }

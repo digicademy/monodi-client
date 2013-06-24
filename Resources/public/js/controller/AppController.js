@@ -94,7 +94,9 @@ function AppCtrl($scope, $http) {
         } else if (localStorage['document' + id]) {
             callback.bind(JSON.parse(localStorage['document' + id]))();
         } else if (!$scope.online) {
-            alert('Es ist keine Verbindung zum Server möglich und lokal sind keine gecachten Dateien vorhanden.');
+            alert('You are working offline and the ressource is locally not available.');
+        } else {
+            alert('Please login to get the ressource from the server.')
         }
     };
 
@@ -102,7 +104,6 @@ function AppCtrl($scope, $http) {
         var removed = false;
         angular.forEach(data, function(el) {
             if (!removed && el.document_count > 0) {
-                var path = el.path;
                 angular.forEach(el.documents, function(child, i) {
                     if (child.id == id ) {
                         el.document_count--;
@@ -112,13 +113,13 @@ function AppCtrl($scope, $http) {
             }
 
             if (!removed && el.children_count > 0) {
-                removed = filterDocumentsById(id, el.folders);
+                removed = removeDocument(id, el.folders);
             }
         });
 
         return removed;
     };
-    $scope.deleteDocument = function(id) {
+    $scope.deleteDocument = function(id, callback) {
         removeDocument(id, $scope.documents);
         angular.forEach($scope.files, function(el, i) {
             if (el.id == id) {
@@ -130,7 +131,9 @@ function AppCtrl($scope, $http) {
         localStorage['files'] = JSON.stringify($scope.files);
 
         if ((id + '').indexOf('temp') < 0) {
-            //delete request
+            $http['delete'](baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token).success( function() {
+                if (callback) callback();
+            });
         }
     };
 
@@ -174,12 +177,13 @@ function AppCtrl($scope, $http) {
         $scope.$broadcast('postNewDocument');
     };
 
-    $scope.postNewFolderToServer = function(path, title, callback) {
+    $scope.postNewFolderToServer = function(path, title, tempId, callback) {
         if ($scope.online && $scope.access_token) {
-            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).success( function() {
-                if (callback) callback();
-            }).error( function() {
+            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).then( function(response) {
+                var newId = response.headers()['x-ressourceident'];
+                $scope.setNewId(tempId, newId);
 
+                if (callback) callback();
             });
         }
     };
@@ -256,6 +260,52 @@ function AppCtrl($scope, $http) {
     };
     $scope.setInfoDocument = function(id) {
         $scope.info = filterDocumentsById(id, $scope.documents);
+    };
+
+    var setNewId = function(id, data, newId) {
+        var result = false;
+        angular.forEach(data, function(el) {
+            if (!result && el.document_count > 0) {
+                angular.forEach(el.documents, function(el) {
+                    if (el.id == id ) {
+                        el.id = newId;
+                        result = true;
+                    }
+                });
+            }
+
+            if (!result && el.children_count > 0) {
+                angular.forEach(el.folders, function(el) {
+                    if (el.id == id ) {
+                        el.id = newId;
+                        result = true;
+
+                        if (el.children_count > 0) {
+                            angular.forEach(el.folders, function(el) {
+                                el.root = newId;
+                            });
+                        }
+                    }
+                });
+            }
+
+            if (!result && el.children_count > 0) {
+                result = setNewId(id, el.folders, newId);
+            }
+        });
+
+        return result;
+    };
+    $scope.setNewId = function(id, newId) {
+        setNewId(id, $scope.documents, newId);
+        angular.forEach($scope.files, function(el, i) {
+            if (el.id == id) {
+                el.id = newId;
+            }
+        });
+
+        localStorage['documents'] = JSON.stringify($scope.documents);
+        localStorage['files'] = JSON.stringify($scope.files);
     };
 
     $scope.showDocumentInfo = function() {

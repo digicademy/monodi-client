@@ -142,7 +142,7 @@ function DocumentListCtrl($scope, $http) {
 			$scope.documents.push(folder);
 		}
 
-		$scope.postNewFolderToServer(path, foldername);
+		$scope.postNewFolderToServer(path, foldername, id);
 		$('#createFolderModal').modal('hide');
 	};
 
