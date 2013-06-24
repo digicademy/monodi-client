@@ -166,7 +166,8 @@
       .editionLine, .fileDesc > .seriesStmt {
         display:block;
       }
-      .syllable {
+      .syllable > div {
+        display:inline-block;
         vertical-align:top;
       }
       .musicLayer {
@@ -292,6 +293,9 @@
         white-space:nowrap;
         margin-top:-1em;
       }
+      .sb.edition > .att_label:not(:focus) {
+        text-transform:uppercase;
+      }
       .sb.edition > .att_n {
         <!-- We want to center this field centered vertically before the staff, which is at 
              half the $musicAreaHeight.  We have to take into account the 1em height taken away
@@ -375,6 +379,7 @@
         position:absolute;
         padding:0;
         margin-top:-4em;
+        white-space: nowrap;
       }
       .relation > .att_label:before {
         content:"(";
@@ -697,7 +702,7 @@
     </div>
   </xsl:template>
   
-  <xsl:template match="mei:*">
+  <xsl:template match="mei:*" name="standard-transformation">
     <div class="_mei {local-name()}">
       <xsl:attribute name="class">
         <xsl:value-of select="concat('_mei ',local-name())"/>
@@ -715,7 +720,10 @@
   <!-- TODO: We probably want to move away from @label -->
   <xsl:template match="mei:seriesStmt/@label" mode="generate-classes">
     <xsl:value-of select="concat(' ',.,' ')"/>
-  </xsl:template>  
+  </xsl:template>
+  <xsl:template match="@source" mode="generate-classes">
+    <xsl:value-of select="' source '"/>
+  </xsl:template>
   
   <xsl:template match="@*" mode="process-editable-attributes"/>
   <xsl:template match="mei:sourceDesc/@n|mei:work/@n|mei:relation/@label|mei:sb/@label|mei:sb/@n" mode="process-editable-attributes">
@@ -748,18 +756,27 @@
   
   <!-- This creates a "building block" consisting of staff lines and a text layer -->
   <xsl:template match="mei:syllable">
-    <div class="_mei {local-name()} {local-name(@source)}">
+    <div class="_mei {local-name()}">
       <xsl:apply-templates mode="create-title" select="."/>
       <xsl:apply-templates select="@xml:id"/>
-      <!-- TODO: move stafflines into the pitches div, adjust CSS for proper placement.
-                 This is more meaningful and it's immediately clear that a click event on
-                 the staff lines addresses the pitches layer -->
-      <xsl:copy-of select="$stafflines"/>
-      <div class="musicLayer">
-        <xsl:apply-templates select="*[not(self::mei:syl)]"/>
-      </div>
-      <div class="textLayer">
-        <xsl:apply-templates select="mei:syl"/>
+      <!-- If the first element on the music layer is a pb/sb, we want to put that into a separate div
+           so that the text starts with the first note in the syllable. -->
+      <xsl:for-each select="mei:*[self::mei:sb or self::mei][not(preceding-sibling::mei:ineume)]">
+        <div>
+          <div class="musicLayer">
+            <xsl:copy-of select="$stafflines"/>
+            <xsl:apply-templates select="."/>
+          </div>
+        </div>
+      </xsl:for-each>
+      <div>
+        <div class="musicLayer">
+          <xsl:copy-of select="$stafflines"/>
+          <xsl:apply-templates select="mei:ineume|mei:*[self::mei:sb or self::mei:pb][preceding-sibling::mei:ineume]"/>
+        </div>
+        <div class="textLayer">
+          <xsl:apply-templates select="mei:syl"/>
+        </div>
       </div>
     </div>
   </xsl:template>
