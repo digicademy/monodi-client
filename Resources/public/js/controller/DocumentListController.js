@@ -13,26 +13,36 @@ function DocumentListCtrl($scope, $http) {
 		$scope.$emit('openDocumentRequest', { id: id });
 	};
 
-    $scope.removeDocument = function(id) {
-        $scope.removeLocal(id);
-        localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
-        $scope.deleteDocument(id);
-    };
+	$scope.removeDocument = function(id) {
+		$scope.removeLocal(id);
+		localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
+		$scope.deleteDocument(id);
+	};
 
-    $scope.removeDocumentBatch = function() {
-        angular.forEach(getBatchDocuments(), function(el) {
-            $scope.removeDocument(el);
-        });
-    };
+	$scope.removeDocumentBatch = function() {
+		angular.forEach(getBatchDocuments(), function(el) {
+			$scope.removeDocument(el);
+		});
+	};
 
-    $scope.print = function(id) {
-        $scope.getDocument(id, function() {
-            console.log(monodi.document.getPrintHtml([this.content]));
-        });
-    };
+	$scope.print = function(id) {
+		$scope.getDocument(id, function() {
+			var data = monodi.document.getPrintHtml([this.content]).outerHTML,
+				start = data.indexOf('<body'),
+				end = data.indexOf('</body>');
 
-    $scope.printBatch = function() {
-    };
+			start = (start >= 0)? start + data.match(/<body[\w\s="']*>/gi)[0].length : 0;
+			end = (end > start)? end : data.length;
+			data = data.substring(start, end);
+			$('#printContainer').append(data).show();
+		});
+	};
+
+	$scope.printBatch = function() {
+		angular.forEach(getBatchDocuments(), function(el) {
+			$scope.print(el);
+		});
+	};
 
 	$scope.saveLocal = function(id) {
 		$scope.getDocument(id, function() {
@@ -49,11 +59,11 @@ function DocumentListCtrl($scope, $http) {
 		});
 	};
 
-    $scope.saveLocalBatch = function() {
-        angular.forEach(getBatchDocuments(), function(el) {
-            $scope.saveLocal(el);
-        });
-    };
+	$scope.saveLocalBatch = function() {
+		angular.forEach(getBatchDocuments(), function(el) {
+			$scope.saveLocal(el);
+		});
+	};
 
 	$scope.removeLocal = function(id) {
 		localStorage.removeItem('document' + id);
@@ -64,11 +74,11 @@ function DocumentListCtrl($scope, $http) {
 		$scope.setLocal(id, false);
 	};
 
-    $scope.removeLocalBatch = function() {
-        angular.forEach(getBatchDocuments(), function(el) {
-            $scope.removeLocal(el);
-        });
-    };
+	$scope.removeLocalBatch = function() {
+		angular.forEach(getBatchDocuments(), function(el) {
+			$scope.removeLocal(el);
+		});
+	};
 
 	$scope.documentinfo = function(id) {
 		$scope.setInfoDocument(id);
@@ -96,10 +106,10 @@ function DocumentListCtrl($scope, $http) {
 			if (el.path == path) {
 				if (level == pathParts.length) {
 					el.children_count++;
-                    folder.root = el.id;
-                    folder.path = path + '/' + folder.path;
+					folder.root = el.id;
+					folder.path = path + '/' + folder.path;
 					el.folders.push(folder);
-                    parent = path;
+					parent = path;
 					return true;
 				}
 
@@ -114,9 +124,9 @@ function DocumentListCtrl($scope, $http) {
 	$scope.createFolder = function(foldername) {
 		var path = $scope.createFolder.path,
 			pathParts = (path)? path.split('/') : false,
-            id = 'temp' + new Date().getTime(),
+			id = 'temp' + new Date().getTime(),
 			folder = {
-                id: id,
+				id: id,
 				children_count: 0,
 				document_count: 0,
 				documents: [],
@@ -126,13 +136,13 @@ function DocumentListCtrl($scope, $http) {
 				title: foldername
 			};
 
-        if (pathParts) {
-            path = addFolder($scope.documents, folder, pathParts, 0);
-        } else {
-            $scope.documents.push(folder);
-        }
+		if (pathParts) {
+			path = addFolder($scope.documents, folder, pathParts, 0);
+		} else {
+			$scope.documents.push(folder);
+		}
 
-        $scope.postNewFolderToServer(path, foldername);
+		$scope.postNewFolderToServer(path, foldername);
 		$('#createFolderModal').modal('hide');
 	};
 
@@ -150,7 +160,7 @@ function DocumentListCtrl($scope, $http) {
 				if (level == pathParts.length) {
 					el.document_count++;
 					el.documents.push(file);
-                    $scope.files.push(file);
+					$scope.files.push(file);
 					return true;
 				}
 
@@ -179,7 +189,7 @@ function DocumentListCtrl($scope, $http) {
 			addFile($scope.documents, $scope.active, pathParts, 0);
 
 			localStorage['documents'] = JSON.stringify($scope.documents);
-            localStorage['files'] = JSON.stringify($scope.files);
+			localStorage['files'] = JSON.stringify($scope.files);
 			$scope.setLocal($scope.active.id, true);
 
 			$scope.postNewDocumentToServer();
@@ -190,9 +200,9 @@ function DocumentListCtrl($scope, $http) {
 		}
 	};
 
-    var getBatchDocuments = function() {
-        return $('.fileviews').children(':visible').find(':checked').map( function() {
-            return this.name;
-        });
-    };
+	var getBatchDocuments = function() {
+		return $('.fileviews').children(':visible').find(':checked').map( function() {
+			return this.name;
+		});
+	};
 };

@@ -31,29 +31,29 @@ function DocumentCtrl($scope, $http) {
 	});
 
 	var getParent = function(id, data) {
-        var result = false;
-        angular.forEach(data, function(el) {
-            if (!result) {
-                angular.forEach(el.documents, function(child) {
-                    if (child.id == id ) {
-                        result = el;
-                    }
-                });
+		var result = false;
+		angular.forEach(data, function(el) {
+			if (!result) {
+				angular.forEach(el.documents, function(child) {
+					if (child.id == id ) {
+						result = el;
+					}
+				});
 
 				angular.forEach(el.folders, function(child) {
-                    if (child.id == id ) {
-                        result = el;
-                    }
-                });                
-            }
+					if (child.id == id ) {
+						result = el;
+					}
+				});				
+			}
 
-            if (!result && el.children_count > 0) {
-                result = getParent(id, el.folders);
-            }
-        });
+			if (!result && el.children_count > 0) {
+				result = getParent(id, el.folders);
+			}
+		});
 
-        return result;
-    };
+		return result;
+	};
 	$scope.$on('saveDocument', function(e, data) {
 		if ($scope.online && $scope.access_token) {
 			if (data) {
@@ -115,7 +115,7 @@ function DocumentCtrl($scope, $http) {
 	});
 
 	$scope.$on('syncDocument', function(id) {
-        $scope.$broadcast('saveDocument', { id: id });
+		$scope.$broadcast('saveDocument', { id: id });
 	});
 
 	$scope.$on('syncNewDocument', function(e, data) {
@@ -125,7 +125,6 @@ function DocumentCtrl($scope, $http) {
 		if ((parentId + '').indexOf('temp') > -1) {
 			while (temp.id != parentId && (parentId + '').indexOf('temp') > -1) {
 				temp = parent;
-				debugger;
 				parent = getParent(parentId, $scope.documents);
 				parentId = parent.id;
 			}
@@ -143,28 +142,34 @@ function DocumentCtrl($scope, $http) {
 	$scope.$on('postNewDocument', function(e, data) {
 		if ($scope.online && $scope.access_token) {
 			if (data) {
-				debugger;
 				var temp = $scope.active,
 					doc = localStorage['document' + data.id];
 				$scope.setActive(JSON.parse(doc));
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
 			}
-            var putObject = {
-                filename: $scope.active.filename,
-                content: $scope.active.content,
-                folder: getParent($scope.active.id, $scope.documents).id
-            };
+			var putObject = {
+				filename: $scope.active.filename,
+				content: $scope.active.content,
+				folder: getParent($scope.active.id, $scope.documents).id
+			};
 
-            $http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject));
+			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject));
 
-            if (data) {
+			if (data) {
 				$scope.setActive(temp);
 			}
-        } else {
-        	if (!data) {
-        		$scope.saveToSyncList();
-        	}
-        }
+		} else {
+			if (!data) {
+				$scope.saveToSyncList();
+			}
+		}
+	});
+
+	monodi.document = new MonodiDocument({
+		staticStyleElement	: document.getElementById("staticStyle"),
+		dynamicStyleElement	: document.getElementById("dynamicStyle"),
+		musicContainer		: document.getElementById("musicContainer"),
+		xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl"
 	});
 }

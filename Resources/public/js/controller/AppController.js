@@ -88,6 +88,7 @@ function AppCtrl($scope, $http) {
     $scope.getDocument = function(id, callback) {
         if ($scope.online && $scope.access_token) {
             $http.get(baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token).success(function (data) {
+                data.content = data.content
                 callback.bind(data)();
             });
         } else if (localStorage['document' + id]) {

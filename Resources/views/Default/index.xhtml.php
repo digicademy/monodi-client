@@ -313,6 +313,10 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
             </form>
         </div>
 
+        <div id="printContainer">
+            <button class="btn btn-inverse"><i class="icon-remove-circle icon-white"></i></button>
+        </div>
+
         <script src="/bundles/digitalwertmonodiclient/js/const.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/plugins.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/monodi/MonodiDocument.js"></script>

@@ -337,3 +337,7 @@ $(document).on('keydown', function(e) {
 
 	return false;
 });
+
+$('#printContainer button').on('click', function() {
+	$(this).parent().hide().children('.mei').remove();
+});
