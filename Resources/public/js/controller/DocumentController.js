@@ -130,7 +130,7 @@ function DocumentCtrl($scope, $http) {
 			}
 
 			if ((parentId + '').indexOf('temp') < 0) {
-				$scope.postNewFolderToServer(parent.path, temp.title, function() {
+				$scope.postNewFolderToServer(parent.path, temp.title, temp.id, function() {
 					$scope.$broadcast('syncNewDocument', { id: data.id });
 				});
 			}
@@ -154,7 +154,17 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
-			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject));
+			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject)).then( function(response) {
+				var newId = response.headers()['x-ressourceident'],
+					id = $scope.active.id;
+				if (data) {
+					id = data.id;
+				}
+
+				$scope.active.id = newId;
+
+				$scope.setNewId(id, newId);
+			});
 
 			if (data) {
 				$scope.setActive(temp);
