@@ -17,7 +17,7 @@ class DefaultController extends Controller
     protected $clientManager;
     
     /**
-     * @Route("/")
+     * @Route("/", name="monodi_client_index")
      * @Template(engine="php")
      */
     public function indexAction()
@@ -29,12 +29,12 @@ class DefaultController extends Controller
            throw new \RuntimeException('No Public-Id found for client');            
         }
         $publicId = $client->getPublicId();
-        
-        
+
         $response = $this->render(
             'DigitalwertMonodiClientBundle:Default:index.xhtml.php',
             array(
-                'publicId' => $publicId
+                'publicId' => $publicId,
+                'baseUrl'  => $this->getRequest()->getSchemeAndHttpHost() . '/',
             )
         );
         
