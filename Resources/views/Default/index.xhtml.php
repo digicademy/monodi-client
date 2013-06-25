@@ -34,7 +34,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
     <body ng-app="monodi" ng-controller="AppCtrl" data-appid="<?php echo($publicId); ?>">
         <div class="views">
             <div class="main container" ng-controller="DocumentCtrl">
-                <div id="musicContainer"></div>
+                <div id="musicContainer" ng-show="active"></div>
                 <!-- saved -->
                 <div id="savedModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="savedLabel" aria-hidden="true">
                     <div class="modal-header">
@@ -73,7 +73,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                 <div class="control-group">
                                     <label for="fileName" class="control-label">file name</label>
                                     <div class="controls">
-                                        <input type="text" id="fileName" ng-model="active.filename"  />
+                                        <input type="text" id="fileName" ng-model="active.filename"  />.mei.xml
                                     </div>
                                 </div>
                             </div>

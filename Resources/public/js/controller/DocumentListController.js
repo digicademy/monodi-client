@@ -183,6 +183,7 @@ function DocumentListCtrl($scope, $http) {
 			var pathParts = path.split('/');
 			$scope.active.path = path;
 
+			$scope.active.filename += '.mei.xml';
 			$scope.active.content = monodi.document.getSerializedDocument();
 			$scope.active.id = 'temp' + new Date().getTime();
 

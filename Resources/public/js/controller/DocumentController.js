@@ -105,6 +105,7 @@ function DocumentCtrl($scope, $http) {
 	});
 
 	$scope.$on('saveNewDocument', function() {
+		monodi.document.selectElement(null);
 		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
 			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function() {
 				$files.fadeOut( function() {
