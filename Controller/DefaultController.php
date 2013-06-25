@@ -42,4 +42,14 @@ class DefaultController extends Controller
 
         return $response;
     }
+    
+    /**
+     * Action welche bei erfolgreichem Login angezeigt wird
+     * 
+     * @Route("/authorized", name="monodi_client_authorized")
+     * @Template(engine="php")
+     */
+    public function authorizedAction() {
+        
+    }
 }
