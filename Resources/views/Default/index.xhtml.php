@@ -17,7 +17,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         
         <link rel="stylesheet" href="/bundles/digitalwertmonodiclient/css/main.css" />
         
-        <script> baseurl = 'http://notengrafik.dw-dev.de/'; </script>
+        <script> baseurl = '<?php echo($baseUrl); ?>'; </script>
         <script src="/bundles/digitalwertmonodiclient/js/vendor/modernizr.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/vendor/jquery.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/vendor/angular.js"></script>
