@@ -17,6 +17,10 @@ function NavCtrl($scope, $http) {
                 $scope.$emit('sync');
                 $scope.$emit('reloadDocuments', {});
                 $modal.modal('hide');
+
+                $http.get(baseurl + 'api/v1/profile/?access_token=' + $scope.access_token).success(function (data) {
+                    $scope.pass = data;
+                });
             }
         });
 
@@ -26,7 +30,7 @@ function NavCtrl($scope, $http) {
     };
 
     $scope.changePass = function(pass) {
-        $http.put(baseurl + 'api/v1/profile/' + pass.name + '/password.json?access_token=' + $scope.access_token, '{"current_password":"' + pass.old + '","new":"' + pass.new +'"}').success(function (data) {
+        $http.put(baseurl + 'api/v1/profile/' + pass.slug + '/password.json?access_token=' + $scope.access_token, '{"current_password":"' + pass.old + '","new":"' + pass.new +'"}').success(function (data) {
             $('#changePassModal').find('.modal-body').find('.notice').remove().end().append('<p class="notice">Passwort wurde erfolgreich geändert</p>');
         }).error(function (data, status) {
             var error = '';

@@ -11,7 +11,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 <?php echo("<?xml version=\"1.0\" ?>\n"); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" encoding="utf-8"><!--manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest"-->
+<html xmlns="http://www.w3.org/1999/xhtml" encoding="utf-8" manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest">
     <head>
         <title>mono:di</title>
         
@@ -99,7 +99,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                         <td><button class="btn btn-link" ng-click="openDocument(el.id)">{{el.filename}}</button></td>
                                         <td>
                                             <div class="actions btn-group">
-                                                <button class="btn btn-danger"><i class="icon-trash icon-white"></i></button>
+                                                <button class="btn btn-danger" ng-click="removeDocument(el.id)"><i class="icon-trash icon-white"></i></button>
                                                 <button class="btn btn-inverse" ng-click="print(el.id)"><i class="icon-print icon-white"></i></button>
                                                 <button class="btn btn-info" ng-click="saveLocal(el.id)" ng-hide="el.local"><i class="icon-arrow-down icon-white"></i></button>
                                                 <button class="btn btn-warning" ng-click="removeLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>
@@ -265,8 +265,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                 <form name="changePassword" ng-submit="changePass(pass)">
                     <div class="modal-body">
                         <p>
-                            <input type="text" name="username" ng-model="pass.name" placeholder="Username" required="required" />
-                            <span class="error" ng-show="changePassword.username.$error.required">!</span>
+                            <input type="text" name="username" ng-model="pass.username" placeholder="Username" disabled="disabled" />
                         </p>
                         <p>
                             <input type="password" name="old" ng-model="pass.old" placeholder="Current Password" required="required" />

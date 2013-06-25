@@ -1,4 +1,5 @@
 function AppCtrl($scope, $http) {
+    $http.defaults.headers.common['Accept'] = 'application/json';
     $scope.online = navigator.onLine;
     $scope.access_token = false;
     $scope.refresh_token = false;
@@ -25,6 +26,7 @@ function AppCtrl($scope, $http) {
         if ($scope.online && $scope.access_token) {
             var syncList = localStorage['syncList'];
             if (syncList) {
+                $scope.syncDocuments = $scope.documents;
                 angular.forEach(syncList.split(','), function(id) {
                     id = id.trim();
                     if (localStorage['document' + id]) {
@@ -35,7 +37,6 @@ function AppCtrl($scope, $http) {
                         }
                     }
                 });
-                localStorage['syncList'] = '';
             }
         }
     });

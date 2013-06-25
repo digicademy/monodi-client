@@ -73,6 +73,7 @@ function DocumentCtrl($scope, $http) {
 			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject));
 
 			if (data) {
+				localStorage['syncList'] = localStorage['syncList'].replace(' ' + $scope.active.id + ',', '');
 				$scope.setActive(temp);
 			}
 		} else if (!data) {
@@ -120,22 +121,24 @@ function DocumentCtrl($scope, $http) {
 	});
 
 	$scope.$on('syncNewDocument', function(e, data) {
-		var parent = getParent(data.id, $scope.documents),
+		var parent = getParent(data.id, $scope.syncDocuments),
 			parentId = parent.id,
-			temp;
+			temp = { id: 0 };
 		if ((parentId + '').indexOf('temp') > -1) {
 			while (temp.id != parentId && (parentId + '').indexOf('temp') > -1) {
 				temp = parent;
-				parent = getParent(parentId, $scope.documents);
+				parent = getParent(parentId, $scope.syncDocuments);
 				parentId = parent.id;
 			}
 
 			if ((parentId + '').indexOf('temp') < 0) {
 				$scope.postNewFolderToServer(parent.path, temp.title, temp.id, function() {
+					debugger;
 					$scope.$broadcast('syncNewDocument', { id: data.id });
 				});
 			}
 		} else {
+			debugger;
 			$scope.$broadcast('postNewDocument', { id: data.id });
 		}
 	});
@@ -165,6 +168,7 @@ function DocumentCtrl($scope, $http) {
 				$scope.active.id = newId;
 
 				$scope.setNewId(id, newId);
+				localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
 			});
 
 			if (data) {
