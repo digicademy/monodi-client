@@ -116,6 +116,7 @@ $(document).on('keydown', function(e) {
 			break;
 			case 8: //del
 				monodi.document.deleteElement();
+				return false;
 			break;
 		}
 	}
@@ -206,6 +207,7 @@ $(document).on('keydown', function(e) {
 						monodi.document.deleteElement();
 					}
 				}
+				return false;
 			break;
 			case 37: //left
 			case 39: //right
