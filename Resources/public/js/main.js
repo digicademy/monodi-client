@@ -206,8 +206,8 @@ $(document).on('keydown', function(e) {
 					} else {
 						monodi.document.deleteElement();
 					}
+  				return false;
 				}
-				return false;
 			break;
 			case 37: //left
 			case 39: //right
