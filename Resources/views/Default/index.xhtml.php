@@ -11,7 +11,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 <?php echo("<?xml version=\"1.0\" ?>\n"); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" encoding="utf-8" manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest">
+<html xmlns="http://www.w3.org/1999/xhtml" encoding="utf-8"><!-- manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest">-->
     <head>
         <title>mono:di</title>
         
@@ -260,7 +260,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
             <div id="changePassModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ChangePasswordLabel" aria-hidden="true">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3>Passwort ändern</h3>
+                    <h3>change Password</h3>
                 </div>
                 <form name="changePassword" ng-submit="changePass(pass)">
                     <div class="modal-body">
@@ -314,6 +314,13 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 
         <div id="printContainer">
             <button class="btn btn-inverse"><i class="icon-remove-circle icon-white"></i></button>
+        </div>
+
+        <div class="footer">
+            <div class="container">
+                <p>Concept, musical core and rendering: Thomas Weber for <a href="http://www.notengrafik.com/" target="_blank">notengrafik berlin</a><br />
+                Server side development and user interface: <a href="http://www.digitalwert.de/" target="_blank">digitalwert&reg;</a>, Dresden</p>
+            </div>
         </div>
 
         <script src="/bundles/digitalwertmonodiclient/js/const.js"></script>

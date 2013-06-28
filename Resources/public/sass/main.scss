@@ -1,8 +1,8 @@
 @import "bootstrap";
 @import "bootstrap-responsive";
 
-body {
-    padding-top: 60px;
+html, body {
+    height: 100%;
 }
 
 .navbar {
@@ -71,8 +71,16 @@ body {
     margin-bottom: 0;
 }
 
-.views>.container {
-    display: none;
+.views {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -60px;
+
+    &>.container {
+        display: none;
+        padding: 60px 0 100px;
+    }
 }
 
 .fileviewToggle {
@@ -283,6 +291,24 @@ body {
 
     iframe {
         width: 100%;
+    }
+}
+
+.footer {
+    color: #999;
+    background: #1b1b1b;
+
+    p {
+        margin-top: 10px;
+    }
+
+    a {
+        color: #999;
+        text-decoration: underline;
+
+        &:hover {
+            color: #fff;
+        }
     }
 }
 

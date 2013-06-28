@@ -36,16 +36,16 @@ function NavCtrl($scope, $http) {
             var error = '';
             switch (status) {
                 case 404:
-                    error = 'Der Nutzername konnte nicht gefunden werden.';
+                    error = 'The username was not found.';
                 break;
                 case 403:
-                    error = 'Sie sind nicht berechtigt das Passwort zu ändern. Bitte überprüfen Sie Ihren Loginstatus.';
+                    error = 'You are not authorized to change the password. Please check your login status.';
                 break;
                 case 400:
-                    error = 'Die Validierung Ihrer aktuellen Login-Daten ist fehlgeschlagen.';
+                    error = 'Your current login informations could not be verified.';
                 break;
                 case 500:
-                    error = 'Leider gab es einen Fehler auf dem Server. Bitte versuchen Sie es später erneut.';
+                    error = 'There was an error on the server. Please try again later.';
             }
             $('#changePassModal').find('.modal-body').find('.notice').remove().end().append('<p class="notice">' + error + '</p>');
         });

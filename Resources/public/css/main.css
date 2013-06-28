@@ -6265,8 +6265,8 @@ a.badge:focus {
   .nav-collapse.collapse {
     height: auto !important;
     overflow: visible !important; } }
-body {
-  padding-top: 60px; }
+html, body {
+  height: 100%; }
 
 .navbar .nav {
   float: none; }
@@ -6306,8 +6306,14 @@ body {
 .modal form {
   margin-bottom: 0; }
 
-.views > .container {
-  display: none; }
+.views {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0 auto -60px; }
+  .views > .container {
+    display: none;
+    padding: 60px 0 100px; }
 
 .fileviewToggle {
   margin-bottom: 20px;
@@ -6439,7 +6445,7 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  background: #fff;
+  background: white !important;
   z-index: 1100;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }
@@ -6450,6 +6456,19 @@ body {
   #printContainer iframe {
     width: 100%; }
 
+.footer {
+  color: #999;
+  background: #1b1b1b; }
+  .footer p {
+    margin-top: 10px; }
+  .footer a {
+    color: #999;
+    text-decoration: underline; }
+    .footer a:hover {
+      color: #fff; }
+
 @media print {
   #printContainer button {
     display: none; } }
+
+/*@ sourceMappingURL=main.css.map */

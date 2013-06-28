@@ -72,7 +72,7 @@ function AppCtrl($scope, $http) {
             $scope.documents = JSON.parse(localStorage['documents']);
             $scope.files = JSON.parse(localStorage['files']);
         } else if (!$scope.online) {
-            alert('Es ist keine Verbindung zum Server möglich und lokal sind keine gecachten Dateien vorhanden.');
+            alert('A connection to the server is not available and no files are locally cached.');
         }
 
         var documentList = localStorage['documentList'];
