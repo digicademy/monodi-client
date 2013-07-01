@@ -20,13 +20,6 @@ function DocumentCtrl($scope, $http) {
 			}
 		});
 
-		var typesrc = monodi.document.ANNOTATION_TYPES || {};
-		types = '<p><select>';
-		for (var type in typesrc) {
-			types += '<option value="' + type + '">' + typesrc[type].label + '</option>';
-		}
-		$('#annotationModal').find('input').parent().before(types + '</select></p>');
-
 		$scope.showView('main');
 	});
 
@@ -188,4 +181,12 @@ function DocumentCtrl($scope, $http) {
 		musicContainer		: document.getElementById("musicContainer"),
 		xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl"
 	});
+
+	var typesrc = monodi.document.ANNOTATION_TYPES || {};
+	types = '<p><select>';
+	for (var type in typesrc) {
+		types += '<option value="' + type + '">' + typesrc[type].label + '</option>';
+	}
+	$('#annotationModal').find('input').parent().before(types + '</select></p>');
+
 }

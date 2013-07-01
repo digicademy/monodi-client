@@ -320,7 +320,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         <div class="footer">
             <div class="container">
                 <p>Concept, musical core and rendering: Thomas Weber for <a href="http://www.notengrafik.com/" target="_blank">notengrafik berlin</a><br />
-                Server side development and user interface: <a href="http://www.digitalwert.de/" target="_blank">digitalwert&reg;</a>, Dresden</p>
+                Server side development and user interface: <a href="http://www.digitalwert.de/" target="_blank">digitalwert&#174;</a>, Dresden</p>
             </div>
         </div>
 
