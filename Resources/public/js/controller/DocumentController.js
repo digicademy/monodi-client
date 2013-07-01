@@ -100,6 +100,7 @@ function DocumentCtrl($scope, $http) {
 		});
 
 		monodi.document.newDocument();
+
 		$scope.setActive({ content: monodi.document.getSerializedDocument() });
 
 		$scope.showView('main');

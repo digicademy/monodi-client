@@ -343,3 +343,7 @@ $(document).on('keydown', function(e) {
 $('#printContainer button').on('click', function() {
 	$(this).parent().hide().children('.mei').remove();
 });
+
+$(window).on('beforeunload', function() {
+	return 'Are you sure you want to close the application? All unsaved changes will be lost!';
+});

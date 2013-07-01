@@ -206,6 +206,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                             <li><button class="btn btn-link" ng-click="newDocument()">New</button></li>
                                             <li><button class="btn btn-link" ng-click="saveDocument()" ng-show="active">Save</button></li>
                                             <li><button class="btn btn-link" ng-click="saveNewDocument()" ng-show="active">Save as ...</button></li>
+                                            <li><button class="btn btn-link" ng-click="printDocument()" ng-show="active">Print</button></li>
                                             <li><button class="btn btn-link" ng-click="showDocumentInfo()" ng-show="active">Properties</button></li>
                                             <li class="divider"></li>
                                             <li><button class="open btn btn-link" ng-click="showView('files')">Open</button></li>
