@@ -95,6 +95,7 @@ function DocumentCtrl($scope, $http) {
 		} else {
 			monodi.document.newDocument();
 		}
+		$text.val('');
 
 		$scope.setActive({ content: monodi.document.getSerializedDocument() });
 
