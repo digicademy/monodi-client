@@ -58,6 +58,16 @@ function NavCtrl($scope, $http) {
         return false;
     };
 
+    $scope.newDocumentDialog = function() {
+        if ($scope.active) {
+            if (!confirm('Dismiss open document?')) {
+                return;
+            }
+        }
+
+        $('#newDocumentModal').modal('show');
+    };
+
     $scope.printDocument = function() {
         var data = monodi.document.getPrintHtml([monodi.document.getSerializedDocument()]).outerHTML,
             start = data.indexOf('<body'),

@@ -78,13 +78,7 @@ function DocumentCtrl($scope, $http) {
 		}
 	});
 
-	$scope.$on('newDocument', function() {
-		if ($scope.active) {
-			if (!confirm('Dismiss open document?')) {
-				return;
-			}
-		}
-
+	$scope.$on('newDocument', function(e, data) {
 		monodi.document = new MonodiDocument({
 			staticStyleElement	: document.getElementById("staticStyle"),
 			dynamicStyleElement	: document.getElementById("dynamicStyle"),
@@ -92,7 +86,15 @@ function DocumentCtrl($scope, $http) {
 			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl"
 		});
 
-		monodi.document.newDocument();
+		var $text = $('#newDocumentText');
+		if (data.settext) {
+			monodi.document.newDocument($text.val(), function(problemLine, problemLineNumber){
+				alert( "Line " + problemLineNumber + " does not follow the expected syntax:\n\n" + problemLine + "\n\nA fallback method will be used for generating the document");
+				return true;
+			});
+		} else {
+			monodi.document.newDocument();
+		}
 
 		$scope.setActive({ content: monodi.document.getSerializedDocument() });
 
@@ -110,8 +112,8 @@ function DocumentCtrl($scope, $http) {
 		});
 	});
 
-	$scope.$on('syncDocument', function(id) {
-		$scope.$broadcast('saveDocument', { id: id });
+	$scope.$on('syncDocument', function(e, data) {
+		$scope.$broadcast('saveDocument', { id: data.id });
 	});
 
 	$scope.$on('syncNewDocument', function(e, data) {
