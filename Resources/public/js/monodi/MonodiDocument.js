@@ -387,7 +387,7 @@
             return true;
           }
         }
-        throw new Error("Exactly one callback for deleteAnnotatedElement is required, but " + callbacks.deleteAnnotatedElement.length + "were defined.");
+        throw new Error("Exactly one callback for deleteAnnotatedElement is required, but " + callbacks.deleteAnnotatedElement.length + " were defined.");
       }
       
       return true;
@@ -852,7 +852,9 @@
     };
     //selectElement = this.selectElement; // We need this because otherwise, private methods obviously 
                                         // can't use this public method without violating strict mode.
-
+    
+    // As liquescents with unknown pitch are combined into one symbol together with their preceding note, 
+    // we usually don't want to select them.  That's what parameter allowSelectionOfLiquescentsWithUnkownPitch is for.
     this.selectNextElement = function(precedingOrFollowing, allowSelectionOfLiquescentsWithUnkownPitch) {
       if (precedingOrFollowing !== "following" && precedingOrFollowing !== "preceding") {
         throw new Error("Argument passed to selectNextElement() must be string 'preceding' or 'following'");
@@ -866,6 +868,10 @@
           "self::mei:note" + (allowSelectionOfLiquescentsWithUnkownPitch ? "|" : "[@pname]|") + 
           "self::mei:pb|" + 
           "self::mei:sb/@source|" +
+          // To enable inputting notes into syllables that don't already have any syllables in them,
+          // we allow the selection of syllables themselfes.  this.selectElement() will then take care of 
+          // creating dummy notes in those syllables that can be edited.
+          // The same is done if the first element on the music layer is a <sb> or <pb> because we can't input
           "self::mei:syllable[count(*)=1]" +
         "][1]")[0];
       // Test whether we're on the text layer
@@ -1197,12 +1203,19 @@
     
     this.togglePerformanceNeumeType = function(performanceNeumeType, element) {
       element = $MEI(element || selectedElement, "note", "Can not assign performance neume type to non-note elements");
-      var currentPerformanceNeumeType = element.getAttribute("label");
-      
-      this.setPerformanceNeumeType(
-        currentPerformanceNeumeType === performanceNeumeType ? false : performanceNeumeType, 
-        element
-      );
+
+      // We don't allow any performance neume type to be set on notes with following liquescents with unknown pitch
+      // because we can't visualize them and the user would not realize that he set a performance neume type.      
+      if (evaluateXPath(element, "following-sibling::*[1]/self::mei:note[not(@pname and @oct)]")[0]) {
+        this.setPerformanceNeumeType(null, element);
+      } else {
+        var currentPerformanceNeumeType = element.getAttribute("label");
+        
+        this.setPerformanceNeumeType(
+          currentPerformanceNeumeType === performanceNeumeType ? null : performanceNeumeType, 
+          element
+        );
+      }
     };
 
     this.setAttribute = function(attributeName, value, dontRefresh, element) {
@@ -1298,6 +1311,7 @@
 
     this.getPrintHtml = function(documents) {
       var i;
+      documents = documents || [mei];
       for (i=0; i<documents.length; i+=1) {
         if (typeof documents[i] === "string") {
           documents[i] = loadXML({xmlString: documents[i]});
