@@ -236,7 +236,7 @@
         border-right:<xsl:value-of select="$sbPbLineWidth"/>px solid;
         width:<xsl:value-of select="$pbLineDistance * $scaleStepSize"/>px;
       }
-      .folioDescription {
+      .musicLayer .folioDescription {
         position:relative;
         border:1px solid black;
         font-style:italic;
@@ -246,7 +246,7 @@
         margin-top:-1em;
         background-color:rgba(255,255,255,.9);
       }
-      .pb {
+      .musicLayer > .pb {
         margin-right:1em;
         vertical-align:bottom;
       }
@@ -358,28 +358,28 @@
       .workDesc {
         margin-top:3em;
       }
-      .work *, .seriesStmt > *, .repository > *, .sourceDesc > * {
+      .work *, .seriesStmt > *, .repository > *, .sourceDesc > *, .provenance > .name > *, .meiHead > div:not(._mei) > * {
         display:inline;
         padding:.2em;
+      }
+      .meiHead > *  * {
+        display:inline;
       }
       .work > .att_n {
          border: 1px solid black;
        }
-      .repository > *:not(:last-of-type):after {
+      .geogName:after, .title > .num:after, .term:after, .incipText > .p:after, .identifier:not(:last-of-type):after {
         content:","
       }
-      
       .classification, .sourceDesc * {
         display:inline;
       }
-      .incip, .physLoc, .sourceDesc, .repository, .work, .meiHead > * {
+      .physLoc, .sourceDesc, .repository, .work, .meiHead > *, .biblList > .bibl {
         display:block;
       }
-      .incip {
-        position:absolute;
-        padding:0;
-        margin-top:-4em;
-        white-space: nowrap;
+      .biblList {
+        display:block;
+        <!--padding-top: 1em;-->
       }
       .relation > .att_label:before {
         content:"(";
@@ -606,7 +606,7 @@
     </xsl:if>
     <xsl:if test="$interactiveCSS='true'">
       <!--<style type="text/css"><!-\- Interactive CSS -\->-->
-        .note:hover:before, .musicLayer > .sb:hover:before, .pb:hover:before { <!-- Highlighting of music layer elements -->
+        .note:hover:before, .musicLayer > .sb:hover:before, .musicLayer > .pb:hover:before { <!-- Highlighting of music layer elements -->
           content:"";
           position:absolute;
           width:100%;
@@ -660,6 +660,33 @@
   <!-- Don't copy text nodes that only have white space -->
   <xsl:template match="text()[normalize-space()='']"/>
 
+  <!-- meiHead formatting -->
+  <xsl:template match="mei:meiHead">
+    <div class="_mei meiHead">
+      <xsl:apply-templates select="." mode="create-title"/>
+      <xsl:apply-templates select="mei:fileDesc"/>
+      <div>
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:classification/mei:termList[mei:term/@label='genre']"/>
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:incip"/>
+        <xsl:apply-templates select="mei:fileDesc/mei:sourceDesc/mei:source/mei:physDesc/mei:extent/mei:bibl/mei:pb"/>
+      </div>
+      <xsl:apply-templates select="mei:workDesc"/>
+    </div>
+  </xsl:template>
+  
+  <xsl:template match="mei:extent"/> <!-- Don't auto-process this, we included this explcitly after the incipit -->
+  <xsl:template match="mei:work">
+    <div class="_mei work">
+      <xsl:apply-templates select="." mode="create-title"/>
+      <xsl:apply-templates select="@n" mode="process-editable-attributes"/>
+      <xsl:apply-templates select="mei:classification/mei:termList[@label='liturgicFunction']"/>
+      <xsl:for-each select="//mei:sb[not(@source)]/@n">
+        <div class="sbN"><xsl:value-of select="."/></div>
+      </xsl:for-each>
+      <xsl:apply-templates select="mei:biblList"/>
+    </div>
+  </xsl:template>
+  
   <xsl:template match="mei:music">
     <div class="_mei music">
       <xsl:apply-templates select="@*"/>
@@ -689,16 +716,6 @@
         </svg:defs>
       </svg:svg>
       <xsl:apply-templates select="*|text()"/>
-    </div>
-  </xsl:template>
-  
-  <xsl:template match="mei:relationList">
-    <div class="_mei relationList">
-      <xsl:apply-templates select="@*"/>
-      <xsl:for-each select="//mei:sb[not(@source)]/@n">
-        <div class="sbN"><xsl:value-of select="."/></div>
-      </xsl:for-each>
-      <xsl:apply-templates/>
     </div>
   </xsl:template>
   
@@ -787,6 +804,12 @@
   <xsl:template match="mei:sb" mode="create-title">
     <xsl:attribute name="title">line break in the source</xsl:attribute>
   </xsl:template>
+  <xsl:template match="mei:syllable/mei:pb" mode="create-title" priority="1">
+    <xsl:attribute name="title">page break in the source</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:pb[@label='start']" mode="create-title">
+    <xsl:attribute name="title">start folio</xsl:attribute>
+  </xsl:template>
   <xsl:template match="mei:seriesStmt/mei:title/mei:num" mode="create-title">
     <xsl:attribute name="title">section no.</xsl:attribute>
   </xsl:template>
@@ -823,6 +846,38 @@
   <xsl:template match="mei:incipText/mei:p" mode="create-title">
     <xsl:attribute name="title">incipit</xsl:attribute>
   </xsl:template>
+  <xsl:template match="mei:biblList[@type='textEditions']/mei:bibl/mei:title" mode="create-title">
+    <xsl:attribute name="title">
+      <xsl:value-of select="concat(count(../preceding-sibling::mei:bibl) + 1,'. text edition title')"/>
+    </xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:identifier[@type='melodyNumber']" mode="create-title">
+    <xsl:attribute name="title">melody number</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:identifier[@type='tropeComplexNumber']" mode="create-title">
+    <xsl:attribute name="title">trope complex number</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:identifier[@type='volumeNumber']" mode="create-title">
+    <xsl:attribute name="title">volume number</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:identifier[@type='textNumber']" mode="create-title">
+    <xsl:attribute name="title">text number</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:biblList[@type='melodyCatalogues']/mei:bibl/mei:author" mode="create-title">
+    <xsl:attribute name="title">melody catalogue author</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:bibl[@label='melodyCatalogue']/mei:identifier[@type='melodyNumber']" mode="create-title">
+    <xsl:attribute name="title">melody number</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:bibl[@label='melodyCatalogue']/mei:identifier[@type='tropeComplexNumber']" mode="create-title">
+    <xsl:attribute name="title">trope complex number</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:provenance/mei:name/mei:geogName" mode="create-title">
+    <xsl:attribute name="title">place of provenance</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:provenance/mei:name/mei:corpName" mode="create-title">
+    <xsl:attribute name="title">institution</xsl:attribute>
+  </xsl:template>
   <!-- TODO: Add more titles -->
   
   <xsl:template match="mei:syl">
@@ -842,7 +897,7 @@
   </xsl:template>
   
   <xsl:template mode="create-contenteditable" match="*"/>
-  <xsl:template name="set-content-editable" mode="create-contenteditable" match="mei:seriesStmt//mei:num|mei:term|mei:p|mei:repository/*|mei:geogName">
+  <xsl:template name="set-content-editable" mode="create-contenteditable" match="mei:seriesStmt//mei:num|mei:term|mei:p|mei:repository/*|mei:geogName|mei:corpName|mei:bibl/*">
     <xsl:if test="$setContentEditable='true'">
       <xsl:attribute name="contenteditable">true</xsl:attribute>
       <xsl:if test="$onblurWorkaroundForEmptyEditableElements='true'">
@@ -911,9 +966,11 @@
   </xsl:template>
   
   <xsl:template match="mei:pb[@source]">
-    <div class="_mei pb {@label}" title="page break in the source">
+    <div class="_mei pb {@label}">
+      <xsl:apply-templates select="." mode="create-title"/>
       <xsl:apply-templates select="@xml:id"/>
-      <div class="folioDescription" title="folio information for page break in source">
+      <div class="folioDescription">
+        <xsl:apply-templates select="." mode="create-title"/>
         <xsl:call-template name="set-content-editable"/>
         <span class="folioNumber">
           <xsl:value-of select="@n"/>
