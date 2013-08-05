@@ -463,6 +463,29 @@
       return newBreak;
     }
     
+    // We use the label attribute on notes like a class attribute,
+    // i.e. we can add and remove several classes for liquescents and performance neumes
+    function addToLabelAttribute(element, value) {
+      var oldLabelAttribute = element.getAttribute("label") || "";
+      // In case value is already present on the attribute, we first remove it.
+      element.setAttribute("label", (oldLabelAttribute.replace(value,"") + " " + value).trim());
+    }
+    
+    function removeFromLabelAttribute(element, value) {
+      var oldLabelAttribute = element.getAttribute("label") || "";
+      var newLabelAttribute = oldLabelAttribute.replace(value,"").trim();
+      if (newLabelAttribute === "") {
+        element.removeAttribute("label");
+      } else {
+        element.setAttribute(newLabelAttribute);
+      }
+    }
+    
+    function labelAttributeContains(element, value) {
+      var labelAttribute = element.getAttribute("label");
+      return labelAttribute && labelAttribute.indexOf(value) > -1;
+    }
+    
     //////// "Public methods" //////////
 
 
@@ -762,9 +785,8 @@
       note.removeAttribute("pname");
       note.removeAttribute("oct");
       note.removeAttribute("accid");
-      note.removeAttribute("label");
       note.setAttribute("intm", intmValue);
-      note.setAttribute("mfunc", "liquescent");
+      note.setAttribute("label", "liquescent");
       refresh(note);
       return note;
     };
@@ -772,7 +794,7 @@
     this.toggleFollowingUnpitchedLiquescent = function(intmValue, note) {
       note = $MEI(note || selectedElement, "note");
       var followingLiquescent = (
-        evaluateXPath(note, "following-sibling::*[1]/self::mei:note[@mfunc='liquescent']")[0] || 
+        evaluateXPath(note, "following-sibling::*[1]/self::mei:note[not(@oct and @pname)]")[0] || 
         this.newNoteAfter(note, true)
       ),
       currentIntm = followingLiquescent.getAttribute("intm"),
@@ -913,12 +935,11 @@
       // can only contain either exclusively apostropha pitches or non-apostropha pitches.
       if (
         precedingNote && ( 
-          precedingNote.getAttribute("label") !== "apostropha" ||
-          evaluateXPath(precedingNote,"ancestor::mei:ineume[1]")[0] !== evaluateXPath(element,"ancestor::mei:ineume[1]")[0]
+          !labelAttributeContains(precedingNote, "apostropha") ||
+          evaluateXPath(precedingNote, "ancestor::mei:ineume[1]")[0] !== evaluateXPath(element,"ancestor::mei:ineume[1]")[0]
         )
       ) {
         newNote.removeAttribute("label"); 
-        newNote.removeAttribute("mfunc"); 
       }
       newNote.removeAttribute("accid");
 
@@ -1151,11 +1172,11 @@
       switch(trueOrFalse) {
       case "true":
       case true:
-        element.setAttribute("mfunc","liquescent");
+        addToLabelAttribute(element, "liquescent");
         break;
       case "false":
       case false:
-        element.removeAttribute("mfunc");
+        removeFromLabelAttribute(element, "liquescent");
         break;
       default:
         throw new Error("Attempt at setting liquescence flag to " + trueOrFalse + ". Only true or false are allowed");
@@ -1168,7 +1189,7 @@
 
     this.getLiquescence = function(element) {
       element = $MEI(element || selectedElement, "note", "Can not get liquescence flag of non-note elements");
-      return element.getAttribute("mfunc") === "liquescent" ? true : false;
+      return labelAttributeContains(element, "liquescent");
     };
 
     this.toggleLiquescence = function(element) {
@@ -1178,22 +1199,29 @@
 
     this.getPerformanceNeumeType = function(element) {
       element = $MEI(element || selectedElement, "note", "Can not get performance neume type of non-note elements");
-      return element.getAttribute("label");
+      // For this function, we only regard oriscus, quilisma and apostropha;
+      // If liquescent is present, we ignore that.
+      var labelAttribute = element.getAttribute("label"); 
+      return (labelAttribute && labelAttribute.replace("liquescent","").trim()) || null;
     };
 
     this.setPerformanceNeumeType = function(performanceNeumeType, element) {
       element = $MEI(element || selectedElement, "note", "Can not assign performance neume type to non-note elements");
 
-       // any performanceNeumeType that evaluates to false in a boolean expression shall 
-       // result in the removal of any performance neume type 
+      // We remove any pre-existing performance neume classes (except for liquescents)
+      removeFromLabelAttribute(element, "oriscus");
+      removeFromLabelAttribute(element, "quilisma");
+      removeFromLabelAttribute(element, "apostropha");
+
+      // any performanceNeumeType that evaluates to false in a boolean expression shall 
+      // result in the removal of any performance neume type 
       switch(performanceNeumeType || null)  {  
       case "oriscus":
       case "quilisma":
       case "apostropha":
-        element.setAttribute("label", performanceNeumeType);
+        addToLabelAttribute(element, performanceNeumeType);
         break;
       case null:
-        element.removeAttribute("label");
         break;
       default:
         throw new Error(performanceNeumeType.toString() + " is not a recognized performance neume type. Supported types are oriscus, quilisma and apostropha."); 
@@ -1209,10 +1237,8 @@
       if (evaluateXPath(element, "following-sibling::*[1]/self::mei:note[not(@pname and @oct)]")[0]) {
         this.setPerformanceNeumeType(null, element);
       } else {
-        var currentPerformanceNeumeType = element.getAttribute("label");
-        
         this.setPerformanceNeumeType(
-          currentPerformanceNeumeType === performanceNeumeType ? null : performanceNeumeType, 
+          labelAttributeContains(element, performanceNeumeType) ? null : performanceNeumeType, 
           element
         );
       }

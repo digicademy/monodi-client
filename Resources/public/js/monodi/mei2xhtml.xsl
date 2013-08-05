@@ -1067,15 +1067,15 @@
   </xsl:template>
 
   <!-- We don't render properly encoded liquescents of unknown pitch when preceded by a normal note as both pitches are unified in one symbol -->
-  <xsl:template match="mei:note[@intm and @mfunc='liquescent' and not(@pname and @oct)]
-                               [preceding-sibling::*[1]/self::mei:note[@pname and @oct][not(@label)]]"/>
+  <xsl:template match="mei:note[@intm and @label='liquescent' and not(@pname and @oct)]
+                               [preceding-sibling::*[1]/self::mei:note[@pname and @oct]]"/>
   <xsl:template match="mei:note">
     <div>
       <xsl:variable name="noteheadType">
         <xsl:apply-templates select="." mode="get-notehead-type"/>
       </xsl:variable>
       <xsl:attribute name="class">
-        <xsl:value-of select="concat('_mei note ',@label,' ',@mfunc,' ',$noteheadType,' ')"/>
+        <xsl:value-of select="concat('_mei note ',@label,' ',$noteheadType,' ')"/>
         <xsl:if test="not(@pname and @oct)">unpitched</xsl:if>
       </xsl:attribute>
       <xsl:apply-templates select="@xml:id"/>
@@ -1106,7 +1106,7 @@
         <svg:use xlink:href="#{$idPrefix}{$noteheadType}Notehead">
           <xsl:attribute name="transform">
             translate(0,<xsl:value-of select="$noteheadStep * $scaleStepSize"/>)
-            <xsl:if test="@mfunc='liquescent'">
+            <xsl:if test="contains(@label,'liquescent')">
               scale(<xsl:value-of select="$liquescentNoteheadSize"/>)
             </xsl:if>
           </xsl:attribute>
@@ -1119,11 +1119,11 @@
   <xsl:template match="*" mode="get-notehead-type">
     <xsl:value-of select="'standard'"/>
   </xsl:template>
-  <xsl:template match="*[following-sibling::*[1]/self::mei:note[not(@label)][@mfunc='liquescent' and @intm and not(@pname and @oct)]]" mode="get-notehead-type" priority="1">
+  <xsl:template match="*[following-sibling::*[1]/self::mei:note[@label='liquescent' and @intm and not(@pname and @oct)]]" mode="get-notehead-type" priority="1">
     <xsl:value-of select="concat(following-sibling::*[1]/self::mei:note/@intm,'LiquescentFollowing')"/>
   </xsl:template>
-  <xsl:template match="*[@label='oriscus' or @label='quilisma' or @label='apostropha']" mode="get-notehead-type">
-    <xsl:value-of select="@label"/>
-  </xsl:template>
+  <xsl:template match="*[contains(@label,'oriscus'   )]" mode="get-notehead-type">oriscus</xsl:template>
+  <xsl:template match="*[contains(@label,'quilisma'  )]" mode="get-notehead-type">quilisma</xsl:template>
+  <xsl:template match="*[contains(@label,'apostropha')]" mode="get-notehead-type">apostropha</xsl:template>
   
 </xsl:stylesheet>
