@@ -57,4 +57,25 @@ function NavCtrl($scope, $http) {
 
         return false;
     };
+
+    $scope.newDocumentDialog = function() {
+        if ($scope.active) {
+            if (!confirm('Dismiss open document?')) {
+                return;
+            }
+        }
+
+        $('#newDocumentModal').modal('show');
+    };
+
+    $scope.printDocument = function() {
+        var data = monodi.document.getPrintHtml([monodi.document.getSerializedDocument()]).outerHTML,
+            start = data.indexOf('<body'),
+            end = data.indexOf('</body>');
+
+        start = (start >= 0)? start + data.match(/<body[\w\s="']*>/gi)[0].length : 0;
+        end = (end > start)? end : data.length;
+        data = data.substring(start, end);
+        $('#printContainer').append(data).show();
+    };
 }

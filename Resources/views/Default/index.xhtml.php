@@ -160,27 +160,22 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                     <tr>
                         <th class="span2">Name</th>
                         <td>{{info.title}}</td>
-                        <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
                     </tr>
                     <tr>
                         <th class="span2">Filename</th>
                         <td>{{info.filename}}</td>
-                        <td class="change span1"><button class="btn btn-primary"><i class="icon-cog icon-white"></i></button></td>
                     </tr>
                     <tr>
                         <th class="span2">Path</th>
                         <td>{{info.path}}</td>
-                        <td></td>
                     </tr>
                     <tr>
                         <th class="span2">Revision</th>
                         <td>{{info.rev}}</td>
-                        <td></td>
                     </tr>
                     <tr>
                         <th class="span2">Locally available</th>
                         <td>{{info.local}}</td>
-                        <td></td>
                     </tr>
                 </tbody>
             </table>
@@ -203,9 +198,10 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                     <div class="btn-group">
                                         <button class="btn btn-link dropdown-toggle" data-toggle="dropdown" ng-click="showView('main')">Document <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
-                                            <li><button class="btn btn-link" ng-click="newDocument()">New</button></li>
+                                            <li><button class="btn btn-link" ng-click="newDocumentDialog()">New</button></li>
                                             <li><button class="btn btn-link" ng-click="saveDocument()" ng-show="active">Save</button></li>
                                             <li><button class="btn btn-link" ng-click="saveNewDocument()" ng-show="active">Save as ...</button></li>
+                                            <li><button class="btn btn-link" ng-click="printDocument()" ng-show="active">Print</button></li>
                                             <li><button class="btn btn-link" ng-click="showDocumentInfo()" ng-show="active">Properties</button></li>
                                             <li class="divider"></li>
                                             <li><button class="open btn btn-link" ng-click="showView('files')">Open</button></li>
@@ -308,6 +304,25 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                     <button class="btn btn-primary" type="submit">save comment</button>
                     <button class="btn btn-warning" data-dismiss="modal" style="float:left">cancel</button>
                     <button class="btn btn-danger" data-dismiss="modal" style="float:left"><i class="icon-trash icon-white"></i></button>
+                </div>
+            </form>
+        </div>
+
+        <!-- new Modal Text -->
+        <div id="newDocumentModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="newDocumentLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3>Create new document </h3>
+            </div>
+            <form name="changeAnnotation" ng-submit="changeAnnotation()">
+                <div class="modal-body">
+                    <p>
+                        <textarea id="newDocumentText" placeholder="Text"></textarea>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" data-dismiss="modal" type="submit" ng-click="newDocument(false)">create empty document</button>
+                    <button class="btn btn-info" data-dismiss="modal" ng-click="newDocument(true)" style="float:left">create document from text</button>
                 </div>
             </form>
         </div>

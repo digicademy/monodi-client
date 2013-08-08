@@ -138,8 +138,8 @@ function AppCtrl($scope, $http) {
         }
     };
 
-    $scope.newDocument = function() {
-        $scope.$broadcast('newDocument');
+    $scope.newDocument = function(settext) {
+        $scope.$broadcast('newDocument', { settext: settext });
     };
 
     $scope.saveDocument = function() {
