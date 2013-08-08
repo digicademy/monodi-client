@@ -477,7 +477,7 @@
       if (newLabelAttribute === "") {
         element.removeAttribute("label");
       } else {
-        element.setAttribute(newLabelAttribute);
+        element.setAttribute("label", newLabelAttribute);
       }
     }
     
