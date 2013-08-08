@@ -621,41 +621,53 @@
               '<seriesStmt>' +
                 '<title>Corpus monodicum</title>' +
                 '<seriesStmt>' +
-                  '<title type="section"><num/></title>' +
-                  '<identifier type="volume"><num/></identifier>' +
+                  '<title type="section"><num></num></title>' +
+                  '<identifier type="volume"><num></num></identifier>' +
                 '</seriesStmt>' +
               '</seriesStmt>' +
               '<sourceDesc n="">' +
-                '<source>' +
+                '<source label="">' +
                   '<physDesc>' +
-                    '<provenance>' +
-                      '<geogName/>' +
-                    '</provenance>' +
+                    '<extent>' +
+                      '<identifier type="startFolio"></identifier>' +
+                    '</extent>' +
                   '</physDesc>' +
-                  '<physLoc>' +
-                    '<repository>' +
-                      '<geogName/>' +
-                      '<corpName/>' +
-                      '<identifier/>' +
-                    '</repository>' +
-                  '</physLoc>' +
                 '</source>' +
               '</sourceDesc>' +
             '</fileDesc>' +
             '<workDesc>' +
               '<work n="">' +
                 '<incip>' +
-                  '<incipText><p/></incipText>' +
+                  '<incipText>' +
+                    '<p></p>' +
+                  '</incipText>' +
                 '</incip>' +
+                '<biblList>' +
+                  '<bibl>' +
+                    '<genre>melody catalogue</genre>' +
+                    '<author></author>' +
+                    '<identifier type="melodyNumber"></identifier>' +
+                    '<identifier type="tropeComplexNumber"></identifier>' +
+                  '</bibl>' +
+                '</biblList>' +
                 '<classification>' +
-                  '<termList>' +
-                    '<term label="feast"/>' +       
-                    '<term label="service"/>' + 
-                    '<term label="baseChantGenre"/>' +
+                  '<termList label="genre">' +
+                    '<term></term>' +
+                  '</termList>' +
+                  '<termList label="baseChantIncipit">' +
+                    '<term></term>' +
+                  '</termList>' +
+                  '<termList label="regularizedLiturgicFunction">' +
+                    '<term label="feast"></term>' +
+                  '</termList>' +
+                  '<termList label="liturgicFunction">' +
+                    '<term label="feast"></term>' +       
+                    '<term label="service"></term>' +
+                    '<term label="baseChantGenre"></term>' +
                   '</termList>' +
                 '</classification>' +
                 '<relationList>' +
-                  '<relation rel="hasComplement" label=""/>' +
+                  '<relation rel="hasRealization" label="" n=""/>' +
                 '</relationList>' +
               '</work>' +
             '</workDesc>' +
