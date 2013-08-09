@@ -1264,7 +1264,7 @@
         refresh(element);
       }
       if (element.nodeName === "sb") {
-        refresh(document.getElementsByClassName("relationList")[0]);
+        refresh(document.getElementsByClassName("_mei meiHead")[0]);
       }
     };
     

@@ -663,30 +663,42 @@
   <!-- meiHead formatting -->
   <xsl:template match="mei:meiHead">
     <div class="_mei meiHead">
-      <xsl:apply-templates select="." mode="create-title"/>
-      <xsl:apply-templates select="mei:fileDesc"/>
+      <!-- Section/volume number -->
+      <xsl:apply-templates select="mei:fileDesc/mei:seriesStmt"/>
+      <!-- source no., source identifier -->
       <div>
-        <xsl:apply-templates select="mei:workDesc/mei:work/mei:classification/mei:termList[mei:term/@label='genre']"/>
-        <xsl:apply-templates select="mei:workDesc/mei:work/mei:incip"/>
-        <xsl:apply-templates select="mei:fileDesc/mei:sourceDesc/mei:source/mei:physDesc/mei:extent/mei:bibl/mei:pb"/>
+        <xsl:apply-templates select="mei:fileDesc/mei:sourceDesc/@xml:id"/>
+        <xsl:apply-templates select="mei:fileDesc/mei:sourceDesc/@n" mode="process-editable-attributes"/>
+        <xsl:apply-templates select="mei:fileDesc/mei:sourceDesc/mei:source/@label" mode="process-editable-attributes"/>
       </div>
-      <xsl:apply-templates select="mei:workDesc"/>
+      <div>
+        <!-- Genre, regulardized incipt, standardized feast, start folio -->
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:classification/mei:termList[@label='genre']"/>
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:incip"/>
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:classification/mei:termList[@label='regularizedLiturgicFunction']"/>
+        <xsl:apply-templates select="mei:fileDesc/mei:sourceDesc/mei:source/mei:physDesc"/>
+      </div>
+      <!-- Übersichtszeile: -->
+      <div>
+        <xsl:apply-templates select="mei:workDesc/mei:work/@n" mode="process-editable-attributes"/>
+        <!-- Text edition shorthand, text number -->
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:relationList"/>
+        <!-- Base chant incipit -->
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:classification/mei:termList[@label='baseChantIncipit']"/>
+        <!-- feast, service, base chant genre -->
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:classification/mei:termList[@label='liturgicFunction']"/>
+        <!-- trope element numbers -->
+        <xsl:for-each select="//mei:sb[not(@source)]/@n">
+          <xsl:value-of select="concat(.,' ')"/>
+        </xsl:for-each>
+      </div>
+      <div>
+        <!-- melody catalogue author, melody number, trope complex number -->
+        <xsl:apply-templates select="mei:workDesc/mei:work/mei:biblList/mei:bibl/*[preceding-sibling::mei:genre='melody catalogue']"/>
+      </div>
     </div>
   </xsl:template>
-  
-  <xsl:template match="mei:extent"/> <!-- Don't auto-process this, we included this explcitly after the incipit -->
-  <xsl:template match="mei:work">
-    <div class="_mei work">
-      <xsl:apply-templates select="." mode="create-title"/>
-      <xsl:apply-templates select="@n" mode="process-editable-attributes"/>
-      <xsl:apply-templates select="mei:classification/mei:termList[@label='liturgicFunction']"/>
-      <xsl:for-each select="//mei:sb[not(@source)]/@n">
-        <div class="sbN"><xsl:value-of select="."/></div>
-      </xsl:for-each>
-      <xsl:apply-templates select="mei:biblList"/>
-    </div>
-  </xsl:template>
-  
+
   <xsl:template match="mei:music">
     <div class="_mei music">
       <xsl:apply-templates select="@*"/>
@@ -734,16 +746,12 @@
   </xsl:template>
   
   <xsl:template match="@*" mode="generate-classes"/>
-  <!-- TODO: We probably want to move away from @label -->
-  <xsl:template match="mei:seriesStmt/@label" mode="generate-classes">
-    <xsl:value-of select="concat(' ',.,' ')"/>
-  </xsl:template>
   <xsl:template match="@source" mode="generate-classes">
     <xsl:value-of select="' source '"/>
   </xsl:template>
   
   <xsl:template match="@*" mode="process-editable-attributes"/>
-  <xsl:template match="mei:sourceDesc/@n|mei:work/@n|mei:relation/@label|mei:sb/@label|mei:sb/@n" mode="process-editable-attributes">
+  <xsl:template match="mei:sourceDesc/@n|mei:source/@label|mei:work/@n|mei:relation/@label|mei:sb/@label|mei:sb/@n" mode="process-editable-attributes">
     <div data-editable-attribute="{local-name()}" class="att_{local-name()}">
       <xsl:call-template name="set-content-editable"/>
       <xsl:apply-templates select="." mode="create-title"/>
@@ -822,11 +830,20 @@
   <xsl:template match="mei:term[@label='baseChantGenre']" mode="create-title" priority="1">
     <xsl:attribute name="title">base chant genre</xsl:attribute>
   </xsl:template>
+  <xsl:template match="mei:work/@n" mode="create-title">
+    <xsl:attribute name="title">transcription number</xsl:attribute>
+  </xsl:template>
   <xsl:template match="mei:relation/@label" mode="create-title">
-    <xsl:attribute name="title">text edition</xsl:attribute>
+    <xsl:attribute name="title">text edition, identifier and volume no.</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:work/mei:classification/mei:termList[@label='baseChantIncipit']/mei:term" mode="create-title">
+    <xsl:attribute name="title">base chant incipit</xsl:attribute>
   </xsl:template>
   <xsl:template match="mei:sourceDesc/@n" mode="create-title">
     <xsl:attribute name="title">source no.</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:sourceDesc/mei:source/@label" mode="create-title">
+    <xsl:attribute name="title">source identifier</xsl:attribute>
   </xsl:template>
   <xsl:template match="mei:sb[not(@source)]/@label" mode="create-title">
     <xsl:attribute name="title">rubric caption</xsl:attribute>
@@ -843,6 +860,9 @@
   <xsl:template match="mei:repository/mei:identifier" mode="create-title">
     <xsl:attribute name="title">shelf mark</xsl:attribute>
   </xsl:template>
+  <xsl:template match="mei:work/mei:classification/mei:termList[@label='genre']/mei:term" mode="create-title">
+    <xsl:attribute name="title">genre</xsl:attribute>
+  </xsl:template>
   <xsl:template match="mei:incipText/mei:p" mode="create-title">
     <xsl:attribute name="title">incipit</xsl:attribute>
   </xsl:template>
@@ -850,6 +870,9 @@
     <xsl:attribute name="title">
       <xsl:value-of select="concat(count(../preceding-sibling::mei:bibl) + 1,'. text edition title')"/>
     </xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:author[preceding-sibling::mei:genre='melody catalogue']" mode="create-title">
+    <xsl:attribute name="title">melody catalogue author</xsl:attribute>
   </xsl:template>
   <xsl:template match="mei:identifier[@type='melodyNumber']" mode="create-title">
     <xsl:attribute name="title">melody number</xsl:attribute>
