@@ -786,7 +786,7 @@
       <xsl:apply-templates select="@xml:id"/>
       <!-- If the first element on the music layer is a pb/sb, we want to put that into a separate div
            so that the text starts with the first note in the syllable. -->
-      <xsl:for-each select="mei:*[self::mei:sb or self::mei][not(preceding-sibling::mei:ineume)]">
+      <xsl:for-each select="mei:*[self::mei:sb or self::mei:pb][not(preceding-sibling::mei:ineume)]">
         <div>
           <div class="musicLayer">
             <xsl:copy-of select="$stafflines"/>
