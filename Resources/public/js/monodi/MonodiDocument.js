@@ -174,9 +174,13 @@
       // It replaces any existing ID, therefore this function should only be called for elements
       // that indeed should get a new ID.
       // TODO: More careful ID generation?
-      var newId = "";
+      var newId = "",
+          randomSuffixRange = 10000;
+      
       do {
-        newId = idPrefix + "mei" + new Date().getTime() + Math.floor((Math.random()*10000));
+        var newIdNumber = Math.floor((new Date().getTime() + Math.random()) * randomSuffixRange);
+        // To save a little space (especially for localStorage), we base-36 encode the number generated above. 
+        newId = "mei" + newIdNumber.toString(36);
       } while ($MEI(newId)); // We must avoid IDs that already exist
       element.setAttributeNS(xmlNS,"xml:id",newId);
       return element;
@@ -239,7 +243,7 @@
       // for any changes of notes inside a uneume, we refresh the whole uneume
       element = element ? evaluateXPath(
         $MEI(element),
-        // As the content of uneue influences the rendering of slurs, 
+        // As the content of uneume influences the rendering of slurs, 
         // we have to refresh the whole uneume whenever something inside changes
         "(.|ancestor::mei:uneume)[1]"
       )[0] : "<mei>";
@@ -1028,12 +1032,13 @@
     };
 
     this.newSourceSbAfter = function(element, leaveFocus) {
-      return newSourceBreakAfter($MEI(element) || selectedElement, "sb", leaveFocus);
+      return newSourceBreakAfter(element, "sb", leaveFocus);
     };
 
     this.newSourcePbAfter = function(element, folioNumber, rectoVerso, leaveFocus) {
-      var pb = newSourceBreakAfter(element, "pb", leaveFocus);
-      this.setPbData(folioNumber, rectoVerso, false, pb);
+      var newPb = newSourceBreakAfter(element, "pb", leaveFocus);
+      this.setPbData(folioNumber, rectoVerso, false, newPb);
+      return newPb;
     };
     
     this.newEditionSbAfter = function(element, leaveFocus) {
