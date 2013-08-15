@@ -401,15 +401,17 @@
       // This will delete any elements inside syllables that don't have content
       // (i.e. no notes, system/page breaks, no text in syl element)
       // The currently selected element will not be deleted.
+      element = element ? $MEI(element) : mei.documentElement;
+      
       var emptyElements = evaluateXPath(
-        element ? $MEI(element) : mei,
+        element,
         // The context element might either be inside or outside of a syllable element.
         // If it's inside, then we only want this syllable to be checked for empty elements,
         // if it's outside, then we want to basically check all syllables.
         // All our syllables are living inside one common layer element.  
         "(ancestor-or-self::mei:syllable[1]|descendant-or-self::mei:layer[1])" +
         
-        // Now we're selecting all elements that fulfill the "conditions of emptyness"
+        // Now we're selecting all descendant elements that fulfill the "conditions of emptyness"
         "/descendant-or-self::mei:syllable/descendant-or-self::*[ " +
           // syl elements will never be deleted on their own, only together with the whole syllable element
           "not(self::mei:syl) " +
@@ -419,7 +421,7 @@
           "and not(descendant-or-self::mei:pb) " +
           "and not(descendant-or-self::mei:sb) " +
           // Obviously, the current selection must not be removed, even if it's empty
-          (selectedElement ? "and not(descendant-or-self::*[@xml:id='" + $ID(selectedElement) + "']) " : " ") +
+          ((selectedElement instanceof Element) ? "and not(descendant-or-self::*[@xml:id='" + $ID(selectedElement) + "']) " : " ") +
           "and ( " +
             // If we matched a syllable element, we have to make sure that we don't end up with an empty line.
             " not(self::mei:syllable) " +
@@ -827,7 +829,7 @@
       refresh(note);
     };
 
-    this.selectElement = function(element) {
+    this.selectElement = function(suppliedElement) {
       // CAUTION: I removed the callback for annotated element selection.
       //          I guess we won't need this if we do annotation editing directly at the annotated elements.
       // The argument can either be an ID, an MEI element or an HTML element
@@ -839,7 +841,7 @@
  
       var previouslySelectedElement = selectedElement;
       
-      element = $MEI(element);
+      var element = $MEI(suppliedElement);
       if (element) {
         if (element instanceof Attr) {
           selectedElement = element;
@@ -868,11 +870,10 @@
           selectedElement = note;
         }
         
-        dynamicStyleElement.textContent = (
-          "#" + idPrefix + $ID(selectedElement) + 
-          (selectedElement instanceof Attr ? (" > att_" + selectedElement.localName) : "") +
-          "{" + selectionStyle + "}" 
-        );
+        var selector = selectedElement instanceof Attr 
+            ? ($ID(suppliedElement) + " > att_" + selectedElement.localName) 
+            :  $ID(selectedElement);
+        dynamicStyleElement.textContent = "#" + idPrefix + selector + "{" + selectionStyle + "}"; 
         
         callUpdateViewCallbacks(element);
       } else {

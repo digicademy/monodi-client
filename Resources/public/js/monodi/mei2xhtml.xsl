@@ -752,7 +752,7 @@
   
   <xsl:template match="@*" mode="process-editable-attributes"/>
   <xsl:template match="mei:sourceDesc/@n|mei:source/@label|mei:work/@n|mei:relation/@label|mei:sb/@label|mei:sb/@n" mode="process-editable-attributes">
-    <div data-editable-attribute="{local-name()}" class="att_{local-name()}">
+    <div data-editable-attribute="{local-name()}" data-element-id="{../@xml:id}" class="att_{local-name()}">
       <xsl:call-template name="set-content-editable"/>
       <xsl:apply-templates select="." mode="create-title"/>
       <xsl:value-of select="."/>

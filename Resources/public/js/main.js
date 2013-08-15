@@ -276,7 +276,7 @@ $(document).on('keydown', function(e) {
 	monodi.document.setTextContent($(e.target).text(), true);
 }).on('input', '[contenteditable][data-editable-attribute]', function(e) {
 	$target = $(e.target);
-	monodi.document.setAttribute($target.attr("data-editable-attribute"), $target.text(), true);
+	monodi.document.setAttribute($target.attr("data-editable-attribute"), $target.text(), true, $target.attr("data-element-id"));
 }).on('input', '.folioDescription[contenteditable]', function(e) {
 	if (checkElement('pb')) {
 		var text = $(e.target).text(),
