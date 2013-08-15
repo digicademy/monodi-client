@@ -676,7 +676,7 @@
         <xsl:apply-templates select="mei:workDesc/mei:work/mei:classification/mei:termList[@label='genre']"/>
         <xsl:apply-templates select="mei:workDesc/mei:work/mei:incip"/>
         <xsl:apply-templates select="mei:workDesc/mei:work/mei:classification/mei:termList[@label='regularizedLiturgicFunction']"/>
-        <xsl:apply-templates select="mei:fileDesc/mei:sourceDesc/mei:source/mei:physDesc"/>
+        <xsl:apply-templates select="mei:fileDesc/mei:sourceDesc/mei:source/mei:physDesc/mei:extent/mei:identifier[@type='startFolio']"/>
       </div>
       <!-- Übersichtszeile: -->
       <div>
@@ -866,6 +866,9 @@
   <xsl:template match="mei:incipText/mei:p" mode="create-title">
     <xsl:attribute name="title">incipit</xsl:attribute>
   </xsl:template>
+  <xsl:template match="mei:identifier[@type='startFolio']" mode="create-title">
+    <xsl:attribute name="title">start Folio</xsl:attribute>
+  </xsl:template>
   <xsl:template match="mei:biblList[@type='textEditions']/mei:bibl/mei:title" mode="create-title">
     <xsl:attribute name="title">
       <xsl:value-of select="concat(count(../preceding-sibling::mei:bibl) + 1,'. text edition title')"/>
@@ -920,7 +923,7 @@
   </xsl:template>
   
   <xsl:template mode="create-contenteditable" match="*"/>
-  <xsl:template name="set-content-editable" mode="create-contenteditable" match="mei:seriesStmt//mei:num|mei:term|mei:p|mei:repository/*|mei:geogName|mei:corpName|mei:bibl/*">
+  <xsl:template name="set-content-editable" mode="create-contenteditable" match="mei:seriesStmt//mei:num|mei:term|mei:p|mei:repository/*|mei:geogName|mei:corpName|mei:bibl/*|mei:identifier">
     <xsl:if test="$setContentEditable='true'">
       <xsl:attribute name="contenteditable">true</xsl:attribute>
       <xsl:if test="$onblurWorkaroundForEmptyEditableElements='true'">
