@@ -534,7 +534,7 @@
         var folioInfo = columns[2] || "",
           sbN = columns[0] || "",
           contentString = '<sb label="' + (rubricCaption || "") + '" n="' + sbN + '"/>',
-          syllables = columns[1] ? columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : ["",""],
+          syllables = columns[1] ? columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : [""],
           breakMarkerString = "",
           folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)(v?)$/) || [],
           i;
