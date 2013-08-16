@@ -156,8 +156,11 @@
   <xsl:template name="createStyleElement">
     <style type="text/css"><!-- General layout -->
       ._mei {
-        display:inline-block;
+        display:inline;
         position:relative;
+      }
+      .layer ._mei {
+        display:inline-block;
       }
       /* Exceptions to the above display:inline-block:*/
       .annotLabel, <!--.meiHead,--> .annot {
