@@ -368,17 +368,23 @@
       .meiHead > *  * {
         display:inline;
       }
-      .work > .att_n {
+      [title="transcription number"] {
          border: 1px solid black;
        }
-      .geogName:after, .title > .num:after, .term:after, .incipText > .p:after, .identifier:not(:last-of-type):after {
-        content:","
+      .geogName:after, .title > .num:after, .term[title=genre]:after, .incipText > .p:after, .identifier:not(:last-of-type):after {
+        content:",";
+      }
+      .seriesStmt > .title > .num:after {
+        content:" -";
       }
       .classification, .sourceDesc * {
         display:inline;
       }
       .physLoc, .sourceDesc, .repository, .work, .meiHead > *, .biblList > .bibl {
         display:block;
+      }
+      .meiHead .term:not(:empty) {
+        margin-right:.5em;
       }
       .biblList {
         display:block;
