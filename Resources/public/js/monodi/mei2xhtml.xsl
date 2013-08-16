@@ -383,17 +383,17 @@
       .physLoc, .sourceDesc, .repository, .work, .meiHead > *, .biblList > .bibl {
         display:block;
       }
-      .meiHead .term:not(:empty) {
+      .meiHead .term:not(:empty), .relation > *:first-child {
         margin-right:.5em;
       }
       .biblList {
         display:block;
         <!--padding-top: 1em;-->
       }
-      .relation > .att_label:before {
+      .relation:before {
         content:"(";
       }
-      .relation > .att_label:after {
+      .relation:after {
         content:")";
       }
       .meiHead [contenteditable]:empty:before {
@@ -760,7 +760,7 @@
   </xsl:template>
   
   <xsl:template match="@*" mode="process-editable-attributes"/>
-  <xsl:template match="mei:sourceDesc/@n|mei:source/@label|mei:work/@n|mei:relation/@label|mei:sb/@label|mei:sb/@n" mode="process-editable-attributes">
+  <xsl:template match="mei:sourceDesc/@n|mei:source/@label|mei:work/@n|mei:relation/@label|mei:relation/@n|mei:sb/@label|mei:sb/@n" mode="process-editable-attributes">
     <div data-editable-attribute="{local-name()}" data-element-id="{../@xml:id}" class="att_{local-name()}">
       <xsl:call-template name="set-content-editable"/>
       <xsl:apply-templates select="." mode="create-title"/>
@@ -843,7 +843,10 @@
     <xsl:attribute name="title">transcription number</xsl:attribute>
   </xsl:template>
   <xsl:template match="mei:relation/@label" mode="create-title">
-    <xsl:attribute name="title">text edition, identifier and volume no.</xsl:attribute>
+    <xsl:attribute name="title">text edition incl. volume no.</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="mei:relation/@n" mode="create-title">
+    <xsl:attribute name="title">text's identifying number</xsl:attribute>
   </xsl:template>
   <xsl:template match="mei:work/mei:classification/mei:termList[@label='baseChantIncipit']/mei:term" mode="create-title">
     <xsl:attribute name="title">base chant incipit</xsl:attribute>
