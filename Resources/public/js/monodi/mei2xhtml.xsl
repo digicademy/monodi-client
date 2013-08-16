@@ -399,7 +399,7 @@
       <!--<style type="text/css"> <!-\- Annotation styling -\->-->
         <!-- First of all, make space for the annotations -->
         .editionLine {
-          margin-top:<xsl:value-of select="$musicAnnotHeight * $scaleStepSize"/>px;
+          padding-top:<xsl:value-of select="$musicAnnotHeight * $scaleStepSize"/>px;
           padding-bottom:<xsl:value-of select="$textAnnotHeight * $scaleStepSize"/>px;
         }
         .textLayer { <!-- We don't want music and text layer annotations to overlap -->
