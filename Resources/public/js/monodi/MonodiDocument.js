@@ -446,7 +446,7 @@
     }
 
       
-    function newSourceBreakAfter(element, nodeName, leaveFocus) {
+    function newSourceBreak(element, nodeName, insertAfter, leaveFocus) {
       // Inserts and returns a new system break.
       // We place source system breaks inside <syllable> elements as we sometimes have breaks with in a syllable.
       // The editors break the chants into staves only between word borders
@@ -455,12 +455,19 @@
       element = $MEI(element || selectedElement);
 
       var newBreak = addSourceAttribute(createMeiElement("<" + nodeName + "/>"));
-
-      insertElement(newBreak, {
+      
+      var insertElementParameters = {
         contextElement : element,
-        parent : "ancestor-or-self::mei:syllable[1]",
-        precedingSibling : "ancestor-or-self::*[parent::mei:syllable][1]"
-      });
+        parent : "ancestor-or-self::mei:syllable[1]"
+      };
+
+      if (insertAfter) {
+        insertElementParameters.precedingSibling = "ancestor-or-self::*[parent::mei:syllable][1]";
+      } else {
+        insertElementParameters.followingSibling = "ancestor-or-self::*[parent::mei:syllable][1]";
+      }
+
+      insertElement(newBreak, insertElementParameters);
       
       if (!leaveFocus) {
         self.selectElement(newBreak);
@@ -1041,11 +1048,21 @@
     };
 
     this.newSourceSbAfter = function(element, leaveFocus) {
-      return newSourceBreakAfter(element, "sb", leaveFocus);
+      return newSourceBreak(element, "sb", true, leaveFocus);
+    };
+
+    this.newSourceSbBefore = function(element, leaveFocus) {
+      return newSourceBreak(element, "sb", false, leaveFocus);
     };
 
     this.newSourcePbAfter = function(element, folioNumber, rectoVerso, leaveFocus) {
-      var newPb = newSourceBreakAfter(element, "pb", leaveFocus);
+      var newPb = newSourceBreak(element, "pb", true, leaveFocus);
+      this.setPbData(folioNumber, rectoVerso, false, newPb);
+      return newPb;
+    };
+    
+    this.newSourcePbBefore = function(element, folioNumber, rectoVerso, leaveFocus) {
+      var newPb = newSourceBreak(element, "pb", false, leaveFocus);
       this.setPbData(folioNumber, rectoVerso, false, newPb);
       return newPb;
     };

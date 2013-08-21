@@ -138,6 +138,9 @@ $(document).on('keydown', function(e) {
 			case 73: //i
 				monodi.document.newSourceSbAfter();
 			break;
+			case 74: //j
+			  monodi.document.newSourceSbBefore();
+			break;
 			case 78: //n
 				monodi.document.toggleAccidental("n");
 			break;
