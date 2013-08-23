@@ -861,6 +861,9 @@
   <xsl:template match="mei:sb[not(@source)]/@label" mode="create-title">
     <xsl:attribute name="title">rubric caption</xsl:attribute>
   </xsl:template>
+  <xsl:template match="mei:sb[not(@source)]/@n" mode="create-title">
+    <xsl:attribute name="title">line number</xsl:attribute>
+  </xsl:template>
   <xsl:template match="mei:source/mei:physDesc/mei:provenance/mei:geogName" mode="create-title">
     <xsl:attribute name="title">source provenance</xsl:attribute>
   </xsl:template>
