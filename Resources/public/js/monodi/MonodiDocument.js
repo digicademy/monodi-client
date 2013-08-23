@@ -1039,7 +1039,7 @@
       newSyllable = insertElement(newSyllable,{
         contextElement: element,
         parent: "ancestor-or-self::mei:layer[1]",
-        precedingSibling: "ancestor-or-self::mei:syllable[1]",
+        precedingSibling: "ancestor-or-self::*[self::mei:syllable or self::mei:sb[not(@source)]][1]",
         leaveFocus: true
       });
       this.setTextContent(text, false, syl);
@@ -1068,8 +1068,8 @@
     };
     
     this.newEditionSbAfter = function(element, leaveFocus) {
-      // We put edition system breaks on the "text layer", i.e. inside <syllable>
-      // (as opposed to source system breaks) 
+      // We put edition system breaks in between <syllable>s
+      // (as opposed to source system breaks)
       element = $MEI(element || selectedElement);
       var newSb = createMeiElement("<sb n='' label=''/>");
 
