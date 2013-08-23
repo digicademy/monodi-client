@@ -672,6 +672,7 @@
   <!-- meiHead formatting -->
   <xsl:template match="mei:meiHead">
     <div class="_mei meiHead">
+      <xsl:apply-templates select="@xml:id"/>
       <!-- Section/volume number -->
       <xsl:apply-templates select="mei:fileDesc/mei:seriesStmt"/>
       <!-- source no., source identifier -->
