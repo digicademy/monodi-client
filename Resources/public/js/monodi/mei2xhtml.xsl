@@ -939,7 +939,7 @@
   </xsl:template>
   
   <xsl:template mode="create-contenteditable" match="*"/>
-  <xsl:template name="set-content-editable" mode="create-contenteditable" match="mei:seriesStmt//mei:num|mei:term|mei:p|mei:repository/*|mei:geogName|mei:corpName|mei:bibl/*|mei:identifier">
+  <xsl:template name="set-content-editable" mode="create-contenteditable" match="mei:seriesStmt//mei:num|mei:term|mei:p|mei:repository/*|mei:geogName|mei:corpName|mei:bibl/*|mei:identifier[not(*)]">
     <xsl:if test="$setContentEditable='true'">
       <xsl:attribute name="contenteditable">true</xsl:attribute>
       <xsl:if test="$onblurWorkaroundForEmptyEditableElements='true'">
