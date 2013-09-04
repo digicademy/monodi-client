@@ -1280,6 +1280,7 @@
       if (evaluateXPath(element, "following-sibling::*[1]/self::mei:note[not(@pname and @oct)]")[0]) {
         this.setPerformanceNeumeType(null, element);
       } else {
+        removeDummyState(element);
         this.setPerformanceNeumeType(
           labelAttributeContains(element, performanceNeumeType) ? null : performanceNeumeType, 
           element
