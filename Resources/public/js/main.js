@@ -247,7 +247,8 @@ $(document).on('keydown', function(e) {
 			break;
 			case 13: //enter
 				monodi.document.newEditionSbAfter();
-        setFocus(monodi.document.selectNextElement('following'));
+				e.preventDefault();
+				setFocus(monodi.document.selectNextElement('following'));
 			break;
 			default:
 				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
