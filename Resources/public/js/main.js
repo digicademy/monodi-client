@@ -184,6 +184,7 @@ $(document).on('keydown', function(e) {
 	if (sbS) {
 		switch(e.keyCode) {
 			case 73: //i
+			case 74: //j
 				var temp = monodi.document.getSelectedElement();
 				monodi.document.newSourcePbAfter();
 				monodi.document.deleteElement(temp, true);
