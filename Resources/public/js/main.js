@@ -74,7 +74,7 @@ $(document).on('keydown', function(e) {
 		sb = checkElement('sb');
 
 	if (note || syl || sbS || pb || sb) {
-		if (e.ctrlKey && e.keyCode == 75) {
+		if (e.ctrlKey && e.keyCode == 75) { //ctrl+k
 			var sel = monodi.document.getSelectedElement();
 			monodi.document.selectElement(null);
 			var $modal = $('#annotationModal').find('form').on('submit', function() {
@@ -300,10 +300,12 @@ $(document).on('keydown', function(e) {
 	}, 10);
 }).on('click', '.annotLabel a' , function(e) {
 	var annot = $(e.target).closest('.annotLabel').data('annotation-id'),
-		properties = monodi.document.getAnnotProperties(annot);
+		properties = monodi.document.getAnnotProperties(annot),
+		sel = monodi.document.getSelectedElement();
 
+	monodi.document.selectElement(null);
 	var $modal = $('#annotationModal').find('form').on('submit', function() {
-		var $this = $(this);
+		var $this = $(this).off('submit');
 		monodi.document.setAnnotProperties(annot, {
 			type: $this.find('select').val(),
 			label: $this.find('input').val(),
@@ -311,13 +313,17 @@ $(document).on('keydown', function(e) {
 		});
 
 		$modal.modal('hide');
+		monodi.document.selectElement(sel);
 
 		return false;
-	}).find('input').val(properties.label).end().find('textarea').val(properties.text).end().end().find('.btn-danger').show().end().modal('show').on('hide.annotation', function(e) {
-				$(this).find('form').off('submit');
-			}).find('.btn-danger').on('click', function(e) {
-				monodi.document.deleteElement(annot, true);
-			});
+	}).find('input').val(properties.label).end()
+	.find('textarea').val(properties.text).end().end()
+	.find('.btn-danger').show().end()
+	.modal('show').on('hide.annotation', function(e) {
+		$(this).find('form').off('submit');
+	}).find('.btn-danger').on('click', function(e) {
+		monodi.document.deleteElement(annot, true);
+	}).end();
 
 	return false;
 }).on('click', '.annotSelectionExtender', function(e) {

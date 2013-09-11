@@ -41,6 +41,29 @@ function AppCtrl($scope, $http) {
         }
     });
 
+    var mergeServerAndLocalstorage = function(localDocuments, serverDocuments) {
+        angular.forEach(localDocuments, function(localEl, key) {
+            var serverEl = (serverDocuments && serverDocuments[key])? serverDocuments[key] : false;
+            if (!serverEl) {
+                serverEl = localEl;
+                serverDocuments[key] = localEl;
+            }
+            if (localEl.document_count > 0) {
+                angular.forEach(localEl.documents, function(localChildEl, key) {
+                    var serverChildEl = (serverEl && serverEl[key])? serverEl[key] : false;
+                    if (!serverChildEl) {
+                        serverChildEl = localChildEl;
+                        serverEl[key] = localChildEl;
+                    }
+                });
+            }
+
+            if (localEl.children_count > 0) {
+                mergeServerAndLocalstorage(localEl.folders, serverEl.folders);
+            }
+        });
+    };
+
     var filterFiles = function(documents) {
         var result = [];
         angular.forEach(documents, function(el) {
@@ -63,6 +86,7 @@ function AppCtrl($scope, $http) {
     $scope.$on('reloadDocuments', function() {
         if ($scope.online && $scope.access_token) {
             $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token).success(function (data) {
+                if (localStorage['documents']) { mergeServerAndLocalstorage(JSON.parse(localStorage['documents']), data); }
                 $scope.documents = data;
                 $scope.files = filterFiles(data);
                 localStorage['documents'] = JSON.stringify($scope.documents);

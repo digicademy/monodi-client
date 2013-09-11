@@ -61,7 +61,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                         <button class="btn dropdown-toggle btn-block" data-toggle="dropdown">Batch functions <span class="caret"></span></button>
                         <ul class="dropdown-menu">
                             <li><button class="btn btn-link" ng-click="printBatch()">print</button></li>
-                            <li><button class="btn btn-link" ng-click="deleteBatch()">delete</button></li>
+                            <li><button class="btn btn-link" ng-click="removeDocumentBatch()">delete</button></li>
                             <li><button class="btn btn-link" ng-click="saveLocalBatch()">save locally</button></li>
                             <li><button class="btn btn-link" ng-click="removeLocalBatch()">delete locally</button></li>
                         </ul>

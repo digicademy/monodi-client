@@ -13,7 +13,12 @@ function DocumentListCtrl($scope, $http) {
 		$scope.$emit('openDocumentRequest', { id: id });
 	};
 
-	$scope.removeDocument = function(id) {
+	$scope.removeDocument = function(id, batch) {
+		if (!batch) {
+			if (!confirm('Are you sure to delete this document?')) {
+				return false;
+			}
+		}
 		$scope.removeLocal(id);
 		if (localStorage['syncList']) {
 			localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
@@ -22,8 +27,12 @@ function DocumentListCtrl($scope, $http) {
 	};
 
 	$scope.removeDocumentBatch = function() {
+		if (!confirm('Are you sure to delete these documents?')) {
+			return false;
+		}
+		
 		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.removeDocument(el);
+			$scope.removeDocument(el, true);
 		});
 	};
 
