@@ -37,7 +37,7 @@ function DocumentCtrl($scope, $http) {
 					if (child.id == id ) {
 						result = el;
 					}
-				});				
+				});
 			}
 
 			if (!result && el.children_count > 0) {
@@ -48,10 +48,11 @@ function DocumentCtrl($scope, $http) {
 		return result;
 	};
 	$scope.$on('saveDocument', function(e, data) {
+		var temp, doc;
 		if ($scope.online && $scope.access_token) {
 			if (data) {
-				var temp = $scope.active,
-					doc = localStorage['document' + data.id];
+				doc = localStorage['document' + data.id];
+				temp = $scope.active;
 				$scope.setActive(JSON.parse(doc));
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
@@ -103,9 +104,20 @@ function DocumentCtrl($scope, $http) {
 	});
 
 	$scope.$on('saveNewDocument', function() {
+		var temp;
+
 		monodi.document.selectElement(null);
+		if ($scope.active.id) {
+			temp = $scope.active;
+			$scope.active = {};
+			angular.copy(temp, $scope.active);
+			$scope.active.id = false;
+        }
 		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
-			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function() {
+			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function(e) {
+				if (!$(e.target).hasClass('saveNewDocumentHere')) {
+					$scope.active = temp;
+				}
 				$files.fadeOut( function() {
 					$(this).removeClass('chooseDirectory');
 					$bg.remove();
@@ -130,12 +142,10 @@ function DocumentCtrl($scope, $http) {
 
 			if ((parentId + '').indexOf('temp') < 0) {
 				$scope.postNewFolderToServer(parent.path, temp.title, temp.id, function() {
-					debugger;
 					$scope.$broadcast('syncNewDocument', { id: data.id });
 				});
 			}
 		} else {
-			debugger;
 			$scope.$broadcast('postNewDocument', { id: data.id });
 		}
 	});

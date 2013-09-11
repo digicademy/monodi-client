@@ -11,7 +11,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 <?php echo("<?xml version=\"1.0\" ?>\n"); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" encoding="utf-8" manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest">
+<html xmlns="http://www.w3.org/1999/xhtml" encoding="utf-8"><!-- manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest">-->
     <head>
         <title>mono:di</title>
         
@@ -73,7 +73,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                 <div class="control-group">
                                     <label for="fileName" class="control-label">file name</label>
                                     <div class="controls">
-                                        <input type="text" id="fileName" ng-model="active.filename"  />.mei.xml
+                                        <input type="text" id="fileName" ng-model="active.filename"  />.mei
                                     </div>
                                 </div>
                             </div>

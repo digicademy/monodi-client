@@ -15,7 +15,9 @@ function DocumentListCtrl($scope, $http) {
 
 	$scope.removeDocument = function(id) {
 		$scope.removeLocal(id);
-		localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
+		if (localStorage['syncList']) {
+			localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
+		}
 		$scope.deleteDocument(id);
 	};
 
@@ -122,6 +124,10 @@ function DocumentListCtrl($scope, $http) {
 		return parent;
 	};
 	$scope.createFolder = function(foldername) {
+		if (!/^([A-z0-9_\-\s]*)$/.test(foldername)) {
+			alert('Foldername is invalid');
+			return false;
+		}
 		var path = $scope.createFolder.path,
 			pathParts = (path)? path.split('/') : false,
 			id = 'temp' + new Date().getTime(),
@@ -179,11 +185,20 @@ function DocumentListCtrl($scope, $http) {
 			error = true;
 		}
 
+		if (!/^([A-z0-9_\-\s]*)$/.test($scope.active.filename)) {
+			$('#fileName').focus();
+			alert('Filename is invalid');
+			error = true;
+		}
+
 		if (!error) {
 			var pathParts = path.split('/');
 			$scope.active.path = path;
 
-			$scope.active.filename += '.mei.xml';
+			if (!/\.mei$/.test($scope.active.filename)) {
+				$scope.active.filename += '.mei';
+			}
+			
 			$scope.active.content = monodi.document.getSerializedDocument();
 			$scope.active.id = 'temp' + new Date().getTime();
 
