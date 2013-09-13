@@ -73,7 +73,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                 <div class="control-group">
                                     <label for="fileName" class="control-label">file name</label>
                                     <div class="controls">
-                                        <input type="text" id="fileName" ng-model="active.filename"  />.mei
+                                        <input type="text" id="fileName" ng-model="active.title"  />.mei
                                     </div>
                                 </div>
                             </div>

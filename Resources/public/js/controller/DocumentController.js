@@ -67,8 +67,10 @@ function DocumentCtrl($scope, $http) {
 			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject));
 
 			if (data) {
-				localStorage['syncList'] = localStorage['syncList'].replace(' ' + $scope.active.id + ',', '');
 				$scope.setActive(temp);
+				if (localStorage['syncList']) {
+					localStorage['syncList'] = localStorage['syncList'].replace(' ' + $scope.active.id + ',', '');
+				}
 			}
 		} else if (!data) {
 			$scope.saveToSyncList();
@@ -109,14 +111,15 @@ function DocumentCtrl($scope, $http) {
 		monodi.document.selectElement(null);
 		if ($scope.active.id) {
 			temp = $scope.active;
-			$scope.active = {};
-			angular.copy(temp, $scope.active);
-			$scope.active.id = false;
+			$scope.setActive({
+				filename: temp.filename,
+				title: temp.title
+			});
         }
 		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
 			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function(e) {
 				if (!$(e.target).hasClass('saveNewDocumentHere')) {
-					$scope.active = temp;
+					$scope.setActive(temp);
 				}
 				$files.fadeOut( function() {
 					$(this).removeClass('chooseDirectory');
@@ -175,7 +178,9 @@ function DocumentCtrl($scope, $http) {
 				$scope.active.id = newId;
 
 				$scope.setNewId(id, newId);
-				localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
+				if (localStorage['syncList']) {
+					localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
+				}
 			});
 
 			if (data) {

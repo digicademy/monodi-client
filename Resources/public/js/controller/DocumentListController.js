@@ -101,6 +101,38 @@ function DocumentListCtrl($scope, $http) {
 		$('#createFolderModal').modal('show');
 	};
 
+	var checkFolderExists = function(documents, folder, pathParts, level) {
+		var path = '',
+			exists = false;
+
+		if (pathParts) {
+			for (var i = 0; i <= level; i++) {
+				path += pathParts[i] + '/';
+			}
+			path = path.slice(0, - 1);
+			level++;
+		}
+
+		angular.forEach(documents, function(el) {
+			if (el.path == path) {
+				if (level == pathParts.length) {
+					if (el.children_count > 0) {
+						angular.forEach(el.folders, function(exist) {
+							if (folder.title == exist.title || path + '/' + folder.path == exist.path) {
+								exists = true;
+							}
+						});
+					}
+				}
+
+				if (!exists && el.children_count > 0) {
+					exists = checkFolderExists(el.folders, folder, pathParts, level);
+				}
+			}
+		});
+
+		return exists;
+	};
 	var addFolder = function(documents, folder, pathParts, level) {
 		var path = '',
 			parent = false;
@@ -133,10 +165,11 @@ function DocumentListCtrl($scope, $http) {
 		return parent;
 	};
 	$scope.createFolder = function(foldername) {
-		if (!/^([A-z0-9_\-\s]*)$/.test(foldername)) {
+		if (!/^[A-z0-9_\-\s]+$/.test(foldername)) {
 			alert('Foldername is invalid');
 			return false;
 		}
+
 		var path = $scope.createFolder.path,
 			pathParts = (path)? path.split('/') : false,
 			id = 'temp' + new Date().getTime(),
@@ -146,10 +179,15 @@ function DocumentListCtrl($scope, $http) {
 				document_count: 0,
 				documents: [],
 				folders: [],
-				path: foldername.toLowerCase().replace(' ', '_'),
+				path: foldername.toLowerCase().replace(' ', '-'),
 				root: id,
 				title: foldername
 			};
+
+		if (checkFolderExists($scope.documents, folder, pathParts, 0)) {
+			alert('Foldername already exists.');
+			return false;
+		}
 
 		if (pathParts) {
 			path = addFolder($scope.documents, folder, pathParts, 0);
@@ -161,6 +199,38 @@ function DocumentListCtrl($scope, $http) {
 		$('#createFolderModal').modal('hide');
 	};
 
+	var checkFileExists = function(documents, file, pathParts, level) {
+		var path = '',
+			exists = false;
+
+		if (pathParts) {
+			for (var i = 0; i <= level; i++) {
+				path += pathParts[i] + '/';
+			}
+			path = path.slice(0, - 1);
+			level++;
+		}
+
+		angular.forEach(documents, function(el) {
+			if (el.path == path) {
+				if (level == pathParts.length) {
+					if (el.document_count > 0) {
+						angular.forEach(el.documents, function(exist) {
+							if (file == exist.filename) {
+								exists = true;
+							}
+						});
+					}
+				}
+
+				if (!exists && el.children_count > 0) {
+					exists = checkFileExists(el.folders, file, pathParts, level);
+				}
+			}
+		});
+
+		return exists;
+	};
 	var addFile = function(documents, file, pathParts, level) {
 		var path = '',
 			found = false;
@@ -189,40 +259,41 @@ function DocumentListCtrl($scope, $http) {
 	};
 	$scope.saveNewDocumentHere = function(path) {
 		var error = false;
-		if (!$scope.active.filename) {
-			$('#fileName').focus();
-			error = true;
-		}
 
-		if (!/^([A-z0-9_\-\s]*)$/.test($scope.active.filename)) {
+		if (!/^[A-z0-9_\-\s]+$/.test($scope.active.title)) {
 			$('#fileName').focus();
 			alert('Filename is invalid');
-			error = true;
+			return false;
 		}
 
-		if (!error) {
-			var pathParts = path.split('/');
-			$scope.active.path = path;
-
-			if (!/\.mei$/.test($scope.active.filename)) {
-				$scope.active.filename += '.mei';
-			}
-			
-			$scope.active.content = monodi.document.getSerializedDocument();
-			$scope.active.id = 'temp' + new Date().getTime();
-
-			addFile($scope.documents, $scope.active, pathParts, 0);
-
-			localStorage['documents'] = JSON.stringify($scope.documents);
-			localStorage['files'] = JSON.stringify($scope.files);
-			$scope.setLocal($scope.active.id, true);
-
-			$scope.postNewDocumentToServer();
-
-			$('.files.container').hide().removeClass('chooseDirectory');
-			$('.modal-backdrop').remove();
-			$('#savedModal').modal('show');
+		var pathParts = path.split('/');
+		if (!/\.mei$/.test($scope.active.title)) {
+			$scope.active.filename = $scope.active.title + '.mei';
+		} else {
+			$scope.active.filename = $scope.active.title;
 		}
+
+		if (checkFileExists($scope.documents, $scope.active.filename, pathParts, 0)) {
+			alert('Filename already exists.');
+			return false;
+		}
+
+		$scope.active.path = path;
+		
+		$scope.active.content = monodi.document.getSerializedDocument();
+		$scope.active.id = 'temp' + new Date().getTime();
+
+		addFile($scope.documents, $scope.active, pathParts, 0);
+
+		localStorage['documents'] = JSON.stringify($scope.documents);
+		localStorage['files'] = JSON.stringify($scope.files);
+		$scope.setLocal($scope.active.id, true);
+
+		$scope.postNewDocumentToServer();
+
+		$('.files.container').hide().removeClass('chooseDirectory');
+		$('.modal-backdrop').remove();
+		$('#savedModal').modal('show');
 	};
 
 	var getBatchDocuments = function() {

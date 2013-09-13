@@ -4,28 +4,33 @@ function NavCtrl($scope, $http) {
             $modal = $('#loginModal').css({ width: 300, height: 260, marginLeft: -150 }).empty(),
             $iframe = $('<iframe />').attr('src', url).css({ width: 300, height: 260 });
 
-        $iframe.off('load').on('load', function() {
-            var hash = this.contentWindow.location.hash;
-            var start = hash.indexOf('access_token');
-            if (start > -1) {
-                hash.substr(start).split('&').forEach( function(val) {
-                    val = val.split('=');
-                    if (val[0] == 'access_token') { $scope.setAccessToken(val[1]); }
-                    if (val[0] == 'refresh_token') { $scope.setRefreshToken(val[1]); }
-                });
+        if (!$scope.online) {
+            alert('You have no internet connection. Login is not possible.');
+        } else {
+            $iframe.off('load').on('load', function() {
+                var hash = this.contentWindow.location.hash;
+                var start = hash.indexOf('access_token');
+                if (start > -1) {
+                    hash.substr(start).split('&').forEach( function(val) {
+                        val = val.split('=');
+                        if (val[0] == 'access_token') { $scope.setAccessToken(val[1]); }
+                        if (val[0] == 'refresh_token') { $scope.setRefreshToken(val[1]); }
+                    });
 
-                $scope.$emit('sync');
-                $scope.$emit('reloadDocuments', {});
-                $modal.modal('hide');
+                    $scope.$emit('sync');
+                    $scope.$emit('reloadDocuments', {});
+                    $modal.modal('hide');
 
-                $http.get(baseurl + 'api/v1/profile/?access_token=' + $scope.access_token).success(function (data) {
-                    $scope.pass = data;
-                });
-            }
-        });
+                    $http.get(baseurl + 'api/v1/profile/?access_token=' + $scope.access_token).success(function (data) {
+                        $scope.pass = data;
+                    });
+                }
+            });
 
-        $iframe.appendTo($modal);
-        $modal.modal('show');
+            $iframe.appendTo($modal);
+            $modal.modal('show');
+        }
+
         return false;
     };
 
