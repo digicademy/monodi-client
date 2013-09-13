@@ -504,6 +504,7 @@
         }
         .annotGroup:hover > .annotLabel > a {
           overflow:visible;
+          min-width:3em;
         }
         .annotGroup:hover > a {
           display:none;  <!-- Hide the "+" -->
@@ -631,11 +632,15 @@
           min-width:100%;
           position:absolute;
         }
-        .annotLabel:hover > a > .annotSelectionExtender:before {
+        .annotLabel > a:hover > .annotSelectionExtender:before {
           content:"+";
           border:1px solid black;
           background-color: rgba(255,255,255,.5);
           padding:.4em;
+        }
+        .annotLabel > a:hover {
+          min-width:3em;
+          text-align:right;
         }
         .annotLabel:not(.endAnnot) > a:hover {
           right:auto;
