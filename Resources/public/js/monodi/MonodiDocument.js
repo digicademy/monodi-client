@@ -571,7 +571,7 @@
           alert(
             "Warning: Line break marker at the end of line will be ignored:\n\n" +
             "    " + columns[1] + "\n\n" +
-            "Line break markers shall be recorded at the start of the following line."
+            "Line break markers should be recorded at the start of the following line."
           );
         }
         return contentString;
