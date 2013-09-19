@@ -872,7 +872,7 @@
           )[0];
         }
         
-        if (selectedElement === previouslySelectedElement) {return;}
+        if (selectedElement === previouslySelectedElement) {return selectedElement;}
         if (previouslySelectedElement) {removeDummyNotes(previouslySelectedElement);} 
         
         // If we select a syllable element (*not* its syl element), we're operating on the music layer.
