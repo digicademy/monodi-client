@@ -20,6 +20,8 @@ function DocumentCtrl($scope, $http) {
 			}
 		});
 
+		document.title = "mono:di - " + $scope.active.filename;
+
 		$scope.showView('main');
 	});
 
@@ -64,7 +66,10 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
-			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject));
+			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject))
+				.error(function(data, status) {
+					alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+				});
 
 			if (data) {
 				$scope.setActive(temp);
@@ -101,6 +106,7 @@ function DocumentCtrl($scope, $http) {
 		$text.val('');
 
 		$scope.setActive({ content: monodi.document.getSerializedDocument() });
+		document.title = "mono:di - unsaved document";
 
 		$scope.showView('main');
 	});
@@ -168,24 +174,29 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
-			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject)).then( function(response) {
-				var newId = response.headers()['x-ressourceident'],
-					id = $scope.active.id;
-				if (data) {
-					id = data.id;
-				}
+			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject))
+				.then( function(response) {
+					var newId = response.headers()['x-ressourceident'],
+						id = $scope.active.id;
+					if (data) {
+						id = data.id;
+					}
 
-				$scope.active.id = newId;
+					$scope.active.id = newId;
 
-				$scope.setNewId(id, newId);
-				if (localStorage['syncList']) {
-					localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
-				}
-			});
+					$scope.setNewId(id, newId);
+					if (localStorage['syncList']) {
+						localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
+					}
+				}).error(function(data, status) {
+					alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+				});
 
 			if (data) {
 				$scope.setActive(temp);
 			}
+
+			$scope.$emit('reloadDocuments');
 		} else {
 			if (!data) {
 				$scope.saveToSyncList();

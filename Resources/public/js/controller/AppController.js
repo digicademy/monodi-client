@@ -121,7 +121,7 @@ function AppCtrl($scope, $http) {
         } else if (!$scope.online) {
             alert('You are working offline and the ressource is locally not available.');
         } else {
-            alert('Please login to get the ressource from the server.')
+            alert('Please log in to proceed.')
         }
     };
 
@@ -156,9 +156,12 @@ function AppCtrl($scope, $http) {
         localStorage['files'] = JSON.stringify($scope.files);
 
         if ((id + '').indexOf('temp') < 0) {
-            $http['delete'](baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token).success( function() {
-                if (callback) callback();
-            });
+            $http['delete'](baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token)
+                .success( function() {
+                    if (callback) callback();
+                }).error(function(data, status) {
+                    alert('The document could not be deleted on the server. Please try again or contact the administrator (error-code ' + status + ').');
+                });
         }
     };
 
@@ -214,6 +217,12 @@ function AppCtrl($scope, $http) {
     };
 
     $scope.$on('openDocumentRequest', function(e, data) {
+        if ($scope.active) {
+            if (!confirm('Leave this document? Please make sure you have saved changes.')) {
+                return;
+            }
+        }
+
         $scope.getDocument(data.id, function() {
             $scope.active = this;
             $scope.$broadcast('openDocument');

@@ -65,7 +65,7 @@ function NavCtrl($scope, $http) {
 
     $scope.newDocumentDialog = function() {
         if ($scope.active) {
-            if (!confirm('Dismiss open document?')) {
+            if (!confirm('Leave this document? Please make sure you have saved changes.')) {
                 return;
             }
         }

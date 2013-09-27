@@ -93,6 +93,8 @@ $(document).on('keydown', function(e) {
 			}).find('input').val('').end().find('textarea').val('').end().end().find('.btn-danger').hide().end().modal('show').on('hide.annotation', function(e) {
 				$(this).off('.annotation').find('form').off('submit');
 			});
+
+			return false;
 		}
 	}
 
@@ -242,14 +244,14 @@ $(document).on('keydown', function(e) {
 				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
 					monodi.document.setTextContent(text.substring(0,caret), true);
 					monodi.document.newSyllableAfter(text.substring(caret));
-					setFocus(monodi.document.selectNextElement('following'));
+					setFocus(monodi.document.getSelectedElement());
 					return false;
 				}
 			break;
 			case 13: //enter
 				monodi.document.newEditionSbAfter();
 				e.preventDefault();
-				setFocus(monodi.document.selectNextElement('following'));
+				setFocus(monodi.document.getSelectedElement());
 			break;
 			default:
 				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
@@ -257,11 +259,11 @@ $(document).on('keydown', function(e) {
 						var text = $(e.target).text();
 						switch(text.charAt(caret)) {
 							case '-':
-								monodi.document.setTextContent(text.substring(0,caret+1), true);
-								monodi.document.newSyllableAfter(text.substring(caret+1));
-								setFocus(monodi.document.selectNextElement('following'));
-							break;
-							case '|':
+								if ([37,39].indexOf(e.keyCode) < 0) {
+									monodi.document.setTextContent(text.substring(0,caret+1), true);
+									monodi.document.newSyllableAfter(text.substring(caret+1));
+									setFocus(monodi.document.getSelectedElement());
+								}
 							break;
 						}
 					}, 0);

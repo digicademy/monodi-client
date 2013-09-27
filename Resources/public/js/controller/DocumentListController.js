@@ -273,6 +273,8 @@ function DocumentListCtrl($scope, $http) {
 			$scope.active.filename = $scope.active.title;
 		}
 
+		document.title = "mono:di - " + $scope.active.filename;
+
 		if (checkFileExists($scope.documents, $scope.active.filename, pathParts, 0)) {
 			alert('Filename already exists.');
 			return false;
