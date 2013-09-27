@@ -571,7 +571,7 @@
           alert(
             "Warning: Line break marker at the end of line will be ignored:\n\n" +
             "    " + columns[1] + "\n\n" +
-            "Line break markers shall be recorded at the start of the following line."
+            "Line break markers should be recorded at the start of the following line."
           );
         }
         return contentString;
@@ -872,7 +872,7 @@
           )[0];
         }
         
-        if (selectedElement === previouslySelectedElement) {return;}
+        if (selectedElement === previouslySelectedElement) {return selectedElement;}
         if (previouslySelectedElement) {removeDummyNotes(previouslySelectedElement);} 
         
         // If we select a syllable element (*not* its syl element), we're operating on the music layer.
