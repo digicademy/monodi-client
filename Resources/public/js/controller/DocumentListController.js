@@ -262,7 +262,7 @@ function DocumentListCtrl($scope, $http) {
 	$scope.saveNewDocumentHere = function(path) {
 		var error = false;
 
-		if (!/^[A-z0-9_\-\s]+$/.test($scope.active.title)) {
+		if (!$scope.active.title || !/^[A-z0-9_\-\s]+$/.test($scope.active.title)) {
 			$('#fileName').focus();
 			alert('Filename is invalid');
 			return false;

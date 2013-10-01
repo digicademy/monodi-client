@@ -188,6 +188,8 @@ function DocumentCtrl($scope, $http) {
 					if (localStorage['syncList']) {
 						localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
 					}
+
+					$scope.$emit('reloadDocuments');
 				}).error(function(data, status) {
 					alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
 				});
@@ -195,8 +197,6 @@ function DocumentCtrl($scope, $http) {
 			if (data) {
 				$scope.setActive(temp);
 			}
-
-			$scope.$emit('reloadDocuments');
 		} else {
 			if (!data) {
 				$scope.saveToSyncList();

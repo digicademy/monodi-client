@@ -62,9 +62,7 @@ function AppCtrl($scope, $http) {
                 mergeServerAndLocalstorage(localEl.folders, serverEl.folders);
             }
         });
-    };
-
-    var filterFiles = function(documents) {
+    },filterFiles = function(documents) {
         var result = [];
         angular.forEach(documents, function(el) {
             if (el.document_count > 0) {
@@ -86,11 +84,16 @@ function AppCtrl($scope, $http) {
     $scope.$on('reloadDocuments', function() {
         if ($scope.online && $scope.access_token) {
             $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token).success(function (data) {
+                //console.log('1: ' + localStorage['documents'].match('testmartin'));
+                //console.log('data:');
+                //console.log(data);
                 if (localStorage['documents']) { mergeServerAndLocalstorage(JSON.parse(localStorage['documents']), data); }
                 $scope.documents = data;
                 $scope.files = filterFiles(data);
+                //console.log('2: ' + localStorage['documents'].match('testmartin'));
                 localStorage['documents'] = JSON.stringify($scope.documents);
                 localStorage['files'] = JSON.stringify($scope.files);
+                //console.log('3: ' + localStorage['documents'].match('testmartin'));
             });
         } else if (localStorage['documents'] && localStorage['files']) {
             $scope.documents = JSON.parse(localStorage['documents']);
@@ -113,7 +116,6 @@ function AppCtrl($scope, $http) {
     $scope.getDocument = function(id, callback) {
         if ($scope.online && $scope.access_token) {
             $http.get(baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token).success(function (data) {
-                data.content = data.content
                 callback.bind(data)();
             });
         } else if (localStorage['document' + id]) {
@@ -121,7 +123,7 @@ function AppCtrl($scope, $http) {
         } else if (!$scope.online) {
             alert('You are working offline and the ressource is locally not available.');
         } else {
-            alert('Please log in to proceed.')
+            alert('Please log in to proceed.');
         }
     };
 
@@ -144,7 +146,7 @@ function AppCtrl($scope, $http) {
 
         return removed;
     },
-    removeDocument = function() {
+    removeDocument = function(id) {
         removeDocumentFromTree(id, $scope.documents);
         angular.forEach($scope.files, function(el, i) {
             if (el.id == id) {
@@ -162,8 +164,12 @@ function AppCtrl($scope, $http) {
                     removeDocument(id);
                     if (callback) callback();
                 }).error(function(data, status) {
-                    alert('The document could not be deleted on the server. Please try again or contact the administrator (error-code ' + status + ').');
-                });   
+                    if (status == '403') {
+                        alert('You are not the owner of this file. Only the owner and a super-administrator can delete this file.');
+                    } else {
+                        alert('The document could not be deleted on the server. Please try again or contact the administrator (error-code ' + status + ').');
+                    }
+                });
         } else {
             removeDocument(id);
         }
