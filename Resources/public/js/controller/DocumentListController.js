@@ -19,11 +19,13 @@ function DocumentListCtrl($scope, $http) {
 				return false;
 			}
 		}
+
 		$scope.removeLocal(id);
+		$scope.deleteDocument(id);
+
 		if (localStorage['syncList']) {
 			localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
 		}
-		$scope.deleteDocument(id);
 	};
 
 	$scope.removeDocumentBatch = function() {

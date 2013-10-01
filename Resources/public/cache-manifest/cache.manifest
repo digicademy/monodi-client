@@ -1,5 +1,7 @@
 CACHE MANIFEST
 # rev tp1
+
+CACHE:
 /bundles/digitalwertmonodiclient/css/main.css
 /bundles/digitalwertmonodiclient/js/vendor/modernizr.js
 /bundles/digitalwertmonodiclient/js/vendor/jquery.js

@@ -175,8 +175,8 @@ function DocumentCtrl($scope, $http) {
 			};
 
 			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject))
-				.then( function(response) {
-					var newId = response.headers()['x-ressourceident'],
+				.success( function(response, status, headers) {
+					var newId = headers['x-ressourceident'],
 						id = $scope.active.id;
 					if (data) {
 						id = data.id;
