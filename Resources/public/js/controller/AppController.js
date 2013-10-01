@@ -125,7 +125,7 @@ function AppCtrl($scope, $http) {
         }
     };
 
-    var removeDocument = function(id, data) {
+    var removeDocumentFromTree = function(id, data) {
         var removed = false;
         angular.forEach(data, function(el) {
             if (!removed && el.document_count > 0) {
@@ -143,9 +143,9 @@ function AppCtrl($scope, $http) {
         });
 
         return removed;
-    };
-    $scope.deleteDocument = function(id, callback) {
-        removeDocument(id, $scope.documents);
+    },
+    removeDocument = function() {
+        removeDocumentFromTree(id, $scope.documents);
         angular.forEach($scope.files, function(el, i) {
             if (el.id == id) {
                 $scope.files.splice(i,1);
@@ -154,14 +154,18 @@ function AppCtrl($scope, $http) {
 
         localStorage['documents'] = JSON.stringify($scope.documents);
         localStorage['files'] = JSON.stringify($scope.files);
-
+    };
+    $scope.deleteDocument = function(id, callback) {
         if ((id + '').indexOf('temp') < 0) {
             $http['delete'](baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token)
                 .success( function() {
+                    removeDocument(id);
                     if (callback) callback();
                 }).error(function(data, status) {
                     alert('The document could not be deleted on the server. Please try again or contact the administrator (error-code ' + status + ').');
-                });
+                });   
+        } else {
+            removeDocument(id);
         }
     };
 
