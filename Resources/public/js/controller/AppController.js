@@ -6,6 +6,8 @@ function AppCtrl($scope, $http) {
     $scope.documents = [];
     $scope.active = false;
     $scope.info = false;
+    $scope.reloadDocumentsWaiting = false;
+    $scope.reloadDocumentsLoading;
 
     if (window.addEventListener) {
         $scope.setOnlineStatus = function() {
@@ -50,10 +52,19 @@ function AppCtrl($scope, $http) {
             }
             if (localEl.document_count > 0) {
                 angular.forEach(localEl.documents, function(localChildEl, key) {
-                    var serverChildEl = (serverEl && serverEl[key])? serverEl[key] : false;
-                    if (!serverChildEl) {
-                        serverChildEl = localChildEl;
-                        serverEl[key] = localChildEl;
+                    if (!localChildEl.id || (localChildEl.id + '').indexOf('temp') < 0) { return true; }
+                    var exists = false;
+                    if (serverEl.document_count > 0) {
+                        angular.forEach(serverEl.documents, function(serverChildEl, key) {
+                            if (serverChildEl.id == localChildEl.id) {
+                                exists = true;
+                            }
+                        });
+                    }
+
+                    if (!exists) {
+                        serverEl.document_count++;
+                        serverEl.documents.push(localChildEl);
                     }
                 });
             }
@@ -82,34 +93,43 @@ function AppCtrl($scope, $http) {
         return result;
     };
     $scope.$on('reloadDocuments', function() {
-        if ($scope.online && $scope.access_token) {
-            $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token).success(function (data) {
-                //console.log('1: ' + localStorage['documents'].match('testmartin'));
-                //console.log('data:');
-                //console.log(data);
-                if (localStorage['documents']) { mergeServerAndLocalstorage(JSON.parse(localStorage['documents']), data); }
-                $scope.documents = data;
-                $scope.files = filterFiles(data);
-                //console.log('2: ' + localStorage['documents'].match('testmartin'));
-                localStorage['documents'] = JSON.stringify($scope.documents);
-                localStorage['files'] = JSON.stringify($scope.files);
-                //console.log('3: ' + localStorage['documents'].match('testmartin'));
-            });
-        } else if (localStorage['documents'] && localStorage['files']) {
-            $scope.documents = JSON.parse(localStorage['documents']);
-            $scope.files = JSON.parse(localStorage['files']);
-        } else if (!$scope.online) {
-            alert('A connection to the server is not available and no files are locally cached.');
-        }
+        if ($scope.reloadDocumentsLoading) {
+            $scope.reloadDocumentsWaiting = true;
+        } else {
+            if ($scope.online && $scope.access_token) {
+                $scope.reloadDocumentsLoading = true;
+                $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token, {cache:false}).success(function (data) {
+                    if (localStorage['documents']) { mergeServerAndLocalstorage(JSON.parse(localStorage['documents']), data); }
 
-        var documentList = localStorage['documentList'];
-        if (documentList) {
-            angular.forEach(documentList.split(','), function(el) {
-                id = el.trim();
-                if (id > 0) {
-                    $scope.setLocal(id, true);
-                }
-            });
+                    $scope.documents = data;
+                    $scope.files = filterFiles(data);
+
+                    localStorage['documents'] = JSON.stringify($scope.documents);
+                    localStorage['files'] = JSON.stringify($scope.files);
+
+                    $scope.reloadDocumentsLoading = false;
+
+                    if ($scope.reloadDocumentsWaiting) {
+                        $scope.reloadDocumentsWaiting = false;
+                        $scope.$broadcast('reloadDocuments');
+                    }
+                });
+            } else if (localStorage['documents'] && localStorage['files']) {
+                $scope.documents = JSON.parse(localStorage['documents']);
+                $scope.files = JSON.parse(localStorage['files']);
+            } else if (!$scope.online) {
+                alert('A connection to the server is not available and no files are locally cached.');
+            }
+
+            var documentList = localStorage['documentList'];
+            if (documentList) {
+                angular.forEach(documentList.split(','), function(el) {
+                    id = el.trim();
+                    if (id > 0) {
+                        $scope.setLocal(id, true);
+                    }
+                });
+            }
         }
     });
 
@@ -140,7 +160,7 @@ function AppCtrl($scope, $http) {
             }
 
             if (!removed && el.children_count > 0) {
-                removed = removeDocument(id, el.folders);
+                removed = removeDocumentFromTree(id, el.folders);
             }
         });
 
