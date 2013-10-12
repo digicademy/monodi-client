@@ -339,7 +339,13 @@ $(document).on('keydown', function(e) {
 			id = $target.closest('[id]').attr('id');
 		}
 
-		monodi.document.setAnnotProperties(annot, { ids: [start, id] });
+		var annotProperties = monodi.document.getAnnotProperties(annot);
+		if (start === annotProperties.startid) {
+			annotProperties.startid = id;
+		} else {
+			annotProperties.endid = id;
+		}
+		monodi.document.setAnnotProperties(annot, {ids: [annotProperties.startid, annotProperties.endid]});
 
 		$(this).off('.annot').removeAttr('style');
 		return false;
