@@ -14,7 +14,7 @@ function AppCtrl($scope, $http) {
             $scope.online = navigator.onLine;
 
             if (!navigator.onLine) {
-                access_token = false;
+                $scope.access_token = false;
             } else {
                 $scope.$broadcast('sync');
             }
@@ -184,7 +184,9 @@ function AppCtrl($scope, $http) {
                     removeDocument(id);
                     if (callback) callback();
                 }).error(function(data, status) {
-                    if (status == '403') {
+                    if (status == '401') {
+                        alert('Please log in to delete the file from the server.');
+                    } else if (status == '403') {
                         alert('You are not the owner of this file. Only the owner and a super-administrator can delete this file.');
                     } else {
                         alert('The document could not be deleted on the server. Please try again or contact the administrator (error-code ' + status + ').');

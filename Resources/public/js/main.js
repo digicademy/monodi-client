@@ -361,3 +361,5 @@ $('#printContainer button').on('click', function() {
 $(window).on('beforeunload', function() {
 	return 'Are you sure you want to close the application? All unsaved changes will be lost!';
 });
+
+$('<p class="version">v0.9.1</p>').appendTo('.footer .container');

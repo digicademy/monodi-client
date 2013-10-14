@@ -161,9 +161,10 @@ function DocumentCtrl($scope, $http) {
 
 	$scope.$on('postNewDocument', function(e, data) {
 		if ($scope.online && $scope.access_token) {
+			var temp, doc;
 			if (data) {
-				var temp = $scope.active,
-					doc = localStorage['document' + data.id];
+				temp = $scope.active;
+				doc = localStorage['document' + data.id];
 				$scope.setActive(JSON.parse(doc));
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
@@ -176,13 +177,11 @@ function DocumentCtrl($scope, $http) {
 
 			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject))
 				.success( function(response, status, headers) {
-					var newId = headers['x-ressourceident'],
+					var newId = headers()['x-ressourceident'],
 						id = $scope.active.id;
 					if (data) {
 						id = data.id;
 					}
-
-					$scope.active.id = newId;
 
 					$scope.setNewId(id, newId);
 					if (localStorage['syncList']) {
@@ -191,7 +190,7 @@ function DocumentCtrl($scope, $http) {
 
 					$scope.$emit('reloadDocuments');
 				}).error(function(data, status) {
-					alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+					alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
 				});
 
 			if (data) {

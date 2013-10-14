@@ -214,16 +214,21 @@ html, body {
         z-index: 1;
     }
 
+    .addFolder,
+    .fileproperties,
+    .saveNewDocumentHere {
+        display: none;
+    }
+
+    .showChildren ~ .addFolder {
+        display: block;
+    }
+
     .showChildren:hover  .addFolder,
     .showChildren ~ .addFolder:hover,
     .showChildren:hover ~ .saveNewDocumentHere,
     .showChildren ~ .saveNewDocumentHere:hover {
         opacity: 1;
-    }
-
-    .fileproperties,
-    .saveNewDocumentHere {
-        display: none;
     }
 
     .form-horizontal .control-label {
@@ -309,6 +314,11 @@ html, body {
         &:hover {
             color: #fff;
         }
+    }
+
+    .version {
+        margin-top: -30px;
+        float: right;
     }
 }
 
