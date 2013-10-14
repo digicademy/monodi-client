@@ -200,9 +200,7 @@ $(document).on('keydown', function(e) {
 	if (syl || pb || sb) {
 		var caret = getCaretCharacterOffsetWithin(e.target),
 			$target = $(e.target),
-			text = $(e.target).text(),
-			open = text.indexOf('<'),
-			close = text.indexOf('>');
+			text = $(e.target).text();
 
 		switch(e.keyCode) {
 			case 8: //del
@@ -241,12 +239,10 @@ $(document).on('keydown', function(e) {
 	if (syl) {
 		switch (e.keyCode) {
 			case 32: //space
-				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
-					monodi.document.setTextContent(text.substring(0,caret), true);
-					monodi.document.newSyllableAfter(text.substring(caret));
-					setFocus(monodi.document.getSelectedElement());
-					return false;
-				}
+				monodi.document.setTextContent(text.substring(0,caret), true);
+				monodi.document.newSyllableAfter(text.substring(caret));
+				setFocus(monodi.document.getSelectedElement());
+				return false;
 			break;
 			case 13: //enter
 				monodi.document.newEditionSbAfter();
@@ -254,20 +250,18 @@ $(document).on('keydown', function(e) {
 				setFocus(monodi.document.getSelectedElement());
 			break;
 			default:
-				if (open < 0 || (close < 0 && caret <= open) || (close > -1 && caret > close)) {
-					setTimeout( function() {
-						var text = $(e.target).text();
-						switch(text.charAt(caret)) {
-							case '-':
-								if ([37,39].indexOf(e.keyCode) < 0) {
-									monodi.document.setTextContent(text.substring(0,caret+1), true);
-									monodi.document.newSyllableAfter(text.substring(caret+1));
-									setFocus(monodi.document.getSelectedElement());
-								}
-							break;
-						}
-					}, 0);
-				}
+				setTimeout( function() {
+					var text = $(e.target).text();
+					switch(text.charAt(caret)) {
+						case '-':
+							if ([37,39].indexOf(e.keyCode) < 0) {
+								monodi.document.setTextContent(text.substring(0,caret+1), true);
+								monodi.document.newSyllableAfter(text.substring(caret+1));
+								setFocus(monodi.document.getSelectedElement());
+							}
+						break;
+					}
+				}, 0);
 		}
 	}
 }).on('click', '#musicContainer', function(e) {
@@ -339,7 +333,13 @@ $(document).on('keydown', function(e) {
 			id = $target.closest('[id]').attr('id');
 		}
 
-		monodi.document.setAnnotProperties(annot, { ids: [start, id] });
+		var annotProperties = monodi.document.getAnnotProperties(annot);
+		if (start === annotProperties.startid) {
+			annotProperties.startid = id;
+		} else {
+			annotProperties.endid = id;
+		}
+		monodi.document.setAnnotProperties(annot, {ids: [annotProperties.startid, annotProperties.endid]});
 
 		$(this).off('.annot').removeAttr('style');
 		return false;
