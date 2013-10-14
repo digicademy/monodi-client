@@ -25,6 +25,8 @@
          (see the .xsl file for all the available parameters)
        - idPrefix: An optional prefix that will be added to all IDs by
          mono:di.js to prevent ID clashes.
+       - xsltParameters: A sub-object that lists any parameters accepted
+         by mei2xhtml.xsl as key value pairs.
     */
 
 
@@ -1421,13 +1423,13 @@
         mime     : "application/xslt+xml"
       })
     );
-    // QUESTION: Use something like parameters.xsltParameters instead?
-    //           It doesn't make too much sense to supply the XSLT processor
-    //           with parameters that weren't meant for it.
+
     var parameter;
-    for (parameter in parameters) {
-      if (parameters.hasOwnProperty(parameter)) {
-        xsltProcessor.setParameter(null, parameter, parameters[parameter]);
+    if (parameters.xsltParameters) {
+      for (parameter in parameters.xsltParameters) {
+        if (parameters.xsltParameters.hasOwnProperty(parameter)) {
+          xsltProcessor.setParameter(null, parameter, parameters.xsltParameters[parameter]);
+        }
       }
     }
 
