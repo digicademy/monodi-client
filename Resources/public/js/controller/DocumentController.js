@@ -53,7 +53,7 @@ function DocumentCtrl($scope, $http) {
 		var temp, doc;
 		if ($scope.online && $scope.access_token) {
 			if (data) {
-				doc = localStorage['document' + data.id];
+				doc = $scope.getLocal('document' + data.id);
 				temp = $scope.active;
 				$scope.setActive(JSON.parse(doc));
 			} else {
@@ -72,10 +72,8 @@ function DocumentCtrl($scope, $http) {
 				});
 
 			if (data) {
+				$scope.removeFromSyncList($scope.active.id);
 				$scope.setActive(temp);
-				if (localStorage['syncList']) {
-					localStorage['syncList'] = localStorage['syncList'].replace(' ' + $scope.active.id + ',', '');
-				}
 			}
 		} else if (!data) {
 			$scope.saveToSyncList();
@@ -164,7 +162,7 @@ function DocumentCtrl($scope, $http) {
 			var temp, doc;
 			if (data) {
 				temp = $scope.active;
-				doc = localStorage['document' + data.id];
+				doc = $scope.getLocal('document' + data.id);
 				$scope.setActive(JSON.parse(doc));
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
@@ -184,9 +182,7 @@ function DocumentCtrl($scope, $http) {
 					}
 
 					$scope.setNewId(id, newId);
-					if (localStorage['syncList']) {
-						localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
-					}
+					$scope.removeFromSyncList(id);
 
 					$scope.$emit('reloadDocuments');
 				}).error(function(data, status) {

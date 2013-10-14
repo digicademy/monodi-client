@@ -22,10 +22,7 @@ function DocumentListCtrl($scope, $http) {
 
 		$scope.removeLocal(id);
 		$scope.deleteDocument(id);
-
-		if (localStorage['syncList']) {
-			localStorage['syncList'] = localStorage['syncList'].replace(' ' + id + ',', '');
-		}
+		$scope.removeFromSyncList(id);
 	};
 
 	$scope.removeDocumentBatch = function() {
@@ -57,39 +54,39 @@ function DocumentListCtrl($scope, $http) {
 		});
 	};
 
-	$scope.saveLocal = function(id) {
+	$scope.saveDocumentLocal = function(id) {
 		$scope.getDocument(id, function() {
-			localStorage['document' + id] = JSON.stringify(this);
-			var documentList = localStorage['documentList'];
+			$scope.setLocal('document' + id, JSON.stringify(this));
+			var documentList = $scope.getLocal('documentList');
 			if (documentList) {
 				if (documentList.indexOf(' ' + id + ',') < 0) {
-					localStorage['documentList'] += ' ' + id + ',';
+					$scope.setLocal('documentList', documentList + ' ' + id + ',');
 				}
 			} else {
-				localStorage['documentList'] = ' ' + id + ',';
+				$scope.setLocal('documentList', ' ' + id + ',');
 			}
-			$scope.setLocal(id, true);
+			$scope.setDocumentLocalAttr(id, true);
 		});
 	};
 
 	$scope.saveLocalBatch = function() {
 		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.saveLocal(el);
+			$scope.saveDocumentLocal(el);
 		});
 	};
 
-	$scope.removeLocal = function(id) {
-		localStorage.removeItem('document' + id);
-		var documentList = localStorage['documentList'];
+	$scope.removeDocumentLocal = function(id) {
+		$scope.removeLocal('document' + id);
+		var documentList = $scope.getLocal('documentList');
 		if (documentList) {
-			localStorage['documentList'] = documentList.replace(' ' + id + ',', '');
+			$scope.setLocal('documentList', documentList.replace(' ' + id + ',', ''));
 		}
-		$scope.setLocal(id, false);
+		$scope.setDocumentLocalAttr(id, false);
 	};
 
 	$scope.removeLocalBatch = function() {
 		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.removeLocal(el);
+			$scope.removeDocumentLocal(el);
 		});
 	};
 
@@ -289,8 +286,7 @@ function DocumentListCtrl($scope, $http) {
 
 		addFile($scope.documents, $scope.active, pathParts, 0);
 
-		localStorage['documents'] = JSON.stringify($scope.documents);
-		localStorage['files'] = JSON.stringify($scope.files);
+		$scope.updateLocalDocuments();
 		$scope.setLocal($scope.active.id, true);
 
 		$scope.postNewDocumentToServer();

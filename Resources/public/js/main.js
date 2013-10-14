@@ -318,7 +318,11 @@ $(document).on('keydown', function(e) {
 	.modal('show').on('hide.annotation', function(e) {
 		$(this).find('form').off('submit');
 	}).find('.btn-danger').on('click', function(e) {
-		monodi.document.deleteElement(annot, true);
+		if (confirm('Do you want to delete the Annotation?')) {
+			monodi.document.deleteElement(annot, true);
+		} else {
+			return false;
+		}
 	}).end();
 
 	return false;
