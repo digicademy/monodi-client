@@ -82,5 +82,6 @@ function NavCtrl($scope, $http) {
         end = (end > start)? end : data.length;
         data = data.substring(start, end);
         $('#printContainer').append(data).show();
+        window.print();
     };
 }

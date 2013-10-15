@@ -207,10 +207,13 @@ $(document).on('keydown', function(e) {
 				if (text == '') {
 					if (syl) {
 						monodi.document.selectNextElement("preceding");
+						setTimeout(function() {
+							setFocus(monodi.document.getSelectedElement());
+						},0)
 					} else {
 						monodi.document.deleteElement();
 					}
-  				return false;
+					return false;
 				}
 			break;
 			case 37: //left
@@ -241,7 +244,7 @@ $(document).on('keydown', function(e) {
 			case 32: //space
 				monodi.document.setTextContent(text.substring(0,caret), true);
 				monodi.document.newSyllableAfter(text.substring(caret));
-				setFocus(monodi.document.getSelectedElement());
+				setFocus(monodi.document.getSelectedElement(), true);
 				return false;
 			break;
 			case 13: //enter
@@ -257,7 +260,7 @@ $(document).on('keydown', function(e) {
 							if ([37,39].indexOf(e.keyCode) < 0) {
 								monodi.document.setTextContent(text.substring(0,caret+1), true);
 								monodi.document.newSyllableAfter(text.substring(caret+1));
-								setFocus(monodi.document.getSelectedElement());
+								setFocus(monodi.document.getSelectedElement(), true);
 							}
 						break;
 					}

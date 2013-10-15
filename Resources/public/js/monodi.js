@@ -268,6 +268,16 @@ function AppCtrl($scope, $http) {
                     $scope.documents = data;
                     $scope.files = filterFiles(data);
 
+                    var documentList = $scope.getLocal('documentList');
+                    if (documentList) {
+                        angular.forEach(documentList.split(','), function(el) {
+                            id = el.trim();
+                            if (id > 0) {
+                                $scope.setDocumentLocalAttr(id, true);
+                            }
+                        });
+                    }
+
                     $scope.updateLocalDocuments();
 
                     $scope.reloadDocumentsLoading = false;
@@ -282,16 +292,6 @@ function AppCtrl($scope, $http) {
                 $scope.files = JSON.parse($scope.getLocal('files'));
             } else if (!$scope.online) {
                 alert('A connection to the server is not available and no files are locally cached.');
-            }
-
-            var documentList = $scope.getLocal('documentList');
-            if (documentList) {
-                angular.forEach(documentList.split(','), function(el) {
-                    id = el.trim();
-                    if (id > 0) {
-                        $scope.setDocumentLocalAttr(id, true);
-                    }
-                });
             }
         }
     });
@@ -517,6 +517,23 @@ function AppCtrl($scope, $http) {
             }
         });
 
+        var local = $scope.getLocal('document' + id);
+        if (local) {
+            $scope.removeLocal('document' + id);
+            $scope.setLocal('document' + newId, local);
+        }
+
+        var documentList = $scope.getLocal('documentList');
+        if (documentList) {
+            if (documentList.indexOf(' ' + id + ',') > -1) {
+                $scope.setLocal('documentList', documentList.replace(' ' + id + ',', ''));
+            }
+
+            $scope.setLocal('documentList', documentList + ' ' + newId + ',');
+        } else {
+            $scope.setLocal('documentList', ' ' + newId + ',');
+        }
+
         $scope.updateLocalDocuments();
     };
 
@@ -529,7 +546,11 @@ function AppCtrl($scope, $http) {
     };
 
     $scope.setLocal = function(key, value) {
-        localStorage[key] = value;
+        try {
+            localStorage[key] = value;
+        } catch(e) {
+            alert('The localstorage in your browser is full. The save-process could not be completed');
+        }
     };
 
     $scope.getLocal = function(key) {
@@ -547,6 +568,9 @@ function AppCtrl($scope, $http) {
 
     $scope.saveToSyncList = function() {
         var id = $scope.active.id;
+
+        $scope.active.content = monodi.document.getSerializedDocument();
+        
         $scope.setLocal('document' + id, JSON.stringify($scope.active));
         var syncList = $scope.getLocal('syncList');
         if (syncList) {
@@ -556,7 +580,7 @@ function AppCtrl($scope, $http) {
         } else {
             $scope.setLocal('syncList', ' ' + id + ',');
         }
-        $scope.setLocal(id, true);
+        $scope.setDocumentLocalAttr(id, true);
     };
 
     $scope.removeFromSyncList = function(id) {
@@ -564,6 +588,19 @@ function AppCtrl($scope, $http) {
         if (syncList) {
             $scope.setLocal('syncList', syncList.replace(' ' + id + ',', ''));
         }
+    };
+
+    $scope.addToDocumentList = function(id, content) {
+        $scope.setLocal('document' + id, JSON.stringify(content));
+        var documentList = $scope.getLocal('documentList');
+        if (documentList) {
+            if (documentList.indexOf(' ' + id + ',') < 0) {
+                $scope.setLocal('documentList', documentList + ' ' + id + ',');
+            }
+        } else {
+            $scope.setLocal('documentList', ' ' + id + ',');
+        }
+        $scope.setDocumentLocalAttr(id, true);
     };
 
     $scope.$broadcast('reloadDocuments');
@@ -652,6 +689,7 @@ function NavCtrl($scope, $http) {
         end = (end > start)? end : data.length;
         data = data.substring(start, end);
         $('#printContainer').append(data).show();
+        window.print();
     };
 }
 function DocumentListCtrl($scope, $http) {
@@ -706,22 +744,13 @@ function DocumentListCtrl($scope, $http) {
 
 	$scope.printBatch = function() {
 		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.print(el);
+			$scope.print(el, false);
 		});
 	};
 
 	$scope.saveDocumentLocal = function(id) {
 		$scope.getDocument(id, function() {
-			$scope.setLocal('document' + id, JSON.stringify(this));
-			var documentList = $scope.getLocal('documentList');
-			if (documentList) {
-				if (documentList.indexOf(' ' + id + ',') < 0) {
-					$scope.setLocal('documentList', documentList + ' ' + id + ',');
-				}
-			} else {
-				$scope.setLocal('documentList', ' ' + id + ',');
-			}
-			$scope.setDocumentLocalAttr(id, true);
+			$scope.addToDocumentList(id, this);
 		});
 	};
 
@@ -1040,6 +1069,7 @@ function DocumentCtrl($scope, $http) {
 		}
 
 		if (!data) {
+			$scope.addToDocumentList($scope.active.id, $scope.active);
 			$('#savedModal').modal('show');
 		}
 	});
@@ -1083,7 +1113,9 @@ function DocumentCtrl($scope, $http) {
 		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
 			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function(e) {
 				if (!$(e.target).hasClass('saveNewDocumentHere')) {
-					$scope.setActive(temp);
+					if (temp) {
+						$scope.setActive(temp);
+					}
 				}
 				$files.fadeOut( function() {
 					$(this).removeClass('chooseDirectory');
@@ -1157,6 +1189,8 @@ function DocumentCtrl($scope, $http) {
 				$scope.saveToSyncList();
 			}
 		}
+
+		$scope.addToDocumentList($scope.active.id, $scope.active);
 	});
 
 	monodi.document = new MonodiDocument({

@@ -50,22 +50,13 @@ function DocumentListCtrl($scope, $http) {
 
 	$scope.printBatch = function() {
 		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.print(el);
+			$scope.print(el, false);
 		});
 	};
 
 	$scope.saveDocumentLocal = function(id) {
 		$scope.getDocument(id, function() {
-			$scope.setLocal('document' + id, JSON.stringify(this));
-			var documentList = $scope.getLocal('documentList');
-			if (documentList) {
-				if (documentList.indexOf(' ' + id + ',') < 0) {
-					$scope.setLocal('documentList', documentList + ' ' + id + ',');
-				}
-			} else {
-				$scope.setLocal('documentList', ' ' + id + ',');
-			}
-			$scope.setDocumentLocalAttr(id, true);
+			$scope.addToDocumentList(id, this);
 		});
 	};
 

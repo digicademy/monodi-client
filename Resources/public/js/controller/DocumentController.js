@@ -80,6 +80,7 @@ function DocumentCtrl($scope, $http) {
 		}
 
 		if (!data) {
+			$scope.addToDocumentList($scope.active.id, $scope.active);
 			$('#savedModal').modal('show');
 		}
 	});
@@ -123,7 +124,9 @@ function DocumentCtrl($scope, $http) {
 		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
 			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function(e) {
 				if (!$(e.target).hasClass('saveNewDocumentHere')) {
-					$scope.setActive(temp);
+					if (temp) {
+						$scope.setActive(temp);
+					}
 				}
 				$files.fadeOut( function() {
 					$(this).removeClass('chooseDirectory');
@@ -197,6 +200,8 @@ function DocumentCtrl($scope, $http) {
 				$scope.saveToSyncList();
 			}
 		}
+
+		$scope.addToDocumentList($scope.active.id, $scope.active);
 	});
 
 	monodi.document = new MonodiDocument({
