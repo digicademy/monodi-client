@@ -318,7 +318,11 @@ $(document).on('keydown', function(e) {
 	.modal('show').on('hide.annotation', function(e) {
 		$(this).find('form').off('submit');
 	}).find('.btn-danger').on('click', function(e) {
-		monodi.document.deleteElement(annot, true);
+		if (confirm('Do you want to delete the Annotation?')) {
+			monodi.document.deleteElement(annot, true);
+		} else {
+			return false;
+		}
 	}).end();
 
 	return false;
@@ -361,3 +365,5 @@ $('#printContainer button').on('click', function() {
 $(window).on('beforeunload', function() {
 	return 'Are you sure you want to close the application? All unsaved changes will be lost!';
 });
+
+$('<p class="version">v0.9.1</p>').appendTo('.footer .container');

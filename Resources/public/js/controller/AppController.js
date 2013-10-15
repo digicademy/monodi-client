@@ -14,7 +14,7 @@ function AppCtrl($scope, $http) {
             $scope.online = navigator.onLine;
 
             if (!navigator.onLine) {
-                access_token = false;
+                $scope.access_token = false;
             } else {
                 $scope.$broadcast('sync');
             }
@@ -26,12 +26,12 @@ function AppCtrl($scope, $http) {
 
     $scope.$on('sync', function() {
         if ($scope.online && $scope.access_token) {
-            var syncList = localStorage['syncList'];
+            var syncList = $scope.getLocal('syncList');
             if (syncList) {
                 $scope.syncDocuments = $scope.documents;
                 angular.forEach(syncList.split(','), function(id) {
                     id = id.trim();
-                    if (localStorage['document' + id]) {
+                    if ($scope.getLocal('document' + id)) {
                         if ((id + '').indexOf('temp') < 0) {
                             $scope.$broadcast('syncDocument', { id: id });
                         } else {
@@ -99,13 +99,12 @@ function AppCtrl($scope, $http) {
             if ($scope.online && $scope.access_token) {
                 $scope.reloadDocumentsLoading = true;
                 $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token, {cache:false}).success(function (data) {
-                    if (localStorage['documents']) { mergeServerAndLocalstorage(JSON.parse(localStorage['documents']), data); }
+                    if ($scope.getLocal('documents')) { mergeServerAndLocalstorage(JSON.parse($scope.getLocal('documents')), data); }
 
                     $scope.documents = data;
                     $scope.files = filterFiles(data);
 
-                    localStorage['documents'] = JSON.stringify($scope.documents);
-                    localStorage['files'] = JSON.stringify($scope.files);
+                    $scope.updateLocalDocuments();
 
                     $scope.reloadDocumentsLoading = false;
 
@@ -114,19 +113,19 @@ function AppCtrl($scope, $http) {
                         $scope.$broadcast('reloadDocuments');
                     }
                 });
-            } else if (localStorage['documents'] && localStorage['files']) {
-                $scope.documents = JSON.parse(localStorage['documents']);
-                $scope.files = JSON.parse(localStorage['files']);
+            } else if ($scope.getLocal('documents') && $scope.getLocal('files')) {
+                $scope.documents = JSON.parse($scope.getLocal('documents'));
+                $scope.files = JSON.parse($scope.getLocal('files'));
             } else if (!$scope.online) {
                 alert('A connection to the server is not available and no files are locally cached.');
             }
 
-            var documentList = localStorage['documentList'];
+            var documentList = $scope.getLocal('documentList');
             if (documentList) {
                 angular.forEach(documentList.split(','), function(el) {
                     id = el.trim();
                     if (id > 0) {
-                        $scope.setLocal(id, true);
+                        $scope.setDocumentLocalAttr(id, true);
                     }
                 });
             }
@@ -138,8 +137,8 @@ function AppCtrl($scope, $http) {
             $http.get(baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token).success(function (data) {
                 callback.bind(data)();
             });
-        } else if (localStorage['document' + id]) {
-            callback.bind(JSON.parse(localStorage['document' + id]))();
+        } else if ($scope.getLocal('document' + id)) {
+            callback.bind(JSON.parse($scope.getLocal('document' + id)))();
         } else if (!$scope.online) {
             alert('You are working offline and the ressource is locally not available.');
         } else {
@@ -174,8 +173,7 @@ function AppCtrl($scope, $http) {
             }
         });
 
-        localStorage['documents'] = JSON.stringify($scope.documents);
-        localStorage['files'] = JSON.stringify($scope.files);
+        $scope.updateLocalDocuments();
     };
     $scope.deleteDocument = function(id, callback) {
         if ((id + '').indexOf('temp') < 0) {
@@ -184,7 +182,9 @@ function AppCtrl($scope, $http) {
                     removeDocument(id);
                     if (callback) callback();
                 }).error(function(data, status) {
-                    if (status == '403') {
+                    if (status == '401') {
+                        alert('Please log in to delete the file from the server.');
+                    } else if (status == '403') {
                         alert('You are not the owner of this file. Only the owner and a super-administrator can delete this file.');
                     } else {
                         alert('The document could not be deleted on the server. Please try again or contact the administrator (error-code ' + status + ').');
@@ -215,20 +215,6 @@ function AppCtrl($scope, $http) {
         } else {
             $scope.$broadcast('saveNewDocument');
         }
-    };
-
-    $scope.saveToSyncList = function() {
-        var id = $scope.active.id;
-        localStorage['document' + id ] = JSON.stringify($scope.active);
-        var syncList = localStorage['syncList'];
-        if (syncList) {
-            if (syncList.indexOf(' ' + id + ',') < 0) {
-                localStorage['syncList'] += ' ' + id + ',';
-            }
-        } else {
-            localStorage['syncList'] = ' ' + id + ',';
-        }
-        $scope.setLocal(id, true);
     };
 
     $scope.postNewDocumentToServer = function() {
@@ -274,15 +260,14 @@ function AppCtrl($scope, $http) {
             }
         });
     };
-    $scope.setLocal = function(id, state) {
+    $scope.setDocumentLocalAttr = function(id, state) {
         setLocalTree(id, $scope.documents, state);
         angular.forEach($scope.files, function(el) {
             if (el.id == id) {
                 el.local = state;
             }
         });
-        localStorage['documents'] = JSON.stringify($scope.documents);
-        localStorage['files'] = JSON.stringify($scope.files);
+        $scope.updateLocalDocuments();
     };
 
     var $views = $('.views').children().hide().eq(1).show().end();
@@ -368,8 +353,7 @@ function AppCtrl($scope, $http) {
             }
         });
 
-        localStorage['documents'] = JSON.stringify($scope.documents);
-        localStorage['files'] = JSON.stringify($scope.files);
+        $scope.updateLocalDocuments();
     };
 
     $scope.showDocumentInfo = function() {
@@ -377,6 +361,48 @@ function AppCtrl($scope, $http) {
             alert('No active document!');
         } else {
             $('#fileInfosModal').modal('show');
+        }
+    };
+
+    $scope.setLocal = function(key, value) {
+        try {
+            localStorage[key] = value;
+        } catch(e) {
+            alert('The localstorage in your browser is full. The save-process could not be completed');
+        }
+    };
+
+    $scope.getLocal = function(key) {
+        return localStorage[key];
+    };
+
+    $scope.removeLocal = function(key) {
+        localStorage.removeItem(key);
+    };
+
+    $scope.updateLocalDocuments = function() {
+        $scope.setLocal('documents', JSON.stringify($scope.documents));
+        $scope.setLocal('files', JSON.stringify($scope.files));
+    };
+
+    $scope.saveToSyncList = function() {
+        var id = $scope.active.id;
+        $scope.setLocal('document' + id, JSON.stringify($scope.active));
+        var syncList = $scope.getLocal('syncList');
+        if (syncList) {
+            if (syncList.indexOf(' ' + id + ',') < 0) {
+                $scope.setLocal('syncList', syncList + ' ' + id + ',');
+            }
+        } else {
+            $scope.setLocal('syncList', ' ' + id + ',');
+        }
+        $scope.setLocal(id, true);
+    };
+
+    $scope.removeFromSyncList = function(id) {
+        var syncList = $scope.getLocal('syncList');
+        if (syncList) {
+            $scope.setLocal('syncList', syncList.replace(' ' + id + ',', ''));
         }
     };
 

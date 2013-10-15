@@ -5329,14 +5329,17 @@ html, body {
     transition: opacity 0.4s;
     -webkit-transition: opacity 0.4s;
     z-index: 1; }
+  .fileStructure .addFolder,
+  .fileStructure .fileproperties,
+  .fileStructure .saveNewDocumentHere {
+    display: none; }
+  .fileStructure .showChildren ~ .addFolder {
+    display: block; }
   .fileStructure .showChildren:hover .addFolder,
   .fileStructure .showChildren ~ .addFolder:hover,
   .fileStructure .showChildren:hover ~ .saveNewDocumentHere,
   .fileStructure .showChildren ~ .saveNewDocumentHere:hover {
     opacity: 1; }
-  .fileStructure .fileproperties,
-  .fileStructure .saveNewDocumentHere {
-    display: none; }
   .fileStructure .form-horizontal .control-label {
     width: 60px; }
   .fileStructure .form-horizontal .controls {
@@ -5396,6 +5399,9 @@ html, body {
     text-decoration: underline; }
     .footer a:hover {
       color: #fff; }
+  .footer .version {
+    margin-top: -30px;
+    float: right; }
 
 @media print {
   #printContainer button {

@@ -17,21 +17,17 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
         
         <link rel="stylesheet" href="/bundles/digitalwertmonodiclient/css/main.css" />
         
-        <script> baseurl = '<?php echo($baseUrl); ?>'; </script>
-        <script src="/bundles/digitalwertmonodiclient/js/vendor/modernizr.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/vendor/jquery.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/vendor/angular.js"></script>
-
-        <script src="/bundles/digitalwertmonodiclient/js/controller/AppController.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/controller/NavController.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/controller/DocumentListController.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/controller/DocumentController.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/modules.js"></script>
+        <script>
+            baseurl = '<?php echo($baseUrl); ?>';
+            client_id = '<?php echo($publicId); ?>';
+            client_uri = location.href + 'authorized';
+        </script>
+        <script src="/bundles/digitalwertmonodiclient/js/monodi.js"></script>
 
         <style type="text/css" id="staticStyle"></style>
         <style type="text/css" id="dynamicStyle"></style>
     </head>
-    <body ng-app="monodi" ng-controller="AppCtrl" data-appid="<?php echo($publicId); ?>">
+    <body ng-app="monodi" ng-controller="AppCtrl">
         <div class="views">
             <div class="main container" ng-controller="DocumentCtrl">
                 <div id="musicContainer" ng-show="active"></div>
@@ -101,8 +97,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                             <div class="actions btn-group">
                                                 <button class="btn btn-danger" ng-click="removeDocument(el.id)"><i class="icon-trash icon-white"></i></button>
                                                 <button class="btn btn-inverse" ng-click="print(el.id)"><i class="icon-print icon-white"></i></button>
-                                                <button class="btn btn-info" ng-click="saveLocal(el.id)" ng-hide="el.local"><i class="icon-arrow-down icon-white"></i></button>
-                                                <button class="btn btn-warning" ng-click="removeLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>
+                                                <button class="btn btn-info" ng-click="saveDocumentLocal(el.id)" ng-hide="el.local"><i class="icon-arrow-down icon-white"></i></button>
+                                                <button class="btn btn-warning" ng-click="removeDocumentLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>
                                                 <button class="btn btn-primary" ng-click="documentinfo(el.id)" data-toggle="modal"><i class="icon-info-sign icon-white"></i></button>
                                             </div>
                                         </td>
@@ -338,8 +334,6 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
             </div>
         </div>
 
-        <script src="/bundles/digitalwertmonodiclient/js/const.js"></script>
-        <script src="/bundles/digitalwertmonodiclient/js/plugins.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/monodi/MonodiDocument.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/main.js"></script>
 

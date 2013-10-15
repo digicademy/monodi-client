@@ -6,3 +6,5 @@ Resources/sftp-config.json
 Resources/public/.com.apple.timemachine.supported
 Resources/public/js/monodi/.com.apple.timemachine.supported
 Resources/public/js/oldmain.js
+Resources/public/js/package.json
+Resources/public/js/gruntfile.js

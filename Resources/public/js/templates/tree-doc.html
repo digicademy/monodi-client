@@ -2,7 +2,7 @@
 <div class="actions btn-group">
     <button class="btn btn-danger" ng-click="removeDocument(el.id)"><i class="icon-trash icon-white"></i></button>
     <button class="btn btn-inverse" ng-click="print(el.id)"><i class="icon-print icon-white"></i></button>
-    <button class="btn btn-info" ng-click="saveLocal(el.id)" ng-hide="el.local"><i class="icon-arrow-down icon-white"></i></button>
-    <button class="btn btn-warning" ng-click="removeLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>
+    <button class="btn btn-info" ng-click="saveDocumentLocal(el.id)" ng-hide="el.local"><i class="icon-arrow-down icon-white"></i></button>
+    <button class="btn btn-warning" ng-click="removeDocumentLocal(el.id)" ng-show="el.local"><i class="icon-ban-circle icon-white"></i></button>
     <button class="btn btn-primary" ng-click="documentinfo(el.id)" data-toggle="modal"><i class="icon-info-sign icon-white"></i></button>
 </div>
