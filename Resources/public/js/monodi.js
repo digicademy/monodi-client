@@ -549,7 +549,7 @@ function AppCtrl($scope, $http) {
         try {
             localStorage[key] = value;
         } catch(e) {
-            alert('The localstorage in your browser is full. The save-process could not be completed');
+            alert('The local storage in your browser is full.\n\nIf you receive this message while logging in, please go to the management page , remove some files (in any folder) from local storage by clicking the yellow button next to the file name (more conveniently done in the document list view), and reload the page.\n\nIf you receive this message while saving a document, please go to the management page, remove some files (in any folder) from local storage by clicking the yellow button next to the file name (more conveniently done in the document list view), return to the document, and save again.');
         }
     };
 
