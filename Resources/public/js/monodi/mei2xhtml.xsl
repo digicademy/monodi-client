@@ -173,7 +173,7 @@
         display:inline-block;
         vertical-align:top;
       }
-      .musicLayer {
+      .musicLayer > .ineume, .musicLayer > .pb {
         height:<xsl:value-of select="$musicAreaHeight"/>px;
       }
       .sb.edition {
@@ -194,9 +194,17 @@
         stroke:currentColor;
         fill:none;
         position:absolute;
+        left:0;
       }
       .stafflines {
         stroke-width:<xsl:value-of select="$staffLineWidth * $scaleStepSize"/>px;
+        background-color:white;
+      }
+      .ineume > .stafflines {
+        z-index:-10;
+      }
+      .musicLayer > .pb {
+        z-index:1;
       }
       .slur {
         stroke-width:<xsl:value-of select="$slurLineWidth * $scaleStepSize"/>px;
@@ -409,7 +417,10 @@
           padding-bottom:<xsl:value-of select="$textAnnotHeight * $scaleStepSize"/>px;
         }
         .textLayer { <!-- We don't want music and text layer annotations to overlap -->
-          margin-top:4px;
+          <!--margin-top:4px;-->
+          height:0;
+          transform:translate(0,<xsl:value-of select="$musicAreaHeight"/>px);
+          z-index:10;
         }
         <!-- Now, to the annotation labels themselves -->
         .annotLabel {
@@ -802,24 +813,38 @@
       <!-- If the first element on the music layer is a pb/sb, we want to put that into a separate div
            so that the text starts with the first note in the syllable. -->
       <xsl:for-each select="mei:*[self::mei:sb or self::mei:pb][not(preceding-sibling::mei:ineume)]">
-        <div>
+        <div class="breakWrapper">
           <div class="musicLayer">
             <xsl:copy-of select="$stafflines"/>
             <xsl:apply-templates select="."/>
           </div>
         </div>
       </xsl:for-each>
-      <div>
+      <div class="syllabeContentWrapper">
+        <div class="textLayer">
+          <xsl:apply-templates select="mei:syl"/>
+        </div>
         <div class="musicLayer">
           <xsl:copy-of select="$stafflines"/>
           <xsl:apply-templates select="mei:ineume|mei:*[self::mei:sb or self::mei:pb][preceding-sibling::mei:ineume]"/>
         </div>
-        <div class="textLayer">
-          <xsl:apply-templates select="mei:syl"/>
-        </div>
       </div>
     </div>
   </xsl:template>
+  
+  <xsl:template match="mei:ineume">
+    <div class="_mei ineume">
+      <xsl:attribute name="class">
+        <xsl:value-of select="concat('_mei ',local-name())"/>
+        <xsl:apply-templates select="@*" mode="generate-classes"/>
+      </xsl:attribute>
+      <xsl:apply-templates select="." mode="create-title"/>
+      <xsl:apply-templates select="@xml:id"/>
+      <xsl:apply-templates select="@*[not(local-name()='id')]|*"/>
+      <xsl:copy-of select="$stafflines"/>
+    </div>
+  </xsl:template>
+  
   
   <!-- By default, don't create title element -->
   <xsl:template match="*|@*" mode="create-title"/>
