@@ -6,6 +6,7 @@ function AppCtrl($scope, $http) {
     $scope.documents = [];
     $scope.active = false;
     $scope.info = false;
+    $scope.loading = false;
     $scope.reloadDocumentsWaiting = false;
     $scope.reloadDocumentsLoading;
 
@@ -20,8 +21,8 @@ function AppCtrl($scope, $http) {
             }
         };
 
-        window.addEventListener("online", $scope.setOnlineStatus, false);
-        window.addEventListener("offline", $scope.setOnlineStatus, false);
+        window.addEventListener('online', $scope.setOnlineStatus, false);
+        window.addEventListener('offline', $scope.setOnlineStatus, false);
     }
 
     $scope.$on('sync', function() {
@@ -96,46 +97,61 @@ function AppCtrl($scope, $http) {
         if ($scope.reloadDocumentsLoading) {
             $scope.reloadDocumentsWaiting = true;
         } else {
-            if ($scope.online && $scope.access_token) {
-                $scope.reloadDocumentsLoading = true;
-                $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token, {cache:false}).success(function (data) {
-                    if ($scope.getLocal('documents')) { mergeServerAndLocalstorage(JSON.parse($scope.getLocal('documents')), data); }
-
-                    $scope.documents = data;
-                    $scope.files = filterFiles(data);
-
-                    var documentList = $scope.getLocal('documentList');
-                    if (documentList) {
-                        angular.forEach(documentList.split(','), function(el) {
-                            id = el.trim();
-                            if (id > 0) {
-                                $scope.setDocumentLocalAttr(id, true);
-                            }
-                        });
-                    }
-
-                    $scope.updateLocalDocuments();
-
-                    $scope.reloadDocumentsLoading = false;
-
-                    if ($scope.reloadDocumentsWaiting) {
-                        $scope.reloadDocumentsWaiting = false;
-                        $scope.$broadcast('reloadDocuments');
-                    }
-                });
-            } else if ($scope.getLocal('documents') && $scope.getLocal('files')) {
-                $scope.documents = JSON.parse($scope.getLocal('documents'));
-                $scope.files = JSON.parse($scope.getLocal('files'));
-            } else if (!$scope.online) {
-                alert('A connection to the server is not available and no files are locally cached.');
-            }
+            $scope.reloadDocuments();
         }
     });
 
-    $scope.getDocument = function(id, callback) {
+    $scope.reloadDocuments = function() {
         if ($scope.online && $scope.access_token) {
+            $scope.reloadDocumentsLoading = true;
+            $scope.showLoader();
+            $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token, {cache:false}).success(function (data) {
+                if ($scope.getLocal('documents')) { mergeServerAndLocalstorage(JSON.parse($scope.getLocal('documents')), data); }
+
+                $scope.documents = data;
+                $scope.files = filterFiles(data);
+
+                var documentList = $scope.getLocal('documentList');
+                if (documentList) {
+                    angular.forEach(documentList.split(','), function(el) {
+                        id = el.trim();
+                        if (id > 0) {
+                            $scope.setDocumentLocalAttr(id, true);
+                        }
+                    });
+                }
+
+                $scope.updateLocalDocuments();
+
+                $scope.reloadDocumentsLoading = false;
+
+                if ($scope.reloadDocumentsWaiting) {
+                    $scope.reloadDocumentsWaiting = false;
+                    $scope.$broadcast('reloadDocuments');
+                }
+
+                $scope.hideLoader();
+            }).error(function(data, status) {
+                $scope.hideLoader();
+                $scope.checkOnline(status, function() { $scope.reloadDocuments(); });
+            });
+        } else if ($scope.getLocal('documents') && $scope.getLocal('files')) {
+            $scope.documents = JSON.parse($scope.getLocal('documents'));
+            $scope.files = JSON.parse($scope.getLocal('files'));
+        } else if (!$scope.online) {
+            alert('A connection to the server is not available and no files are locally cached.');
+        }
+    };
+
+    $scope.getDocument = function(id, callback) {
+        if ($scope.online && $scope.access_token && (id + '').indexOf('temp') == -1) {
+            $scope.showLoader();
             $http.get(baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token).success(function (data) {
                 callback.bind(data)();
+                $scope.hideLoader();
+            }).error(function(data, status) {
+                $scope.hideLoader();
+                $scope.checkOnline(status);
             });
         } else if ($scope.getLocal('document' + id)) {
             callback.bind(JSON.parse($scope.getLocal('document' + id)))();
@@ -177,11 +193,15 @@ function AppCtrl($scope, $http) {
     };
     $scope.deleteDocument = function(id, callback) {
         if ((id + '').indexOf('temp') < 0) {
+            $scope.showLoader();
             $http['delete'](baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token)
                 .success( function() {
                     removeDocument(id);
                     if (callback) callback();
+                    $scope.hideLoader();
                 }).error(function(data, status) {
+                    $scope.hideLoader();
+                    $scope.checkOnline(status);
                     if (status == '401') {
                         alert('Please log in to delete the file from the server.');
                     } else if (status == '403') {
@@ -223,11 +243,16 @@ function AppCtrl($scope, $http) {
 
     $scope.postNewFolderToServer = function(path, title, tempId, callback) {
         if ($scope.online && $scope.access_token) {
+            $scope.showLoader();
             $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).then( function(response) {
                 var newId = response.headers()['x-ressourceident'];
                 $scope.setNewId(tempId, newId);
 
                 if (callback) callback();
+                $scope.hideLoader();
+            }).error(function(data, status) {
+                $scope.hideLoader();
+                $scope.checkOnline(status);
             });
         }
     };
@@ -437,6 +462,25 @@ function AppCtrl($scope, $http) {
             $scope.setLocal('documentList', ' ' + id + ',');
         }
         $scope.setDocumentLocalAttr(id, true);
+    };
+
+    $scope.showLoader = function() {
+        $scope.loading = true;
+    };
+
+    $scope.hideLoader = function() {
+        $scope.loading = false;
+    };
+
+    $scope.checkOnline = function(status, callback) {
+        if (!callback) {
+            callback = function() { alert('You are not connected to the server. Please check your internet connection.'); };
+        }
+
+        if (status == 0) {
+            $scope.access_token = false;
+            callback();
+        }
     };
 
     $scope.$broadcast('reloadDocuments');

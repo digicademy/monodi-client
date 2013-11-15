@@ -1,5 +1,7 @@
 CACHE MANIFEST
 
+#tempid = 2
+
 CACHE:
 /bundles/digitalwertmonodiclient/css/main.css
 /bundles/digitalwertmonodiclient/js/monodi.js
@@ -14,6 +16,7 @@ CACHE:
 
 /bundles/digitalwertmonodiclient/img/glyphicons-halflings.png
 /bundles/digitalwertmonodiclient/img/glyphicons-halflings-white.png
+/bundles/digitalwertmonodiclient/img/loader.gif
 
 NETWORK:
 *

@@ -21,8 +21,13 @@ function NavCtrl($scope, $http) {
                     $scope.$emit('reloadDocuments', {});
                     $modal.modal('hide');
 
+                    $scope.showLoader();
                     $http.get(baseurl + 'api/v1/profile/?access_token=' + $scope.access_token).success(function (data) {
                         $scope.pass = data;
+                        $scope.hideLoader();
+                    }).error(function() {
+                        $scope.hideLoader();
+                        $scope.checkOnline(status);
                     });
                 }
             });
@@ -35,10 +40,14 @@ function NavCtrl($scope, $http) {
     };
 
     $scope.changePass = function(pass) {
+        $scope.showLoader();
         $http.put(baseurl + 'api/v1/profile/' + pass.slug + '/password.json?access_token=' + $scope.access_token, '{"current_password":"' + pass.old + '","new":"' + pass.new +'"}').success(function (data) {
             $('#changePassModal').find('.modal-body').find('.notice').remove().end().append('<p class="notice">Passwort wurde erfolgreich geändert</p>');
+            $scope.hideLoader();
         }).error(function (data, status) {
             var error = '';
+            $scope.hideLoader();
+            $scope.checkOnline(status);
             switch (status) {
                 case 404:
                     error = 'The username was not found.';

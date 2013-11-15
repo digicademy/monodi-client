@@ -315,11 +315,13 @@ $(document).on('keydown', function(e) {
 		monodi.document.selectElement(sel);
 
 		return false;
-	}).find('input').val(properties.label).end()
+	}).find('select').val(properties.type).end()
+	.find('input').val(properties.label).end()
 	.find('textarea').val(properties.text).end().end()
 	.find('.btn-danger').show().end()
 	.modal('show').on('hide.annotation', function(e) {
 		$(this).find('form').off('submit');
+		$(this).find('.btn-danger').off('click');
 	}).find('.btn-danger').on('click', function(e) {
 		if (confirm('Do you want to delete the Annotation?')) {
 			monodi.document.deleteElement(annot, true);

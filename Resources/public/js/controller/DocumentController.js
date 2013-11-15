@@ -47,9 +47,15 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
+			$scope.showLoader();
 			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject))
+				.success($scope.hideLoader)
 				.error(function(data, status) {
-					alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+					$scope.hideLoader();
+					$scope.checkOnline(status);
+					if (status != 0) {
+						alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+					}
 				});
 
 			if (data) {
@@ -94,7 +100,7 @@ function DocumentCtrl($scope, $http) {
 			temp = $scope.active;
 			$scope.setActive({
 				filename: temp.filename,
-				title: temp.title
+				title: temp.title.replace(/.mei$/,'')
 			});
         }
 		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
@@ -152,6 +158,7 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
+			$scope.showLoader();
 			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject))
 				.success( function(response, status, headers) {
 					var newId = headers()['x-ressourceident'],
@@ -163,9 +170,15 @@ function DocumentCtrl($scope, $http) {
 					$scope.setNewId(id, newId);
 					$scope.removeFromSyncList(id);
 
+					$scope.hideLoader();
+
 					$scope.$emit('reloadDocuments');
 				}).error(function(data, status) {
-					alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
+					$scope.hideLoader();
+					$scope.checkOnline(status);
+					if (status != 0) {
+						alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
+					}
 				});
 
 			if (data) {
