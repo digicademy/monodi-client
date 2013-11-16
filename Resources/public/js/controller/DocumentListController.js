@@ -1,4 +1,4 @@
-function DocumentListCtrl($scope, $http) {
+function DocumentListCtrl($scope) {
 	$scope.toggle = function() {
 		var $checkboxes = $('.fileList input[type="checkbox"]');
 		if ($checkboxes.first().prop('checked') == true) {
@@ -15,7 +15,7 @@ function DocumentListCtrl($scope, $http) {
 
 	$scope.removeDocument = function(id, batch) {
 		if (!batch) {
-			if (!confirm('Are you sure to delete this document?')) {
+			if (!confirm('Delete document?')) {
 				return false;
 			}
 		}
@@ -26,7 +26,7 @@ function DocumentListCtrl($scope, $http) {
 	};
 
 	$scope.removeDocumentBatch = function() {
-		if (!confirm('Are you sure to delete these documents?')) {
+		if (!confirm('Delete documents?')) {
 			return false;
 		}
 		
@@ -50,22 +50,13 @@ function DocumentListCtrl($scope, $http) {
 
 	$scope.printBatch = function() {
 		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.print(el);
+			$scope.print(el, false);
 		});
 	};
 
 	$scope.saveDocumentLocal = function(id) {
 		$scope.getDocument(id, function() {
-			$scope.setLocal('document' + id, JSON.stringify(this));
-			var documentList = $scope.getLocal('documentList');
-			if (documentList) {
-				if (documentList.indexOf(' ' + id + ',') < 0) {
-					$scope.setLocal('documentList', documentList + ' ' + id + ',');
-				}
-			} else {
-				$scope.setLocal('documentList', ' ' + id + ',');
-			}
-			$scope.setDocumentLocalAttr(id, true);
+			$scope.addToDocumentList(id, this);
 		});
 	};
 
@@ -259,7 +250,7 @@ function DocumentListCtrl($scope, $http) {
 	$scope.saveNewDocumentHere = function(path) {
 		var error = false;
 
-		if (!$scope.active.title || !/^[A-z0-9_\-\s]+$/.test($scope.active.title)) {
+		if (!$scope.active.title || !/^[A-z0-9_\-]+$/.test($scope.active.title)) {
 			$('#fileName').focus();
 			alert('Filename is invalid');
 			return false;
@@ -272,12 +263,12 @@ function DocumentListCtrl($scope, $http) {
 			$scope.active.filename = $scope.active.title;
 		}
 
-		document.title = "mono:di - " + $scope.active.filename;
-
 		if (checkFileExists($scope.documents, $scope.active.filename, pathParts, 0)) {
 			alert('Filename already exists.');
 			return false;
 		}
+
+		document.title = "mono:di - " + $scope.active.filename;
 
 		$scope.active.path = path;
 		

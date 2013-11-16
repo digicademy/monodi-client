@@ -1,27 +1,8 @@
 function DocumentCtrl($scope, $http) {
 	$scope.$on('openDocument', function() {
-		monodi.document = new MonodiDocument({
-			staticStyleElement	: document.getElementById("staticStyle"),
-			dynamicStyleElement	: document.getElementById("dynamicStyle"),
-			musicContainer		: document.getElementById("musicContainer"),
-			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl",
-			meiString			: $scope.active.content
-		});
-
-		monodi.document.addCallback('deleteAnnotatedElement', function(data) {
-			return confirm('Do you want to delete the ' + data.length + ' Annotations associated with this element?');
-		});
-
-		monodi.document.addCallback("updateView",function(element){
-			var offset = $(element).offset().top - $(window).scrollTop();
-
-			if(offset > window.innerHeight || offset < 0){
-				element.scrollIntoView(offset > 0);
-			}
-		});
+		initMonodiDocument($scope.active.content);
 
 		document.title = "mono:di - " + $scope.active.filename;
-
 		$scope.showView('main');
 	});
 
@@ -66,9 +47,15 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
+			$scope.showLoader();
 			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject))
+				.success($scope.hideLoader)
 				.error(function(data, status) {
-					alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+					$scope.hideLoader();
+					$scope.checkOnline(status);
+					if (status != 0) {
+						alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+					}
 				});
 
 			if (data) {
@@ -80,17 +67,13 @@ function DocumentCtrl($scope, $http) {
 		}
 
 		if (!data) {
+			$scope.addToDocumentList($scope.active.id, $scope.active);
 			$('#savedModal').modal('show');
 		}
 	});
 
 	$scope.$on('newDocument', function(e, data) {
-		monodi.document = new MonodiDocument({
-			staticStyleElement	: document.getElementById("staticStyle"),
-			dynamicStyleElement	: document.getElementById("dynamicStyle"),
-			musicContainer		: document.getElementById("musicContainer"),
-			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl"
-		});
+		initMonodiDocument();
 
 		var $text = $('#newDocumentText');
 		if (data.settext) {
@@ -117,13 +100,15 @@ function DocumentCtrl($scope, $http) {
 			temp = $scope.active;
 			$scope.setActive({
 				filename: temp.filename,
-				title: temp.title
+				title: temp.title.replace(/.mei$/,'')
 			});
         }
 		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
 			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function(e) {
 				if (!$(e.target).hasClass('saveNewDocumentHere')) {
-					$scope.setActive(temp);
+					if (temp) {
+						$scope.setActive(temp);
+					}
 				}
 				$files.fadeOut( function() {
 					$(this).removeClass('chooseDirectory');
@@ -173,6 +158,7 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
+			$scope.showLoader();
 			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject))
 				.success( function(response, status, headers) {
 					var newId = headers()['x-ressourceident'],
@@ -184,9 +170,15 @@ function DocumentCtrl($scope, $http) {
 					$scope.setNewId(id, newId);
 					$scope.removeFromSyncList(id);
 
+					$scope.hideLoader();
+
 					$scope.$emit('reloadDocuments');
 				}).error(function(data, status) {
-					alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
+					$scope.hideLoader();
+					$scope.checkOnline(status);
+					if (status != 0) {
+						alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
+					}
 				});
 
 			if (data) {
@@ -197,14 +189,33 @@ function DocumentCtrl($scope, $http) {
 				$scope.saveToSyncList();
 			}
 		}
+
+		$scope.addToDocumentList($scope.active.id, $scope.active);
 	});
 
-	monodi.document = new MonodiDocument({
-		staticStyleElement	: document.getElementById("staticStyle"),
-		dynamicStyleElement	: document.getElementById("dynamicStyle"),
-		musicContainer		: document.getElementById("musicContainer"),
-		xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl"
-	});
+	var initMonodiDocument = function(meiString) {
+		monodi.document = new MonodiDocument({
+			staticStyleElement	: document.getElementById("staticStyle"),
+			dynamicStyleElement	: document.getElementById("dynamicStyle"),
+			musicContainer		: document.getElementById("musicContainer"),
+			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl",
+			meiString			: meiString
+		});
+
+		monodi.document.addCallback('deleteAnnotatedElement', function(data) {
+			return confirm('Do you want to delete the ' + data.length + ' Annotations associated with this element?');
+		});
+
+		monodi.document.addCallback("updateView",function(element){
+			var offset = $(element).offset().top - $(window).scrollTop();
+
+			if(offset > window.innerHeight || offset < 0){
+				element.scrollIntoView(offset > 0);
+			}
+		});
+	};
+
+	initMonodiDocument();
 
 	var typesrc = monodi.document.ANNOTATION_TYPES || {};
 	types = '<p><select>';

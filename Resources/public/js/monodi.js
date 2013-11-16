@@ -170,6 +170,7 @@ function AppCtrl($scope, $http) {
     $scope.documents = [];
     $scope.active = false;
     $scope.info = false;
+    $scope.loading = false;
     $scope.reloadDocumentsWaiting = false;
     $scope.reloadDocumentsLoading;
 
@@ -184,8 +185,8 @@ function AppCtrl($scope, $http) {
             }
         };
 
-        window.addEventListener("online", $scope.setOnlineStatus, false);
-        window.addEventListener("offline", $scope.setOnlineStatus, false);
+        window.addEventListener('online', $scope.setOnlineStatus, false);
+        window.addEventListener('offline', $scope.setOnlineStatus, false);
     }
 
     $scope.$on('sync', function() {
@@ -260,46 +261,61 @@ function AppCtrl($scope, $http) {
         if ($scope.reloadDocumentsLoading) {
             $scope.reloadDocumentsWaiting = true;
         } else {
-            if ($scope.online && $scope.access_token) {
-                $scope.reloadDocumentsLoading = true;
-                $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token, {cache:false}).success(function (data) {
-                    if ($scope.getLocal('documents')) { mergeServerAndLocalstorage(JSON.parse($scope.getLocal('documents')), data); }
-
-                    $scope.documents = data;
-                    $scope.files = filterFiles(data);
-
-                    $scope.updateLocalDocuments();
-
-                    $scope.reloadDocumentsLoading = false;
-
-                    if ($scope.reloadDocumentsWaiting) {
-                        $scope.reloadDocumentsWaiting = false;
-                        $scope.$broadcast('reloadDocuments');
-                    }
-                });
-            } else if ($scope.getLocal('documents') && $scope.getLocal('files')) {
-                $scope.documents = JSON.parse($scope.getLocal('documents'));
-                $scope.files = JSON.parse($scope.getLocal('files'));
-            } else if (!$scope.online) {
-                alert('A connection to the server is not available and no files are locally cached.');
-            }
-
-            var documentList = $scope.getLocal('documentList');
-            if (documentList) {
-                angular.forEach(documentList.split(','), function(el) {
-                    id = el.trim();
-                    if (id > 0) {
-                        $scope.setDocumentLocalAttr(id, true);
-                    }
-                });
-            }
+            $scope.reloadDocuments();
         }
     });
 
-    $scope.getDocument = function(id, callback) {
+    $scope.reloadDocuments = function() {
         if ($scope.online && $scope.access_token) {
+            $scope.reloadDocumentsLoading = true;
+            $scope.showLoader();
+            $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token, {cache:false}).success(function (data) {
+                if ($scope.getLocal('documents')) { mergeServerAndLocalstorage(JSON.parse($scope.getLocal('documents')), data); }
+
+                $scope.documents = data;
+                $scope.files = filterFiles(data);
+
+                var documentList = $scope.getLocal('documentList');
+                if (documentList) {
+                    angular.forEach(documentList.split(','), function(el) {
+                        id = el.trim();
+                        if (id > 0) {
+                            $scope.setDocumentLocalAttr(id, true);
+                        }
+                    });
+                }
+
+                $scope.updateLocalDocuments();
+
+                $scope.reloadDocumentsLoading = false;
+
+                if ($scope.reloadDocumentsWaiting) {
+                    $scope.reloadDocumentsWaiting = false;
+                    $scope.$broadcast('reloadDocuments');
+                }
+
+                $scope.hideLoader();
+            }).error(function(data, status) {
+                $scope.hideLoader();
+                $scope.checkOnline(status, function() { $scope.reloadDocuments(); });
+            });
+        } else if ($scope.getLocal('documents') && $scope.getLocal('files')) {
+            $scope.documents = JSON.parse($scope.getLocal('documents'));
+            $scope.files = JSON.parse($scope.getLocal('files'));
+        } else if (!$scope.online) {
+            alert('A connection to the server is not available and no files are locally cached.');
+        }
+    };
+
+    $scope.getDocument = function(id, callback) {
+        if ($scope.online && $scope.access_token && (id + '').indexOf('temp') == -1) {
+            $scope.showLoader();
             $http.get(baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token).success(function (data) {
                 callback.bind(data)();
+                $scope.hideLoader();
+            }).error(function(data, status) {
+                $scope.hideLoader();
+                $scope.checkOnline(status);
             });
         } else if ($scope.getLocal('document' + id)) {
             callback.bind(JSON.parse($scope.getLocal('document' + id)))();
@@ -341,11 +357,15 @@ function AppCtrl($scope, $http) {
     };
     $scope.deleteDocument = function(id, callback) {
         if ((id + '').indexOf('temp') < 0) {
+            $scope.showLoader();
             $http['delete'](baseurl + 'api/v1/documents/' + id + '.json?access_token=' + $scope.access_token)
                 .success( function() {
                     removeDocument(id);
                     if (callback) callback();
+                    $scope.hideLoader();
                 }).error(function(data, status) {
+                    $scope.hideLoader();
+                    $scope.checkOnline(status);
                     if (status == '401') {
                         alert('Please log in to delete the file from the server.');
                     } else if (status == '403') {
@@ -387,11 +407,16 @@ function AppCtrl($scope, $http) {
 
     $scope.postNewFolderToServer = function(path, title, tempId, callback) {
         if ($scope.online && $scope.access_token) {
+            $scope.showLoader();
             $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).then( function(response) {
                 var newId = response.headers()['x-ressourceident'];
                 $scope.setNewId(tempId, newId);
 
                 if (callback) callback();
+                $scope.hideLoader();
+            }).error(function(data, status) {
+                $scope.hideLoader();
+                $scope.checkOnline(status);
             });
         }
     };
@@ -517,6 +542,23 @@ function AppCtrl($scope, $http) {
             }
         });
 
+        var local = $scope.getLocal('document' + id);
+        if (local) {
+            $scope.removeLocal('document' + id);
+            $scope.setLocal('document' + newId, local);
+        }
+
+        var documentList = $scope.getLocal('documentList');
+        if (documentList) {
+            if (documentList.indexOf(' ' + id + ',') > -1) {
+                $scope.setLocal('documentList', documentList.replace(' ' + id + ',', ''));
+            }
+
+            $scope.setLocal('documentList', documentList + ' ' + newId + ',');
+        } else {
+            $scope.setLocal('documentList', ' ' + newId + ',');
+        }
+
         $scope.updateLocalDocuments();
     };
 
@@ -529,7 +571,11 @@ function AppCtrl($scope, $http) {
     };
 
     $scope.setLocal = function(key, value) {
-        localStorage[key] = value;
+        try {
+            localStorage[key] = value;
+        } catch(e) {
+            alert('The local storage in your browser is full.\n\nIf you receive this message while logging in, please go to the management page , remove some files (in any folder) from local storage by clicking the yellow button next to the file name (more conveniently done in the document list view), and reload the page.\n\nIf you receive this message while saving a document, please go to the management page, remove some files (in any folder) from local storage by clicking the yellow button next to the file name (more conveniently done in the document list view), return to the document, and save again.');
+        }
     };
 
     $scope.getLocal = function(key) {
@@ -547,6 +593,9 @@ function AppCtrl($scope, $http) {
 
     $scope.saveToSyncList = function() {
         var id = $scope.active.id;
+
+        $scope.active.content = monodi.document.getSerializedDocument();
+        
         $scope.setLocal('document' + id, JSON.stringify($scope.active));
         var syncList = $scope.getLocal('syncList');
         if (syncList) {
@@ -556,13 +605,45 @@ function AppCtrl($scope, $http) {
         } else {
             $scope.setLocal('syncList', ' ' + id + ',');
         }
-        $scope.setLocal(id, true);
+        $scope.setDocumentLocalAttr(id, true);
     };
 
     $scope.removeFromSyncList = function(id) {
         var syncList = $scope.getLocal('syncList');
         if (syncList) {
             $scope.setLocal('syncList', syncList.replace(' ' + id + ',', ''));
+        }
+    };
+
+    $scope.addToDocumentList = function(id, content) {
+        $scope.setLocal('document' + id, JSON.stringify(content));
+        var documentList = $scope.getLocal('documentList');
+        if (documentList) {
+            if (documentList.indexOf(' ' + id + ',') < 0) {
+                $scope.setLocal('documentList', documentList + ' ' + id + ',');
+            }
+        } else {
+            $scope.setLocal('documentList', ' ' + id + ',');
+        }
+        $scope.setDocumentLocalAttr(id, true);
+    };
+
+    $scope.showLoader = function() {
+        $scope.loading = true;
+    };
+
+    $scope.hideLoader = function() {
+        $scope.loading = false;
+    };
+
+    $scope.checkOnline = function(status, callback) {
+        if (!callback) {
+            callback = function() { alert('You are not connected to the server. Please check your internet connection.'); };
+        }
+
+        if (status == 0) {
+            $scope.access_token = false;
+            callback();
         }
     };
 
@@ -591,8 +672,13 @@ function NavCtrl($scope, $http) {
                     $scope.$emit('reloadDocuments', {});
                     $modal.modal('hide');
 
+                    $scope.showLoader();
                     $http.get(baseurl + 'api/v1/profile/?access_token=' + $scope.access_token).success(function (data) {
                         $scope.pass = data;
+                        $scope.hideLoader();
+                    }).error(function() {
+                        $scope.hideLoader();
+                        $scope.checkOnline(status);
                     });
                 }
             });
@@ -605,10 +691,14 @@ function NavCtrl($scope, $http) {
     };
 
     $scope.changePass = function(pass) {
+        $scope.showLoader();
         $http.put(baseurl + 'api/v1/profile/' + pass.slug + '/password.json?access_token=' + $scope.access_token, '{"current_password":"' + pass.old + '","new":"' + pass.new +'"}').success(function (data) {
             $('#changePassModal').find('.modal-body').find('.notice').remove().end().append('<p class="notice">Passwort wurde erfolgreich geändert</p>');
+            $scope.hideLoader();
         }).error(function (data, status) {
             var error = '';
+            $scope.hideLoader();
+            $scope.checkOnline(status);
             switch (status) {
                 case 404:
                     error = 'The username was not found.';
@@ -652,9 +742,10 @@ function NavCtrl($scope, $http) {
         end = (end > start)? end : data.length;
         data = data.substring(start, end);
         $('#printContainer').append(data).show();
+        window.print();
     };
 }
-function DocumentListCtrl($scope, $http) {
+function DocumentListCtrl($scope) {
 	$scope.toggle = function() {
 		var $checkboxes = $('.fileList input[type="checkbox"]');
 		if ($checkboxes.first().prop('checked') == true) {
@@ -671,7 +762,7 @@ function DocumentListCtrl($scope, $http) {
 
 	$scope.removeDocument = function(id, batch) {
 		if (!batch) {
-			if (!confirm('Are you sure to delete this document?')) {
+			if (!confirm('Delete document?')) {
 				return false;
 			}
 		}
@@ -682,7 +773,7 @@ function DocumentListCtrl($scope, $http) {
 	};
 
 	$scope.removeDocumentBatch = function() {
-		if (!confirm('Are you sure to delete these documents?')) {
+		if (!confirm('Delete documents?')) {
 			return false;
 		}
 		
@@ -706,22 +797,13 @@ function DocumentListCtrl($scope, $http) {
 
 	$scope.printBatch = function() {
 		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.print(el);
+			$scope.print(el, false);
 		});
 	};
 
 	$scope.saveDocumentLocal = function(id) {
 		$scope.getDocument(id, function() {
-			$scope.setLocal('document' + id, JSON.stringify(this));
-			var documentList = $scope.getLocal('documentList');
-			if (documentList) {
-				if (documentList.indexOf(' ' + id + ',') < 0) {
-					$scope.setLocal('documentList', documentList + ' ' + id + ',');
-				}
-			} else {
-				$scope.setLocal('documentList', ' ' + id + ',');
-			}
-			$scope.setDocumentLocalAttr(id, true);
+			$scope.addToDocumentList(id, this);
 		});
 	};
 
@@ -915,7 +997,7 @@ function DocumentListCtrl($scope, $http) {
 	$scope.saveNewDocumentHere = function(path) {
 		var error = false;
 
-		if (!$scope.active.title || !/^[A-z0-9_\-\s]+$/.test($scope.active.title)) {
+		if (!$scope.active.title || !/^[A-z0-9_\-]+$/.test($scope.active.title)) {
 			$('#fileName').focus();
 			alert('Filename is invalid');
 			return false;
@@ -928,12 +1010,12 @@ function DocumentListCtrl($scope, $http) {
 			$scope.active.filename = $scope.active.title;
 		}
 
-		document.title = "mono:di - " + $scope.active.filename;
-
 		if (checkFileExists($scope.documents, $scope.active.filename, pathParts, 0)) {
 			alert('Filename already exists.');
 			return false;
 		}
+
+		document.title = "mono:di - " + $scope.active.filename;
 
 		$scope.active.path = path;
 		
@@ -960,28 +1042,9 @@ function DocumentListCtrl($scope, $http) {
 };
 function DocumentCtrl($scope, $http) {
 	$scope.$on('openDocument', function() {
-		monodi.document = new MonodiDocument({
-			staticStyleElement	: document.getElementById("staticStyle"),
-			dynamicStyleElement	: document.getElementById("dynamicStyle"),
-			musicContainer		: document.getElementById("musicContainer"),
-			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl",
-			meiString			: $scope.active.content
-		});
-
-		monodi.document.addCallback('deleteAnnotatedElement', function(data) {
-			return confirm('Do you want to delete the ' + data.length + ' Annotations associated with this element?');
-		});
-
-		monodi.document.addCallback("updateView",function(element){
-			var offset = $(element).offset().top - $(window).scrollTop();
-
-			if(offset > window.innerHeight || offset < 0){
-				element.scrollIntoView(offset > 0);
-			}
-		});
+		initMonodiDocument($scope.active.content);
 
 		document.title = "mono:di - " + $scope.active.filename;
-
 		$scope.showView('main');
 	});
 
@@ -1026,9 +1089,15 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
+			$scope.showLoader();
 			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject))
+				.success($scope.hideLoader)
 				.error(function(data, status) {
-					alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+					$scope.hideLoader();
+					$scope.checkOnline(status);
+					if (status != 0) {
+						alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+					}
 				});
 
 			if (data) {
@@ -1040,17 +1109,13 @@ function DocumentCtrl($scope, $http) {
 		}
 
 		if (!data) {
+			$scope.addToDocumentList($scope.active.id, $scope.active);
 			$('#savedModal').modal('show');
 		}
 	});
 
 	$scope.$on('newDocument', function(e, data) {
-		monodi.document = new MonodiDocument({
-			staticStyleElement	: document.getElementById("staticStyle"),
-			dynamicStyleElement	: document.getElementById("dynamicStyle"),
-			musicContainer		: document.getElementById("musicContainer"),
-			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl"
-		});
+		initMonodiDocument();
 
 		var $text = $('#newDocumentText');
 		if (data.settext) {
@@ -1077,13 +1142,15 @@ function DocumentCtrl($scope, $http) {
 			temp = $scope.active;
 			$scope.setActive({
 				filename: temp.filename,
-				title: temp.title
+				title: temp.title.replace(/.mei$/,'')
 			});
         }
 		var $files = $('.files.container').addClass('chooseDirectory').find('.fileviewToggle .btn:first-child').trigger('click').end().fadeIn(),
 			$bg = $('<div class="modal-backdrop fade in"></div>').insertAfter($files).on('click', function(e) {
 				if (!$(e.target).hasClass('saveNewDocumentHere')) {
-					$scope.setActive(temp);
+					if (temp) {
+						$scope.setActive(temp);
+					}
 				}
 				$files.fadeOut( function() {
 					$(this).removeClass('chooseDirectory');
@@ -1133,6 +1200,7 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
+			$scope.showLoader();
 			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject))
 				.success( function(response, status, headers) {
 					var newId = headers()['x-ressourceident'],
@@ -1144,9 +1212,15 @@ function DocumentCtrl($scope, $http) {
 					$scope.setNewId(id, newId);
 					$scope.removeFromSyncList(id);
 
+					$scope.hideLoader();
+
 					$scope.$emit('reloadDocuments');
 				}).error(function(data, status) {
-					alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
+					$scope.hideLoader();
+					$scope.checkOnline(status);
+					if (status != 0) {
+						alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
+					}
 				});
 
 			if (data) {
@@ -1157,14 +1231,33 @@ function DocumentCtrl($scope, $http) {
 				$scope.saveToSyncList();
 			}
 		}
+
+		$scope.addToDocumentList($scope.active.id, $scope.active);
 	});
 
-	monodi.document = new MonodiDocument({
-		staticStyleElement	: document.getElementById("staticStyle"),
-		dynamicStyleElement	: document.getElementById("dynamicStyle"),
-		musicContainer		: document.getElementById("musicContainer"),
-		xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl"
-	});
+	var initMonodiDocument = function(meiString) {
+		monodi.document = new MonodiDocument({
+			staticStyleElement	: document.getElementById("staticStyle"),
+			dynamicStyleElement	: document.getElementById("dynamicStyle"),
+			musicContainer		: document.getElementById("musicContainer"),
+			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl",
+			meiString			: meiString
+		});
+
+		monodi.document.addCallback('deleteAnnotatedElement', function(data) {
+			return confirm('Do you want to delete the ' + data.length + ' Annotations associated with this element?');
+		});
+
+		monodi.document.addCallback("updateView",function(element){
+			var offset = $(element).offset().top - $(window).scrollTop();
+
+			if(offset > window.innerHeight || offset < 0){
+				element.scrollIntoView(offset > 0);
+			}
+		});
+	};
+
+	initMonodiDocument();
 
 	var typesrc = monodi.document.ANNOTATION_TYPES || {};
 	types = '<p><select>';

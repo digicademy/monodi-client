@@ -207,10 +207,13 @@ $(document).on('keydown', function(e) {
 				if (text == '') {
 					if (syl) {
 						monodi.document.selectNextElement("preceding");
+						setTimeout(function() {
+							setFocus(monodi.document.getSelectedElement());
+						},0)
 					} else {
 						monodi.document.deleteElement();
 					}
-  				return false;
+					return false;
 				}
 			break;
 			case 37: //left
@@ -241,7 +244,7 @@ $(document).on('keydown', function(e) {
 			case 32: //space
 				monodi.document.setTextContent(text.substring(0,caret), true);
 				monodi.document.newSyllableAfter(text.substring(caret));
-				setFocus(monodi.document.getSelectedElement());
+				setFocus(monodi.document.getSelectedElement(), true);
 				return false;
 			break;
 			case 13: //enter
@@ -257,7 +260,7 @@ $(document).on('keydown', function(e) {
 							if ([37,39].indexOf(e.keyCode) < 0) {
 								monodi.document.setTextContent(text.substring(0,caret+1), true);
 								monodi.document.newSyllableAfter(text.substring(caret+1));
-								setFocus(monodi.document.getSelectedElement());
+								setFocus(monodi.document.getSelectedElement(), true);
 							}
 						break;
 					}
@@ -312,11 +315,13 @@ $(document).on('keydown', function(e) {
 		monodi.document.selectElement(sel);
 
 		return false;
-	}).find('input').val(properties.label).end()
+	}).find('select').val(properties.type).end()
+	.find('input').val(properties.label).end()
 	.find('textarea').val(properties.text).end().end()
 	.find('.btn-danger').show().end()
 	.modal('show').on('hide.annotation', function(e) {
 		$(this).find('form').off('submit');
+		$(this).find('.btn-danger').off('click');
 	}).find('.btn-danger').on('click', function(e) {
 		if (confirm('Do you want to delete the Annotation?')) {
 			monodi.document.deleteElement(annot, true);
