@@ -198,7 +198,6 @@
       }
       .stafflines {
         stroke-width:<xsl:value-of select="$staffLineWidth * $scaleStepSize"/>px;
-        background-color:white;
       }
       .ineume > .stafflines {
         z-index:-10;
@@ -240,7 +239,7 @@
         position:absolute;
         left:<xsl:value-of select=".5*($sbPbWidth * $scaleStepSize - $sbPbLineWidth)"/>px;
         height:<xsl:value-of select="$scaleStepSize * $sbPbMarkerHeight"/>px;
-        bottom:0;
+        margin-top: <xsl:value-of select="$musicAreaHeight - $scaleStepSize * $sbPbMarkerHeight"/>px;
         z-index:-1;
       }
       .musicLayer > .pb:after {
@@ -323,6 +322,7 @@
       .editionLine {
         text-indent:<xsl:value-of select="-$indentOnLineBreak - $lineLeftMargin"/>px;
         margin-left:<xsl:value-of select=" $indentOnLineBreak + $lineLeftMargin"/>px;
+        margin-bottom:-2em;
       }
       .editionLine > * {
         text-indent:0;
@@ -352,6 +352,7 @@
       }
       .ineume {
         padding-right:<xsl:value-of select="$paddingAfterIneume * $scaleStepSize"/>px;
+        margin-bottom:2em;
       }
       .ineume:last-of-type {
         margin-right:<xsl:value-of select="$paddingAfterSyllablePitches * $scaleStepSize"/>px; 
@@ -420,6 +421,7 @@
           <!--margin-top:4px;-->
           height:0;
           transform:translate(0,<xsl:value-of select="$musicAreaHeight"/>px);
+          -webkit-transform:translate(0,<xsl:value-of select="$musicAreaHeight"/>px);
           z-index:10;
         }
         <!-- Now, to the annotation labels themselves -->
