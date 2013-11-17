@@ -130,17 +130,11 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                 </div>
             </div>
 
-            <div class="help container">
-                <h2>Quare attende, quaeso.</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quid ergo attinet gloriose loqui, nisi constanter loquare? Duo Reges: constructio interrete. Facete M. Nosti, credo, illud: Nemo pius est, qui pietatem-; Nondum autem explanatum satis, erat, quid maxime natura vellet. Nescio quo modo praetervolavit oratio. Nam bonum ex quo appellatum sit, nescio, praepositum ex eo credo, quod praeponatur aliis. Hoc tu nunc in illo probas. </p>
-                <p>Ut optime, secundum naturam affectum esse possit. Quamquam tu hanc copiosiorem etiam soles dicere. Intellegi quidem, ut propter aliam quampiam rem, verbi gratia propter voluptatem, nos amemus; Quod ea non occurrentia fingunt, vincunt Aristonem; Laboro autem non sine causa; An hoc usque quaque, aliter in vita? </p>
-                <p>Poterat autem inpune; Ab hoc autem quaedam non melius quam veteres, quaedam omnino relicta. Ab his oratores, ab his imperatores ac rerum publicarum principes extiterunt. Ab his oratores, ab his imperatores ac rerum publicarum principes extiterunt. Nobis aliter videtur, recte secusne, postea; Sic exclusis sententiis reliquorum cum praeterea nulla esse possit, haec antiquorum valeat necesse est. Certe non potest. </p>
-                <ul>
-                    <li>Isto modo ne improbos quidem, si essent boni viri.</li>
-                    <li>At, illa, ut vobis placet, partem quandam tuetur, reliquam deserit.</li>
-                </ul>
-                <p>Qui ita affectus, beatum esse numquam probabis; Vitae autem degendae ratio maxime quidem illis placuit quieta. Maximas vero virtutes iacere omnis necesse est voluptate dominante. Cupiditates non Epicuri divisione finiebat, sed sua satietate. Ego vero volo in virtute vim esse quam maximam; </p>
-                <p>Hoc mihi cum tuo fratre convenit. Cur id non ita fit? Minime vero istorum quidem, inquit. Sed nonne merninisti licere mihi ista probare, quae sunt a te dicta? Potius inflammat, ut coercendi magis quam dedocendi esse videantur. Quodcumque in mentem incideret, et quodcumque tamquam occurreret. Inquit, dasne adolescenti veniam? Et quidem, inquit, vehementer errat; </p>
+            <!-- Provisional inlines styles: Here is a problem: Firefox needs "bottom: 0", 
+                 Chrome "bottom: -100px" or less (like -160) and overflow:hidden on <body> -->
+            <div class="help container" style="position: absolute; width: 100%; top: 43px; bottom: 0; display: block;overflow:hidden">
+                <iframe src="help/help.xhtml"
+                    style="position: absolute; top:45px; height:100%;width:100%;transform:translate(-2px,-47px);-webkit-transform:translate(-2px,-47px)"></iframe>
             </div>
         </div>
 

@@ -4,6 +4,7 @@ CACHE MANIFEST
 
 CACHE:
 /bundles/digitalwertmonodiclient/css/main.css
+/bundles/digitalwertmonodiclient/css/help.css
 /bundles/digitalwertmonodiclient/js/monodi.js
 
 /bundles/digitalwertmonodiclient/js/templates/tree.html
@@ -17,6 +18,8 @@ CACHE:
 /bundles/digitalwertmonodiclient/img/glyphicons-halflings.png
 /bundles/digitalwertmonodiclient/img/glyphicons-halflings-white.png
 /bundles/digitalwertmonodiclient/img/loader.gif
+
+/bundles/digitalwertmonodiclient/help/help.xhtml
 
 NETWORK:
 *
