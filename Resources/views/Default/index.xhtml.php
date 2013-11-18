@@ -132,9 +132,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 
             <!-- Provisional inlines styles: Here is a problem: Firefox needs "bottom: 0", 
                  Chrome "bottom: -100px" or less (like -160) and overflow:hidden on <body> -->
-            <div class="help container" style="position: absolute; width: 100%; top: 43px; bottom: 0; display: block;overflow:hidden">
-                <iframe src="/bundles/digitalwertmonodiclient/help/help.xhtml"
-                    style="position: absolute; top:45px; height:100%;width:100%;transform:translate(-2px,-47px);-webkit-transform:translate(-2px,-47px)"></iframe>
+            <div class="help container" style="width: 100%; padding: 0; position: absolute; top: 43px; bottom: 60px;">
+                <iframe src="/bundles/digitalwertmonodiclient/help/help.xhtml" class="container" style="display: block; height: 100%; border: 0;"></iframe>
             </div>
         </div>
 

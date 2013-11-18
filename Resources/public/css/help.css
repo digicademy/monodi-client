@@ -1,3 +1,8 @@
+body {
+  height: auto;
+  padding: 20px 1px 40px;
+}
+
 .key-command-table, .key-command-table caption {
 	width:250px;
 }
