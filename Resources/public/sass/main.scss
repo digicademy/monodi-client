@@ -161,7 +161,7 @@ html, body {
     }
 
     li {
-        padding-top: 8px;
+        padding: 4px 0;
         position: relative;
 
         &:before {
@@ -169,13 +169,26 @@ html, body {
             width: 20px;
             position: absolute;
             left: -11px;
-            top: 23px;
+            top: 19px;
             border-top: 1px solid #ddd;
         }
 
         &:last-child:before {
             height: 100%;
             border-left: 1px solid #fff;
+        }
+
+        &:hover > .actions {
+            &:before {
+                content: "";
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                left: 0;
+                top: 0;
+                background-color: #f3f3f3;
+                z-index: -1;
+            }
         }
     }
 
@@ -189,6 +202,7 @@ html, body {
     }
 
     .actions {
+        position: static;
         margin-right: 10px;
         float: right;
     }
