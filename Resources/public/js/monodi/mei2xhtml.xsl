@@ -92,7 +92,7 @@
     specialProperty:#808;'"/>
   
   <xsl:variable name="stafflines">
-    <svg:svg width="100%" height="{$musicAreaHeight}px" viewBox="0 0 1 {$musicAreaHeight}" class="stafflines" preserveAspectRatio="none">
+    <svg:svg height="{$musicAreaHeight}px" viewBox="0 0 1 {$musicAreaHeight}" class="stafflines" preserveAspectRatio="none">
       <svg:path 
           d="m0 ,{$spaceAboveStaff*$scaleStepSize}h1
              m-1,{ 2*$scaleStepSize}h1
@@ -198,6 +198,7 @@
       }
       .stafflines {
         stroke-width:<xsl:value-of select="$staffLineWidth * $scaleStepSize"/>px;
+        width: 100%;
       }
       .ineume > .stafflines {
         z-index:-10;
