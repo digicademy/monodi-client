@@ -839,7 +839,7 @@
         <xsl:apply-templates mode="print-annotations"
           select="following-sibling::*
           [not(self::mei:sb) or @source]
-          [generate-id(preceding-sibling::mei:sb[not(@source)][1]) = generate-id(current())]//@xml:id"/>
+          [generate-id(preceding-sibling::mei:sb[not(@source)][1]) = generate-id(current())]//@xml:id|@xml:id"/>
       </div>
     </xsl:if>
   </xsl:template>
