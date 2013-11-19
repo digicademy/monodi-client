@@ -28,6 +28,7 @@
   <xsl:param name="onload"/>
   <xsl:param name="displayAnnotations" select="'true'"/>
   <xsl:param name="interactiveCSS" select="'true'"/>
+  <xsl:param name="printAnnotations" select="'true'"/>
   
   <!-- SPACING PARAMETERS -->
   <!-- These following lengths are given in terms of scaleStepSize -->
@@ -667,6 +668,33 @@
         }
       <!--</style>-->
     </xsl:if>
+      <xsl:if test="$printAnnotations">
+        .printedAnnots {
+          display:none;
+        }
+        
+        @media print {
+          .printedAnnots {
+            display: table;
+            margin-top:2em;
+            border-collapse: collapse;
+          }
+          .printedAnnot {
+            display: table-row;
+            border: .1em solid black;
+          }
+          .printedAnnot:before {
+            content:attr(type);
+          }
+          .printedAnnot > *,
+          .printedAnnot:before {
+            display:table-cell;
+            min-width:1.5em;
+            border: .1em solid black;
+            padding: .2em;
+          }
+        }
+      </xsl:if>
     </style>
   </xsl:template>
   
@@ -805,6 +833,29 @@
       <xsl:apply-templates select="following-sibling::*
         [not(self::mei:sb) or @source]
         [generate-id(preceding-sibling::mei:sb[not(@source)][1]) = generate-id(current())]"/>
+    </div>
+    <xsl:if test="$printAnnotations = 'true'">
+      <div class="printedAnnots">
+        <xsl:apply-templates mode="print-annotations"
+          select="following-sibling::*
+          [not(self::mei:sb) or @source]
+          [generate-id(preceding-sibling::mei:sb[not(@source)][1]) = generate-id(current())]//@xml:id"/>
+      </div>
+    </xsl:if>
+  </xsl:template>
+  
+  <xsl:template mode="print-annotations" match="@xml:id">
+    <xsl:apply-templates select="//mei:annot[string(@startid) = concat('#', current())]" mode="print-annotations"/>
+  </xsl:template>
+  
+  <xsl:template mode="print-annotations" match="mei:annot">
+    <div class="printedAnnot" type="{@type}">
+      <div class="label">
+        <xsl:value-of select="@label"/>
+      </div>
+      <div class="text">
+        <xsl:value-of select="."/>
+      </div>
     </div>
   </xsl:template>
   
