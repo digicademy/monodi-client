@@ -1073,7 +1073,8 @@
       // We put edition system breaks in between <syllable>s
       // (as opposed to source system breaks)
       element = $MEI(element || selectedElement);
-      var newSb = createMeiElement("<sb n='' label=''/>");
+      var newSb = createMeiElement("<sb n='' label=''/>"),
+          newSyllable;
 
       insertElement(newSb, {
         contextElement : element,
@@ -1081,8 +1082,8 @@
         precedingSibling : "ancestor-or-self::mei:syllable[1]"
       });
 
-      this.newSyllableAfter("", true, newSb); // We can't have empty lines
-      if (!leaveFocus) {this.selectElement(newSb);}
+      newSyllable = this.newSyllableAfter("", true, newSb); // We can't have empty lines
+      if (!leaveFocus) {this.selectElement(evaluateXPath(newSyllable, "mei:syl")[0]);}
       
       return newSb;
     };
@@ -1389,10 +1390,10 @@
           documents[i] = loadXML({xmlString: documents[i]});
         }
       }      
-      var printDocument = transform(documents[0], "d0"),
+      var printDocument = transform(documents[0], idPrefix + "d0"),
         printDocumentBody = printDocument.getElementsByTagName("body")[0];
       for (i=1; i<documents.length; i+=1) {
-        var contentToAppend = transform(documents[i], "d" + i).getElementsByTagName("body")[0].firstElementChild;
+        var contentToAppend = transform(documents[i], idPrefix + "d" + i).getElementsByTagName("body")[0].firstElementChild;
         var defElements = contentToAppend.getElementsByTagName("defs");
         var j;
         for (j=0; j<defElements.length; j+=1) {
