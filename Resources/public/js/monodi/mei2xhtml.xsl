@@ -203,9 +203,6 @@
       .ineume > .stafflines {
         z-index:-10;
       }
-      .musicLayer > .pb {
-        z-index:1;
-      }
       .slur {
         stroke-width:<xsl:value-of select="$slurLineWidth * $scaleStepSize"/>px;
       }
@@ -256,10 +253,11 @@
         top:<xsl:value-of select="$musicAreaHeight - $scaleStepSize * $sbPbMarkerHeight"/>px;
         margin-top:-1em;
         background-color:rgba(255,255,255,.9);
+        z-index: 10;
       }
-      .musicLayer > .pb {
+      .musicLayer > .pb, .musicLayer > .sb {
         margin-right:1em;
-        vertical-align:bottom;
+        vertical-align:top;
       }
 <!--    </style>
     <style type="text/css"><!-\- Text styling -\->-->
@@ -634,7 +632,7 @@
           content:"";
           position:absolute;
           width:100%;
-          height:100%;
+          height:<xsl:value-of select="$musicAreaHeight"/>px;
           background-color:rgba(0,0,0,.2);
         }
         .annotLabel > a:hover {
@@ -894,8 +892,8 @@
     </div>
   </xsl:template>
   
-  <xsl:template match="mei:ineume">
-    <div class="_mei ineume">
+  <xsl:template match="mei:ineume|mei:sb[@source]">
+    <div>
       <xsl:attribute name="class">
         <xsl:value-of select="concat('_mei ',local-name())"/>
         <xsl:apply-templates select="@*" mode="generate-classes"/>
@@ -911,7 +909,7 @@
   <!-- By default, don't create title element -->
   <xsl:template match="*|@*" mode="create-title"/>
   <!-- For specific elements, create a title -->
-  <xsl:template match="mei:sb" mode="create-title">
+  <xsl:template match="mei:sb[@source]" mode="create-title">
     <xsl:attribute name="title">line break in the source</xsl:attribute>
   </xsl:template>
   <xsl:template match="mei:syllable/mei:pb" mode="create-title" priority="1">
@@ -1111,6 +1109,9 @@
           <xsl:value-of select="substring(@func,1,1)"/>
         </span>
       </div>
+      <!-- Staff lines inside <pb> won't be positioned consistently between 
+           Chrome and Firefox, so we leave them out for now. -->
+      <!-- <xsl:copy-of select="$stafflines"/> -->
     </div>
   </xsl:template>
   
