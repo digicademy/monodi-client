@@ -7,8 +7,7 @@
     xmlns:mei="http://www.music-encoding.org/ns/mei"
     exclude-result-prefixes="svg mei">
 
-  <!-- TODO: - Introduce proper accidental symbols (not font based) 
-             - Small caps for base chants -->
+  <!-- TODO: - Small caps for base chants? -->
 
   <xsl:key name="id" match="*[@xml:id]" use="@xml:id"/>
   
@@ -668,6 +667,15 @@
         }
       <!--</style>-->
     </xsl:if>
+      
+      <!-- For batch print, we must prevent collisions between two consequent documents -->
+      
+      ._mei.mei + ._mei.mei:before {
+        content:"";
+        display:block;
+        height:<xsl:value-of select="$musicAreaHeight"/>px;
+      }
+      
       <xsl:if test="$printAnnotations">
         .printedAnnots {
           display:none;
@@ -1223,7 +1231,6 @@
         <xsl:if test="@accid"> <!-- if > 0, we have an accidental -->
           <svg:use class="accidental" xlink:href="#{@accid}Accidental"
               x="{$scaleStepSize * (-.5*$noteSpace) + 1.2 * $accidentalSpace}" y="{$noteheadStep * $scaleStepSize}"/>
-          <!-- TODO: Don't use unicode glyphs. We have no guaranteed size or base line choice -->
         </xsl:if>
         
         <svg:use xlink:href="#{$idPrefix}{$noteheadType}Notehead">
