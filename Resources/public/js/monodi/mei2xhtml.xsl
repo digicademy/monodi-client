@@ -339,7 +339,7 @@
       }
       .musicLayer {
         margin-bottom:<xsl:value-of select="$musicTextDistance * $scaleStepSize"/>px;
-        min-height: <xsl:value-of select="$musicAreaHeight"/>px;
+        min-height: <xsl:value-of select="$musicAreaHeight + $scaleStepSize * $spaceBelowStaff"/>px;
       }
       .sb.source:after {
         padding-right:<xsl:value-of select="$paddingAfterSyllableText * $scaleStepSize"/>px;
