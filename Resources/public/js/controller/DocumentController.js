@@ -49,7 +49,17 @@ function DocumentCtrl($scope, $http) {
 
 			$scope.showLoader();
 			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject))
-				.success($scope.hideLoader)
+				.success(function() {
+					var id = $scope.active.id;
+					if (data) {
+						id = data.id;
+					}
+
+					$scope.removeFromSyncList(id);
+					$scope.$emit('sync');
+
+					$scope.hideLoader();
+				})
 				.error(function(data, status) {
 					$scope.hideLoader();
 					$scope.checkOnline(status);
@@ -59,7 +69,6 @@ function DocumentCtrl($scope, $http) {
 				});
 
 			if (data) {
-				$scope.removeFromSyncList($scope.active.id);
 				$scope.setActive(temp);
 			}
 		} else if (!data) {
@@ -173,6 +182,7 @@ function DocumentCtrl($scope, $http) {
 					$scope.hideLoader();
 
 					$scope.$emit('reloadDocuments');
+					$scope.$emit('sync');
 				}).error(function(data, status) {
 					$scope.hideLoader();
 					$scope.checkOnline(status);

@@ -347,8 +347,19 @@ html, body {
   z-index: 10000;
 }
 
+.printMode {
+    .views>.container,
+    .navbar,
+    .footer,
+    .modal {
+        display: none!important;
+    }
+}
+
 @media print {
     #printContainer button {
         display: none;
     }
+
+    ._mei.mei {pointer-events: none}
 }

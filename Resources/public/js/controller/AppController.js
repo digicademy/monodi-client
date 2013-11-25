@@ -30,16 +30,17 @@ function AppCtrl($scope, $http) {
             var syncList = $scope.getLocal('syncList');
             if (syncList) {
                 $scope.syncDocuments = $scope.documents;
-                angular.forEach(syncList.split(','), function(id) {
-                    id = id.trim();
-                    if ($scope.getLocal('document' + id)) {
-                        if ((id + '').indexOf('temp') < 0) {
-                            $scope.$broadcast('syncDocument', { id: id });
-                        } else {
-                            $scope.$broadcast('syncNewDocument', { id: id });
-                        }
+                var id = syncList.split(',').shift().trim();
+                
+                if ($scope.getLocal('document' + id)) {
+                    if ((id + '').indexOf('temp') < 0) {
+                        $scope.$broadcast('syncDocument', { id: id });
+                    } else {
+                        $scope.$broadcast('syncNewDocument', { id: id });
                     }
-                });
+                } else {
+                    $scope.$broadcast('sync');
+                }
             }
         }
     });
