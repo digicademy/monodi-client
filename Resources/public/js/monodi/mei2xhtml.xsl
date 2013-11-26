@@ -174,7 +174,9 @@
         vertical-align:top;
       }
       .musicLayer > .ineume, .musicLayer > .pb {
-        height:<xsl:value-of select="$musicAreaHeight"/>px;
+        height:<xsl:value-of select="$musicAreaHeight + ($musicTextDistance + $textAnnotHeight) * $scaleStepSize"/>px;
+        <!-- We have to make sure the text that was moved down using CSS transform has enough space as well: -->
+        padding-bottom:1em;
       }
       .sb.edition {
         vertical-align:bottom;
@@ -352,7 +354,7 @@
       }
       .ineume {
         padding-right:<xsl:value-of select="$paddingAfterIneume * $scaleStepSize"/>px;
-        margin-bottom:2em;
+        margin-bottom:.5em;
       }
       .ineume:last-of-type {
         margin-right:<xsl:value-of select="$paddingAfterSyllablePitches * $scaleStepSize"/>px; 
@@ -471,7 +473,7 @@
         .textLayer .annotLabel:before,  
         .sb.edition .annotLabel > a,
         .sb.edition .annotLabel:before { 
-          margin-top:0;
+          margin-top:1px;
         }
         <!-- This is the background for the label -->
         .annotLabel > a:before {
