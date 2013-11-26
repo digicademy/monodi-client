@@ -365,10 +365,11 @@ $(document).on('keydown', function(e) {
 
 $('#printContainer button').on('click', function() {
 	$(this).parent().hide().children('.mei').remove();
+	$('body').removeClass('printMode');
 });
 
 $(window).on('beforeunload', function() {
 	return 'Are you sure you want to close the application? All unsaved changes will be lost!';
 });
 
-$('<p class="version">v0.9.1</p>').appendTo('.footer .container');
+$('<p class="version">v0.9.5</p>').appendTo('.footer .container');

@@ -13,15 +13,15 @@ function DocumentListCtrl($scope) {
 		$scope.$emit('openDocumentRequest', { id: id });
 	};
 
-	$scope.removeDocument = function(id, batch) {
-		if (!batch) {
+	$scope.removeDocument = function(id, callback) {
+		if (!callback) {
 			if (!confirm('Delete document?')) {
 				return false;
 			}
 		}
 
 		$scope.removeLocal(id);
-		$scope.deleteDocument(id);
+		$scope.deleteDocument(id, callback);
 		$scope.removeFromSyncList(id);
 	};
 
@@ -29,13 +29,16 @@ function DocumentListCtrl($scope) {
 		if (!confirm('Delete documents?')) {
 			return false;
 		}
-		
-		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.removeDocument(el, true);
-		});
+
+		var ids = getBatchDocuments(),
+			callback = function() {
+				if (ids.length) $scope.removeDocument(ids.shift(), callback);
+			};
+
+		callback();
 	};
 
-	$scope.print = function(id) {
+	$scope.print = function(id, callback) {
 		$scope.getDocument(id, function() {
 			var data = monodi.document.getPrintHtml([this.content]).outerHTML,
 				start = data.indexOf('<body'),
@@ -45,25 +48,36 @@ function DocumentListCtrl($scope) {
 			end = (end > start)? end : data.length;
 			data = data.substring(start, end);
 			$('#printContainer').append(data).show();
+			$('body').addClass('printMode');
+
+			if (callback) callback();
 		});
 	};
 
 	$scope.printBatch = function() {
-		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.print(el, false);
-		});
+		var ids = getBatchDocuments(),
+			callback = function() {
+				if (ids.length) $scope.print(ids.shift(), callback);
+			};
+
+		callback();
 	};
 
-	$scope.saveDocumentLocal = function(id) {
+	$scope.saveDocumentLocal = function(id, callback) {
 		$scope.getDocument(id, function() {
 			$scope.addToDocumentList(id, this);
+
+			if (callback) callback();
 		});
 	};
 
 	$scope.saveLocalBatch = function() {
-		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.saveDocumentLocal(el);
-		});
+		var ids = getBatchDocuments(),
+			callback = function() {
+				if (ids.length) $scope.saveDocumentLocal(ids.shift(), callback);
+			};
+
+		callback();
 	};
 
 	$scope.removeDocumentLocal = function(id) {
@@ -290,6 +304,6 @@ function DocumentListCtrl($scope) {
 	var getBatchDocuments = function() {
 		return $('.fileviews').children(':visible').find(':checked').map( function() {
 			return this.name;
-		});
+		}).get();
 	};
 };
