@@ -330,6 +330,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
             </div>
         </div>
 
+        <div class="loader" ng-show="loading"></div>
+
         <script src="/bundles/digitalwertmonodiclient/js/monodi/MonodiDocument.js"></script>
         <script src="/bundles/digitalwertmonodiclient/js/main.js"></script>
 
