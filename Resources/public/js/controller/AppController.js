@@ -245,13 +245,14 @@ function AppCtrl($scope, $http) {
     $scope.postNewFolderToServer = function(path, title, tempId, callback) {
         if ($scope.online && $scope.access_token) {
             $scope.showLoader();
-            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).then( function(response) {
-                var newId = response.headers()['x-ressourceident'];
+            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title }))
+            .success( function(response, status, headers) {
+                var newId = headers()['x-ressourceident'];
                 $scope.setNewId(tempId, newId);
 
                 if (callback) callback();
                 $scope.hideLoader();
-            }).error(function(data, status) {
+            }).error( function(data, status) {
                 $scope.hideLoader();
                 $scope.checkOnline(status);
             });
