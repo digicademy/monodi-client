@@ -602,13 +602,11 @@ function AppCtrl($scope, $http) {
                 removeContentAttr(el.folders);
             }
         });
-
-        return result;
     };
     $scope.updateLocalDocuments = function() {
-        var documents = $.map($.extend({}, JSON.parse($scope.documents), true), function(v) {
+        var documents = $.map($.extend({}, $scope.documents, true), function(v) {
             return v;
-        }), files = $.map($.extend({}, JSON.parse($scope.files), true), function(v) {
+        }), files = $.map($.extend({}, $scope.files, true), function(v) {
             return v;
         });
 
