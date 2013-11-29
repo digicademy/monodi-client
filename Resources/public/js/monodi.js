@@ -588,9 +588,39 @@ function AppCtrl($scope, $http) {
         localStorage.removeItem(key);
     };
 
+    var removeContentAttr = function(data) {
+        angular.forEach(data, function(el) {
+            if (el.document_count > 0) {
+                angular.forEach(el.documents, function(el) {
+                    if (el.content) {
+                        delete el.content;
+                    }
+                });
+            }
+
+            if (el.children_count > 0) {
+                removeContentAttr(el.folders);
+            }
+        });
+
+        return result;
+    };
     $scope.updateLocalDocuments = function() {
-        $scope.setLocal('documents', JSON.stringify($scope.documents));
-        $scope.setLocal('files', JSON.stringify($scope.files));
+        var documents = $.map($.extend({}, JSON.parse($scope.documents), true), function(v) {
+            return v;
+        }), files = $.map($.extend({}, JSON.parse($scope.files), true), function(v) {
+            return v;
+        });
+
+        removeContentAttr(documents);
+        $scope.setLocal('documents', JSON.stringify(documents));
+        
+        angular.forEach(files, function(el) {
+            if (el.content) {
+                delete el.content;
+            }
+        });
+        $scope.setLocal('files', JSON.stringify(files));
     };
 
     $scope.saveToSyncList = function() {
