@@ -330,14 +330,13 @@ html, body {
         }
     }
 
-    .version {
-        margin-top: -30px;
+    .right-info {
         float: right;
+        text-align: right;
     }
 }
 
 .loader {
-  content: "";
   position: fixed;
   top: 0;
   right: 0;

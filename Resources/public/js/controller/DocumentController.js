@@ -35,8 +35,8 @@ function DocumentCtrl($scope, $http) {
 		if ($scope.online && $scope.access_token) {
 			if (data) {
 				doc = $scope.getLocal('document' + data.id);
-				temp = $scope.active;
-				$scope.setActive(JSON.parse(doc));
+				temp = JSON.parse($scope.active);
+				$scope.setActive(doc);
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
 			}
@@ -156,8 +156,8 @@ function DocumentCtrl($scope, $http) {
 			var temp, doc;
 			if (data) {
 				temp = $scope.active;
-				doc = $scope.getLocal('document' + data.id);
-				$scope.setActive(JSON.parse(doc));
+				doc = JSON.parse($scope.getLocal('document' + data.id));
+				$scope.setActive(doc);
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
 			}
@@ -183,10 +183,20 @@ function DocumentCtrl($scope, $http) {
 
 					$scope.$emit('reloadDocuments');
 					$scope.$emit('sync');
-				}).error(function(data, status) {
+				}).error(function(response, status) {
 					$scope.hideLoader();
 					$scope.checkOnline(status);
-					if (status != 0) {
+					if (status == 400 && response.children.filename.errors[0].indexOf('This value is already used') > -1) {
+						var id = $scope.active.id;
+						if (data) {
+							id = data.id;
+						}
+
+						doc.filename = prompt('The filename ' + doc.filename + ' already exists in this folder on the server. Please rename your file.');
+						$scope.setLocal('document' + id, JSON.stringify(doc));
+
+						$scope.$emit('sync');
+					} else if (status != 0) {
 						alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
 					}
 				});

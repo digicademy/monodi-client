@@ -387,7 +387,7 @@ function AppCtrl($scope, $http) {
     $scope.saveDocument = function() {
         if (!$scope.active) {
             alert('No active document!');
-        } else if ($scope.active.id) {
+        } else if ($scope.active.id && (($scope.active.id + '').indexOf('temp') < 0)) {
             $scope.$broadcast('saveDocument');
         } else {
             $scope.$broadcast('saveNewDocument');
@@ -409,13 +409,14 @@ function AppCtrl($scope, $http) {
     $scope.postNewFolderToServer = function(path, title, tempId, callback) {
         if ($scope.online && $scope.access_token) {
             $scope.showLoader();
-            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title })).then( function(response) {
-                var newId = response.headers()['x-ressourceident'];
+            $http.post(baseurl + 'api/v1/metadata/' + path + '.json?access_token=' + $scope.access_token, JSON.stringify({ title: title }))
+            .success( function(response, status, headers) {
+                var newId = headers()['x-ressourceident'];
                 $scope.setNewId(tempId, newId);
 
                 if (callback) callback();
                 $scope.hideLoader();
-            }).error(function(data, status) {
+            }).error( function(data, status) {
                 $scope.hideLoader();
                 $scope.checkOnline(status);
             });
@@ -587,9 +588,37 @@ function AppCtrl($scope, $http) {
         localStorage.removeItem(key);
     };
 
+    var removeContentAttr = function(data) {
+        angular.forEach(data, function(el) {
+            if (el.document_count > 0) {
+                angular.forEach(el.documents, function(el) {
+                    if (el.content) {
+                        delete el.content;
+                    }
+                });
+            }
+
+            if (el.children_count > 0) {
+                removeContentAttr(el.folders);
+            }
+        });
+    };
     $scope.updateLocalDocuments = function() {
-        $scope.setLocal('documents', JSON.stringify($scope.documents));
-        $scope.setLocal('files', JSON.stringify($scope.files));
+        var documents = $.map($.extend({}, $scope.documents, true), function(v) {
+            return v;
+        }), files = $.map($.extend({}, $scope.files, true), function(v) {
+            return v;
+        });
+
+        removeContentAttr(documents);
+        $scope.setLocal('documents', JSON.stringify(documents));
+        
+        angular.forEach(files, function(el) {
+            if (el.content) {
+                delete el.content;
+            }
+        });
+        $scope.setLocal('files', JSON.stringify(files));
     };
 
     $scope.saveToSyncList = function() {
@@ -634,7 +663,9 @@ function AppCtrl($scope, $http) {
     };
 
     $scope.hideLoader = function() {
-        $scope.loading = false;
+        if (!$http.pendingRequests.length) {
+            $scope.loading = false;
+        }
     };
 
     $scope.checkOnline = function(status, callback) {
@@ -1092,8 +1123,8 @@ function DocumentCtrl($scope, $http) {
 		if ($scope.online && $scope.access_token) {
 			if (data) {
 				doc = $scope.getLocal('document' + data.id);
-				temp = $scope.active;
-				$scope.setActive(JSON.parse(doc));
+				temp = JSON.parse($scope.active);
+				$scope.setActive(doc);
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
 			}
@@ -1213,8 +1244,8 @@ function DocumentCtrl($scope, $http) {
 			var temp, doc;
 			if (data) {
 				temp = $scope.active;
-				doc = $scope.getLocal('document' + data.id);
-				$scope.setActive(JSON.parse(doc));
+				doc = JSON.parse($scope.getLocal('document' + data.id));
+				$scope.setActive(doc);
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
 			}
@@ -1240,10 +1271,20 @@ function DocumentCtrl($scope, $http) {
 
 					$scope.$emit('reloadDocuments');
 					$scope.$emit('sync');
-				}).error(function(data, status) {
+				}).error(function(response, status) {
 					$scope.hideLoader();
 					$scope.checkOnline(status);
-					if (status != 0) {
+					if (status == 400 && response.children.filename.errors[0].indexOf('This value is already used') > -1) {
+						var id = $scope.active.id;
+						if (data) {
+							id = data.id;
+						}
+
+						doc.filename = prompt('The filename ' + doc.filename + ' already exists in this folder on the server. Please rename your file.');
+						$scope.setLocal('document' + id, JSON.stringify(doc));
+
+						$scope.$emit('sync');
+					} else if (status != 0) {
 						alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
 					}
 				});
