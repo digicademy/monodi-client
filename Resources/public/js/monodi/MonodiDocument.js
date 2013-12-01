@@ -542,7 +542,7 @@
         /*jslint regexp: true*/
         var folioInfo = columns[2] || "",
           sbN = columns[0] || "",
-          contentString = '<sb label="' + (rubricCaption || "") + '" n="' + sbN + '"/>',
+          contentString = '<sb label="' + (rubricCaption || "").replace(/</g,"&lt;") + '" n="' + sbN + '"/>',
           syllables = columns[1] ? columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : [""],
           breakMarkerString = "",
           folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)([rv]?)$/) || [],
