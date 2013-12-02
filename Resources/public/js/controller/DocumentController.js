@@ -33,43 +33,51 @@ function DocumentCtrl($scope, $http) {
 	$scope.$on('saveDocument', function(e, data) {
 		var temp, doc;
 		if ($scope.online && $scope.access_token) {
-			if (data) {
-				doc = $scope.getLocal('document' + data.id);
-				temp = JSON.parse($scope.active);
-				$scope.setActive(doc);
+			if (($scope.active.id + '').indexOf('temp') < 0) {
+				if (data) {
+					doc = $scope.getLocal('document' + data.id);
+					temp = JSON.parse($scope.active);
+					$scope.setActive(doc);
+				} else {
+					$scope.active.content = monodi.document.getSerializedDocument();
+				}
+
+				var putObject = {
+					filename: $scope.active.filename,
+					content: $scope.active.content,
+					folder: getParent($scope.active.id, $scope.documents).id
+				};
+
+				$scope.showLoader();
+				$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject))
+					.success(function() {
+						var id = $scope.active.id;
+						if (data) {
+							id = data.id;
+						}
+
+						$scope.removeFromSyncList(id);
+						$scope.$emit('sync');
+
+						$scope.hideLoader();
+					})
+					.error(function(data, status) {
+						$scope.hideLoader();
+						$scope.checkOnline(status);
+						if (status != 0) {
+							alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+						}
+
+						if (!data) {
+							$scope.saveToSyncList();
+						}
+					});
+
+				if (data) {
+					$scope.setActive(temp);
+				}
 			} else {
-				$scope.active.content = monodi.document.getSerializedDocument();
-			}
-
-			var putObject = {
-				filename: $scope.active.filename,
-				content: $scope.active.content,
-				folder: getParent($scope.active.id, $scope.documents).id
-			};
-
-			$scope.showLoader();
-			$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject))
-				.success(function() {
-					var id = $scope.active.id;
-					if (data) {
-						id = data.id;
-					}
-
-					$scope.removeFromSyncList(id);
-					$scope.$emit('sync');
-
-					$scope.hideLoader();
-				})
-				.error(function(data, status) {
-					$scope.hideLoader();
-					$scope.checkOnline(status);
-					if (status != 0) {
-						alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
-					}
-				});
-
-			if (data) {
-				$scope.setActive(temp);
+				$scope.$broadcast('postNewDocument', data);
 			}
 		} else if (!data) {
 			$scope.saveToSyncList();
@@ -186,7 +194,7 @@ function DocumentCtrl($scope, $http) {
 				}).error(function(response, status) {
 					$scope.hideLoader();
 					$scope.checkOnline(status);
-					if (status == 400 && response.children.filename.errors[0].indexOf('This value is already used') > -1) {
+					if (status == 400 && response.children.filename.errors && response.children.filename.errors[0].indexOf('This value is already used') > -1) {
 						var id = $scope.active.id;
 						if (data) {
 							id = data.id;
@@ -198,6 +206,10 @@ function DocumentCtrl($scope, $http) {
 						$scope.$emit('sync');
 					} else if (status != 0) {
 						alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
+					}
+
+					if (!data) {
+						$scope.saveToSyncList();
 					}
 				});
 
