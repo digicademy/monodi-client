@@ -132,7 +132,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 
             <!-- Provisional inlines styles: Here is a problem: Firefox needs "bottom: 0", 
                  Chrome "bottom: -100px" or less (like -160) and overflow:hidden on <body> -->
-            <div class="help container" style="width: 100%; padding: 0; position: absolute; top: 43px; bottom: 60px;">
+            <div class="help container" style="width: 100%; padding: 0; position: absolute; top: 43px; bottom: 0;">
                 <iframe src="/bundles/digitalwertmonodiclient/help/help.xhtml" class="container" style="display: block; height: 100%; border: 0;"></iframe>
             </div>
         </div>
@@ -181,6 +181,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                             <span class="icon-bar"></span>
                         </button>
                         <div class="brand">mono:di</div>
+                        <div class="version" style="float:left;padding: 10px 20px 10px 0;color:#999;"></div>
                         <div class="nav-collapse collapse">
                             <ul class="nav">
                                 <li>
@@ -198,6 +199,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                     </div>
                                 </li>
                                 <li><button class="filecontrol btn btn-link" ng-click="showView('files')">Management</button></li>
+                                <li class="right"><a href="/bundles/digitalwertmonodiclient/impressum/index.html" target="_blank">Impressum</a></li>
                                 <li class="right"><button class="help btn btn-link" ng-click="showView('help')">Help</button></li>
                                 <li class="right">
                                     <button class="btn btn-link" data-target="#changePassModal" data-toggle="modal" ng-show="access_token">Profil</button>
@@ -318,16 +320,6 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 
         <div id="printContainer">
             <button class="btn btn-inverse"><i class="icon-remove-circle icon-white"></i></button>
-        </div>
-
-        <div class="footer">
-            <div class="container">
-                <p class="right-info">
-                    <a href="/bundles/digitalwertmonodiclient/impressum/index.html" target="_blank">Impressum</a><br />
-                </p>
-                <p>Concept, musical core and rendering: Thomas Weber for <a href="http://www.notengrafik.com/" target="_blank">notengrafik berlin</a><br />
-                Server side development and user interface: <a href="http://www.digitalwert.de/" target="_blank">digitalwert&#174;</a>, Dresden</p>
-            </div>
         </div>
 
         <div class="loader" ng-show="loading"></div>
