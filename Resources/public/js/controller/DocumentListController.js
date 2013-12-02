@@ -13,15 +13,15 @@ function DocumentListCtrl($scope) {
 		$scope.$emit('openDocumentRequest', { id: id });
 	};
 
-	$scope.removeDocument = function(id, callback) {
-		if (!callback) {
+	$scope.removeDocument = function(id, batch) {
+		if (!batch) {
 			if (!confirm('Delete document?')) {
 				return false;
 			}
 		}
 
 		$scope.removeLocal(id);
-		$scope.deleteDocument(id, callback);
+		$scope.deleteDocument(id);
 		$scope.removeFromSyncList(id);
 	};
 
@@ -29,55 +29,48 @@ function DocumentListCtrl($scope) {
 		if (!confirm('Delete documents?')) {
 			return false;
 		}
-
-		var ids = getBatchDocuments(),
-			callback = function() {
-				if (ids.length) $scope.removeDocument(ids.shift(), callback);
-			};
-
-		callback();
-	};
-
-	$scope.print = function(id, callback) {
-		$scope.getDocument(id, function() {
-			var data = monodi.document.getPrintHtml([this.content]).outerHTML,
-				start = data.indexOf('<body'),
-				end = data.indexOf('</body>');
-
-			start = (start >= 0)? start + data.match(/<body[\w\s="']*>/gi)[0].length : 0;
-			end = (end > start)? end : data.length;
-			data = data.substring(start, end);
-			$('#printContainer').append(data).show();
-			$('body').addClass('printMode');
-
-			if (callback) callback();
+		
+		angular.forEach(getBatchDocuments(), function(el) {
+			$scope.removeDocument(el, true);
 		});
 	};
 
 	$scope.printBatch = function() {
-		var ids = getBatchDocuments(),
-			callback = function() {
-				if (ids.length) $scope.print(ids.shift(), callback);
-			};
-
-		callback();
+		$scope.print(getBatchDocuments());
 	};
 
-	$scope.saveDocumentLocal = function(id, callback) {
+	$scope.print = function(ids) {
+	    var ids = ids instanceof Array ? ids : [ids],
+	        documents = [],
+	        i,
+	        printDivs;
+	    for (i = 0; i < ids.length; i += 1) {
+			$scope.getDocument(ids[i], function(){
+			    documents.push(this.content);
+			});
+			// Check whether adding document to the list was successful - if not, return.
+			if (documents.length < i+1) return;
+		};
+		printDivs = monodi.document.getPrintHtml(documents).querySelector("html > body > *");
+		$('#printContainer').append(printDivs).show(0, function(){
+			window.print();
+			window.setTimeout(function(){
+				$('#printContainer').hide().children('.mei').remove();
+      }, 600);
+		});
+	};
+
+
+	$scope.saveDocumentLocal = function(id) {
 		$scope.getDocument(id, function() {
 			$scope.addToDocumentList(id, this);
-
-			if (callback) callback();
 		});
 	};
 
 	$scope.saveLocalBatch = function() {
-		var ids = getBatchDocuments(),
-			callback = function() {
-				if (ids.length) $scope.saveDocumentLocal(ids.shift(), callback);
-			};
-
-		callback();
+		angular.forEach(getBatchDocuments(), function(el) {
+			$scope.saveDocumentLocal(el);
+		});
 	};
 
 	$scope.removeDocumentLocal = function(id) {
@@ -304,6 +297,6 @@ function DocumentListCtrl($scope) {
 	var getBatchDocuments = function() {
 		return $('.fileviews').children(':visible').find(':checked').map( function() {
 			return this.name;
-		}).get();
+		});
 	};
 };

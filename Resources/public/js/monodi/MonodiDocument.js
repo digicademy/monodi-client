@@ -542,10 +542,10 @@
         /*jslint regexp: true*/
         var folioInfo = columns[2] || "",
           sbN = columns[0] || "",
-          contentString = '<sb label="' + (rubricCaption || "") + '" n="' + sbN + '"/>',
+          contentString = '<sb label="' + (rubricCaption || "").replace(/</g,"&lt;") + '" n="' + sbN + '"/>',
           syllables = columns[1] ? columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : [""],
           breakMarkerString = "",
-          folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)(v?)$/) || [],
+          folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)([rv]?)$/) || [],
           i;
           
         for (i=0; i<syllables.length; i+=1) {
@@ -558,7 +558,7 @@
             case "||":
               breakMarkerString = "<pb source='' " + 
                 "n='" + (folioInfoComponents[1] || "") + "' " + 
-                "func='" + (folioInfoComponents[2] || (folioInfoComponents[1] ? "r" : "")) + "'/>";
+                "func='" + (folioInfoComponents[2] === "v" ? "verso" : (folioInfoComponents[1] ? "recto" : "")) + "'/>";
               break;
             default :
               contentString += "<syllable>" +
@@ -598,13 +598,13 @@
           //   - tab
           //   - /|| f. \d+v?/ // 
           /*jslint regexp: true*/
-          if (line.match(/^(\d*|[A-Z]?)\t([^\t]+)\t?(\|*\s*f\.\s*\d+v?)?\s*$/)) {
+          if (line.match(/^(\d*|[A-Z]?)\t([^\t]+)\t?(\|*\s*f\.\s*\d+[rv]?)?\s*$/)) {
             var columns = line.split(/\s*\t\s*/);
             // A line that has no line label in the left column,
             // only capital letters in the center column
             // and optionally folio information of the form /f\. \d+v?/ in the third column
             // is a rubric caption.
-            if (columns[0] === "" && columns[1].match(/^[A-Z\s]+$/)) {
+            if (columns[0] === "" && columns[1].match(/^[A-Z\s<>]+$/)) {
               // This is the rubric caption for the next line
               rubricCaption = columns[1];
             } else {

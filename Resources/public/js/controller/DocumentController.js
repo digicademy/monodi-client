@@ -230,7 +230,7 @@ function DocumentCtrl($scope, $http) {
 			staticStyleElement	: document.getElementById("staticStyle"),
 			dynamicStyleElement	: document.getElementById("dynamicStyle"),
 			musicContainer		: document.getElementById("musicContainer"),
-			xsltUrl				: "/bundles/digitalwertmonodiclient/js/monodi/mei2xhtml.xsl",
+			xsltUrl				: "http://localhost/Resources/public/js/monodi/mei2xhtml.xsl",
 			meiString			: meiString
 		});
 
