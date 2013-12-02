@@ -5211,10 +5211,12 @@ html, body {
   border-top-color: #777; }
 .navbar .btn, .navbar .btn-group {
   margin-top: 0; }
-.navbar .btn-link {
+.navbar .btn-link,
+.navbar .version {
   float: none;
   padding: 10px 15px 10px;
-  color: #777;
+  color: #777; }
+.navbar .btn-link {
   text-decoration: none;
   text-shadow: none; }
   .navbar .btn-link:hover {
@@ -5226,8 +5228,8 @@ html, body {
     color: #222; }
 
 .navbar-inverse .nav > li > a {
-  color: #999999;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25); }
+  color: #777;
+  text-shadow: none; }
 
 .modal-body hr {
   margin-top: 10px; }
@@ -5242,7 +5244,17 @@ html, body {
   margin: 0 auto -60px; }
   .views > .container {
     display: none;
-    padding: 60px 0 100px; }
+    padding: 60px 0; }
+  .views .help-container {
+    width: 100%;
+    padding: 0;
+    position: absolute;
+    top: 43px;
+    bottom: 60px; }
+    .views .help-container iframe {
+      display: block;
+      height: 100%;
+      border: 0; }
 
 .fileviewToggle {
   margin-bottom: 20px;
@@ -5398,20 +5410,6 @@ html, body {
   #printContainer iframe {
     width: 100%; }
 
-.footer {
-  color: #999;
-  background: #1b1b1b; }
-  .footer p {
-    margin-top: 10px; }
-  .footer a {
-    color: #999;
-    text-decoration: underline; }
-    .footer a:hover {
-      color: #fff; }
-  .footer .right-info {
-    float: right;
-    text-align: right; }
-
 .loader {
   position: fixed;
   top: 0;
@@ -5423,7 +5421,6 @@ html, body {
 
 .printMode .views > .container,
 .printMode .navbar,
-.printMode .footer,
 .printMode .modal {
   display: none !important; }
 .printMode .mei,

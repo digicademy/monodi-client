@@ -130,10 +130,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                 </div>
             </div>
 
-            <!-- Provisional inlines styles: Here is a problem: Firefox needs "bottom: 0", 
-                 Chrome "bottom: -100px" or less (like -160) and overflow:hidden on <body> -->
-            <div class="help container" style="width: 100%; padding: 0; position: absolute; top: 43px; bottom: 60px;">
-                <iframe src="/bundles/digitalwertmonodiclient/help/help.xhtml" class="container" style="display: block; height: 100%; border: 0;"></iframe>
+            <div class="help help-container container">
+                <iframe src="/bundles/digitalwertmonodiclient/help/help.xhtml" class="container"></iframe>
             </div>
         </div>
 
@@ -198,6 +196,8 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                     </div>
                                 </li>
                                 <li><button class="filecontrol btn btn-link" ng-click="showView('files')">Management</button></li>
+                                <li class="right version"></li>
+                                <li class="right"><a href="/bundles/digitalwertmonodiclient/impressum/index.html" target="_blank">Impressum</a></li>
                                 <li class="right"><button class="help btn btn-link" ng-click="showView('help')">Help</button></li>
                                 <li class="right">
                                     <button class="btn btn-link" data-target="#changePassModal" data-toggle="modal" ng-show="access_token">Profil</button>
@@ -318,14 +318,6 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 
         <div id="printContainer">
             <button class="btn btn-inverse"><i class="icon-remove-circle icon-white"></i></button>
-        </div>
-
-        <div class="footer">
-            <div class="container">
-                <p class="right-info">
-                    <a href="/bundles/digitalwertmonodiclient/impressum/index.html" target="_blank">Impressum</a><br />
-                </p>
-            </div>
         </div>
 
         <div class="loader" ng-show="loading"></div>
