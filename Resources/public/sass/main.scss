@@ -353,6 +353,11 @@ html, body {
     .modal {
         display: none!important;
     }
+
+    .mei,
+    ._mei {
+        pointer-events: none
+    }
 }
 
 @media print {
@@ -360,5 +365,8 @@ html, body {
         display: none;
     }
 
-    ._mei.mei {pointer-events: none}
+    .mei,
+    ._mei {
+        pointer-events: none;
+    }
 }

@@ -90,6 +90,7 @@ function NavCtrl($scope, $http) {
         start = (start >= 0)? start + data.match(/<body[\w\s="']*>/gi)[0].length : 0;
         end = (end > start)? end : data.length;
         data = data.substring(start, end);
+        $('body').addClass('printMode');
         $('#printContainer').append(data).show();
         window.print();
     };

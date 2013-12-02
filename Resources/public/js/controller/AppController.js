@@ -223,7 +223,7 @@ function AppCtrl($scope, $http) {
     $scope.saveDocument = function() {
         if (!$scope.active) {
             alert('No active document!');
-        } else if ($scope.active.id && (($scope.active.id + '').indexOf('temp') < 0)) {
+        } else if ($scope.active.id) {
             $scope.$broadcast('saveDocument');
         } else {
             $scope.$broadcast('saveNewDocument');
@@ -440,9 +440,9 @@ function AppCtrl($scope, $http) {
         });
     };
     $scope.updateLocalDocuments = function() {
-        var documents = $.map($.extend({}, $scope.documents, true), function(v) {
+        var documents = $.map($.extend(true, {}, $scope.documents), function(v) {
             return v;
-        }), files = $.map($.extend({}, $scope.files, true), function(v) {
+        }), files = $.map($.extend(true, {}, $scope.files), function(v) {
             return v;
         });
 
