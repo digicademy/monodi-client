@@ -604,7 +604,7 @@
             // only capital letters in the center column
             // and optionally folio information of the form /f\. \d+v?/ in the third column
             // is a rubric caption.
-            if (columns[0] === "" && columns[1].match(/^[A-Z\s<>]+$/)) {
+            if (columns[0] === "" && columns[1].match(/^[A-Z\s<>#]+$/)) {
               // This is the rubric caption for the next line
               rubricCaption = columns[1];
             } else {
