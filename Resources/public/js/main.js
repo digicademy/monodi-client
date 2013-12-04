@@ -372,4 +372,4 @@ $(window).on('beforeunload', function() {
 	return 'Are you sure you want to close the application? All unsaved changes will be lost!';
 });
 
-$('<span class="version">v0.9.6</span>').appendTo('.footer .right-info');
+$('.version').text('v1.0');
