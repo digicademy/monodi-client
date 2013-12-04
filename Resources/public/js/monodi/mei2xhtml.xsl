@@ -421,11 +421,10 @@
         }
         .textLayer { <!-- We don't want music and text layer annotations to overlap -->
           <!--margin-top:4px;-->
-          position: relative;
-          z-index: 10;
           height:0;
           transform:translate(0,<xsl:value-of select="$musicAreaHeight"/>px);
           -webkit-transform:translate(0,<xsl:value-of select="$musicAreaHeight"/>px);
+          position: relative;
           z-index:10;
         }
         <!-- Now, to the annotation labels themselves -->
