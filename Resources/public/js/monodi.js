@@ -303,10 +303,44 @@ function AppCtrl($scope, $http) {
         } else if ($scope.getLocal('documents') && $scope.getLocal('files')) {
             $scope.documents = JSON.parse($scope.getLocal('documents'));
             $scope.files = JSON.parse($scope.getLocal('files'));
-        } else if (!$scope.online) {
-            alert('A connection to the server is not available and no files are locally cached.');
+        } else {
+            // We need to load demo data synchronously because demo data needs to be
+            // locally available before we continue initializing mono:di
+  
+            var request = new XMLHttpRequest();
+            request.open('GET', 'js/demo.json', false);  // `false` makes the request synchronous
+            request.send(null);
+  
+            if (request.status === 200) {
+              $scope.documents = JSON.parse(request.responseText);
+              $scope.files = extractFiles($scope.documents);
+              $scope.setLocal("documents", JSON.stringify($scope.documents));
+              $scope.setLocal("files", JSON.stringify($scope.files));
+              $scope.files.forEach(function(file){
+                $scope.addToDocumentList(file.id, JSON.stringify(file));
+              });
+            } else {
+              alert("The mono:di demo data could not be loaded");
+            }
         }
     };
+
+    function extractFiles(folderList) {
+      var documentList = [],
+          documentsInFolder;
+      folderList.forEach(function(folder) {
+        
+        documentList = documentList.concat(folder.documents || []);
+        if (folder.folders) {
+          folder.folders.forEach(function(subfolder) {
+            var documentsInFolder = extractFiles(subfolder.folders);
+            documentList = documentList.concat(documentsInFolder);
+          });
+        }
+      });
+      return documentList;
+    }
+    
 
     $scope.getDocument = function(id, callback) {
         if ($scope.online && $scope.access_token && (id + '').indexOf('temp') == -1) {
@@ -680,8 +714,7 @@ function AppCtrl($scope, $http) {
     };
 
     $scope.$broadcast('reloadDocuments');
-}
-function NavCtrl($scope, $http) {
+}function NavCtrl($scope, $http) {
 	$scope.login = function(id) {
         var url = baseurl + 'oauth/v2/auth?client_id=' + client_id + '&response_type=token&redirect_uri=' + client_uri,
             $modal = $('#loginModal').css({ width: 300, height: 260, marginLeft: -150 }).empty(),
