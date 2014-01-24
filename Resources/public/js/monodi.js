@@ -317,7 +317,7 @@ function AppCtrl($scope, $http) {
               $scope.setLocal("documents", JSON.stringify($scope.documents));
               $scope.setLocal("files", JSON.stringify($scope.files));
               $scope.files.forEach(function(file){
-                $scope.addToDocumentList(file.id, JSON.stringify(file));
+                $scope.addToDocumentList(file.id, file);
               });
             } else {
               alert("The mono:di demo data could not be loaded");
