@@ -184,7 +184,8 @@
         var newIdNumber = Math.floor((new Date().getTime() + Math.random()) * randomSuffixRange);
         // To save a little space (especially for localStorage), we base-36 encode the number generated above. 
         newId = "mei" + newIdNumber.toString(36);
-      } while (newIds.indexOf(newId) >= 0 || $MEI(newId)); // We must avoid IDs that already exist
+      } while (newIds.indexOf(newId) >= 0 || $MEI(newId)); // We must avoid IDs that already exist, 
+                                                           // either in the document DOM or in the list of freshly generated IDs 
       newIds.push(newId);
       element.setAttributeNS(xmlNS,"xml:id",newId);
       return element;

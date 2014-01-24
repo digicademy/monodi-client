@@ -308,7 +308,7 @@ function AppCtrl($scope, $http) {
             // locally available before we continue initializing mono:di
   
             var request = new XMLHttpRequest();
-            request.open('GET', 'js/demo.json', false);  // `false` makes the request synchronous
+            request.open('GET', '/bundles/digitalwertmonodiclient/js/demo.json', false);  // `false` makes the request synchronous
             request.send(null);
   
             if (request.status === 200) {
@@ -714,7 +714,8 @@ function AppCtrl($scope, $http) {
     };
 
     $scope.$broadcast('reloadDocuments');
-}function NavCtrl($scope, $http) {
+}
+function NavCtrl($scope, $http) {
 	$scope.login = function(id) {
         var url = baseurl + 'oauth/v2/auth?client_id=' + client_id + '&response_type=token&redirect_uri=' + client_uri,
             $modal = $('#loginModal').css({ width: 300, height: 260, marginLeft: -150 }).empty(),

@@ -144,7 +144,7 @@ function AppCtrl($scope, $http) {
             // locally available before we continue initializing mono:di
   
             var request = new XMLHttpRequest();
-            request.open('GET', 'js/demo.json', false);  // `false` makes the request synchronous
+            request.open('GET', '/bundles/digitalwertmonodiclient/js/demo.json', false);  // `false` makes the request synchronous
             request.send(null);
   
             if (request.status === 200) {
