@@ -18,6 +18,7 @@
   <param name="advance" select="3"/>
   <param name="marginaliaP4" select="5"/>
   <param name="rubricTitleP4" select="20"/>
+  <param name="P4distanceBetweenRubricTitles" select="4"/>
   <param name="overviewLineP4" select="30"/>
   <param name="lyricsP4" select="-5"/>
   <param name="hyphenP4" select="-4"/>
@@ -163,9 +164,19 @@
   <!-- Rubrics -->
   <template mode="mei2score" match="mei:sb[not(@source)]/@label[not(.='')]">
     <param name="P2"/>
+    <param name="P4" select="$rubricTitleP4"/>
+    <param name="rubricText" select="."/>
     
-    <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$rubricTitleP4,' 0 0 0 0 0 0 ',$staffP3,'&#10;')"/>
-    <value-of select="concat($standardFont, string() ,'&#10;')"/>
+    <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$P4,' 0 0 0 0 0 0 ',$staffP3,'&#10;')"/>
+    <value-of select="concat($standardFont, normalize-space(substring-before(concat($rubricText,'#'),'#')) ,'&#10;')"/>
+    
+    <if test="contains($rubricText,'#')">
+      <apply-templates mode="mei2score" select=".">
+        <with-param name="P2" select="$P2"/>
+        <with-param name="P4" select="$P4 - $P4distanceBetweenRubricTitles"/>
+        <with-param name="rubricText" select="substring-after($rubricText, '#')"/>
+      </apply-templates>
+    </if>
   </template>
 
 
