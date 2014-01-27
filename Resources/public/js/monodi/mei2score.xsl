@@ -242,7 +242,7 @@
     <value-of select="concat($font, $syl,'&#10;')"/>
     
     <if test="@wordpos='i' or @wordpos='m' or contains(mei:syl, '-')">
-      <value-of select="concat('4 ',$P2,' ',$newP3,' ',$hyphenP4,' ',$hyphenP4,' ',$newP3,' 0 0 0 0 0 0 0 0 0 1 0 ',$hyphenP17,' ',$hyphenP18)"/>
+      <value-of select="concat('4 ',$P2,' ',$newP3,' ',$hyphenP4,' ',$hyphenP4,' ',$newP3,' 0 0 0 0 0 0 0 0 0 1 0 ',$hyphenP17,' ',$hyphenP18,'&#10;')"/>
     </if>
     
     <apply-templates mode="mei2score" select="($leadingBreakMarkers|mei:ineume|following::*)[1]">
