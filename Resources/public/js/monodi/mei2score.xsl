@@ -40,8 +40,11 @@
   
   <template match="/">
     <for-each select="//mei:work[1]">
+      <variable name="transcriptionNumber" select="substring(translate(@n,':',''), string-length(substring-before(@n,':')) + 1)"/>
+
       <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,'&#10;')"/>
-      <value-of select="concat($standardFont, @n, '&#10;')"/>
+      <value-of select="concat($standardFont, $transcriptionNumber, '&#10;')"/>
+
       <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 0 0 0 0 0 ',$staffP3,'&#10;')"/>
       <value-of select="$standardFont"/>
       <value-of select="normalize-space(mei:classification/mei:termList[@label='liturgicFunction'])"/>
@@ -54,7 +57,7 @@
     </for-each>
     
     <!-- We convert one line after the other because we need to keep track of
-         to how many line Score breaks an individual mei:sb translates to.
+         to how many Score line breaks an individual mei:sb translates to.
          $maxStaffsPerPage is then used to determine when we need to start a new Score file. -->
     <apply-templates mode="mei2score" select="//mei:sb[not(@source)][1]"/>
   </template>
@@ -147,7 +150,9 @@
     <param name="followingLineNumber" select="../following-sibling::mei:sb[not(@source)][1]/@n"/>
     
     <choose>
-      <when test="contains($capitalLetters, .) and           string($followingLineNumber) != '' and contains($capitalLetters, $followingLineNumber)">
+      <when test="contains($capitalLetters, .) and           
+                  string($followingLineNumber) != '' and 
+                  contains($capitalLetters, $followingLineNumber)">
         <apply-templates mode="mei2score" select="$followingLineNumber">
           <with-param name="P2" select="$P2"/>
           <with-param name="concatenatedLineNumbers" select="concat($concatenatedLineNumbers, .)"/>
@@ -167,6 +172,7 @@
     <param name="P4" select="$rubricTitleP4"/>
     <param name="rubricText" select="."/>
     
+    <!-- Multiple rubrics are separated by a "#" and we need to split them -->
     <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$P4,' 0 0 0 0 0 0 ',$staffP3,'&#10;')"/>
     <value-of select="concat($standardFont, normalize-space(substring-before(concat($rubricText,'#'),'#')) ,'&#10;')"/>
     
