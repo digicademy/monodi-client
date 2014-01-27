@@ -1,12 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<stylesheet version="1.0"
-    xmlns="http://www.w3.org/1999/XSL/Transform" 
-    xmlns:mei="http://www.music-encoding.org/ns/mei">
+<?xml version="1.0" encoding="UTF-8"?><stylesheet xmlns="http://www.w3.org/1999/XSL/Transform" xmlns:mei="http://www.music-encoding.org/ns/mei" version="1.0">
+  
+  <!-- This stylesheet creates a Score macro file.
+       It is not strictly a PMX file because it does not only store item parameters,
+       it also contains commands for saving files and continuing on a new page. -->
 
   <import href="mei2xhtml.xsl"/>
   
-  <key name="typesetterAnnotStart" match="mei:annot" use="substring(@startid,2)"/>
-  <key name="typesetterAnnotEnd"   match="mei:annot" use="substring(@endid,  2)"/>
+  <key name="typesetterAnnotStart" match="mei:annot[@type='typesetter']" use="substring(@startid,2)"/>
+  <key name="typesetterAnnotEnd" match="mei:annot[@type='typesetter']" use="substring(@endid,  2)"/>
   
   <output method="text"/>
   
@@ -30,11 +31,11 @@
   <param name="smallCapsFont" select="'_85'"/>
   <param name="standardAnnotP4" select="18"/>
   <param name="lyricsAnnotP4" select="$lyricsP4 - 4"/>
-  <param name="annotP5Onwards" select="'.9 .55 1'"/>
+  <param name="annotP5toP7" select="'.9 .55 1'"/>
   
   <variable name="capitalLetters" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
 
-  <template match="text()"/>
+  <template mode="mei2score" match="text()"/>
   
   <template match="/">
     <for-each select="//mei:work[1]">
@@ -50,8 +51,11 @@
       </if>
       <value-of select="'&#10;'"/>
     </for-each>
-      
-    <apply-templates select="//mei:sb[not(@source)][1]"/>
+    
+    <!-- We convert one line after the other because we need to keep track of
+         to how many line Score breaks an individual mei:sb translates to.
+         $maxStaffsPerPage is then used to determine when we need to start a new Score file. -->
+    <apply-templates mode="mei2score" select="//mei:sb[not(@source)][1]"/>
   </template>
   
   <template match="mei:sb[not(@source)]/@n" mode="list-line-numbers">
@@ -68,7 +72,8 @@
   </template>
   
 
-  <template match="mei:sb[not(@source)]">
+  <template mode="mei2score" match="mei:sb[not(@source)]">
+    <!-- P2 is actually the "previous P2", so for the call to this template, we use $maxStaffsPerPage + 1 -->
     <param name="P2" select="$maxStaffsPerPage + 1"/>
     <param name="P3" select="$staffP3"/>
     
@@ -113,7 +118,8 @@
       <with-param name="P3" select="$newP3"/>
       <with-param name="P2" select="$newP2"/>
     </apply-templates>
-    
+
+    <!-- Draw staff -->
     <value-of select="concat('8 ',$newP2,' ',$newP3,' 0 ',$staffSize,'&#10;')"/>
     
     <!-- On the first line in the chant, we place a clef -->
@@ -121,8 +127,10 @@
       <value-of select="concat('3 ',$newP2,' ',$newP3 + $advance,' 0 500&#10;')"/>
     </if>
     
-    <!-- If we din't proceed to the next line, we don't draw a new line label -->
-    <apply-templates select="@n[$P2 != $newP2]|@label|following-sibling::*[1]">
+    <!-- If we didn't proceed to the next line, we don't draw a new line label -->
+    <!-- We draw notes etc. one after the other because we need to keep track of 
+         how much space each individual element takes up -->
+    <apply-templates mode="mei2score" select="@n[$P2 != $newP2]|@label|following-sibling::*[1]">
       <with-param name="P2" select="$newP2"/>
       <with-param name="P3" select="$newP3 + $advance"/>
     </apply-templates>
@@ -130,16 +138,16 @@
   </template>
 
 
-  <template match="mei:sb[not(@source)]/@n[not(.='')]">
+  <!-- Line numbers -->
+  <template mode="mei2score" match="mei:sb[not(@source)]/@n[not(.='')]">
     <param name="P2"/>
     <param name="concatenatedLineNumbers"/>
     
     <param name="followingLineNumber" select="../following-sibling::mei:sb[not(@source)][1]/@n"/>
     
     <choose>
-      <when test="contains($capitalLetters, .) and
-          string($followingLineNumber) != '' and contains($capitalLetters, $followingLineNumber)">
-        <apply-templates select="$followingLineNumber">
+      <when test="contains($capitalLetters, .) and           string($followingLineNumber) != '' and contains($capitalLetters, $followingLineNumber)">
+        <apply-templates mode="mei2score" select="$followingLineNumber">
           <with-param name="P2" select="$P2"/>
           <with-param name="concatenatedLineNumbers" select="concat($concatenatedLineNumbers, .)"/>
         </apply-templates>
@@ -152,7 +160,8 @@
   </template>
 
 
-  <template match="mei:sb[not(@source)]/@label[not(.='')]">
+  <!-- Rubrics -->
+  <template mode="mei2score" match="mei:sb[not(@source)]/@label[not(.='')]">
     <param name="P2"/>
     
     <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$rubricTitleP4,' 0 0 0 0 0 0 ',$staffP3,'&#10;')"/>
@@ -168,7 +177,7 @@
   </template>
   
   
-  <template match="mei:syllable">
+  <template mode="mei2score" match="mei:syllable">
     <param name="P2"/>
     <param name="P3"/>
     
@@ -182,8 +191,6 @@
       <with-param name="P4" select="$lyricsAnnotP4"/>
     </apply-templates>
 
-    <value-of select="concat('t ',$P2,' ',$newP3,' ',$lyricsP4,'&#10;')"/>
-    
     <variable name="syl">
       <call-template name="generate-score-escaped-string">
         <with-param name="string" select="normalize-space(mei:syl)"/>
@@ -195,13 +202,14 @@
       <apply-templates select="preceding-sibling::mei:sb[1]" mode="get-syllable-font"/>
     </variable>
     
+    <value-of select="concat('t ',$P2,' ',$newP3,' ',$lyricsP4,'&#10;')"/>
     <value-of select="concat($font, $syl,'&#10;')"/>
     
-    <if test="@wordpos='i' or @wordpos='m' or string-length(normalize-space(mei:syl)) > string-length($syl)">
+    <if test="@wordpos='i' or @wordpos='m' or contains(mei:syl, '-')">
       <value-of select="concat('4 ',$P2,' ',$newP3,' ',$hyphenP4,' ',$hyphenP4,' ',$newP3,' 0 0 0 0 0 0 0 0 0 1 0 ',$hyphenP17,' ',$hyphenP18)"/>
     </if>
     
-    <apply-templates select="($leadingBreakMarkers|mei:ineume|following::*)[1]">
+    <apply-templates mode="mei2score" select="($leadingBreakMarkers|mei:ineume|following::*)[1]">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$newP3 - $advance * count($leadingBreakMarkers)"/>
     </apply-templates>
@@ -212,14 +220,20 @@
     <param name="string"/>
     <param name="trailingCharactersToOmit" select="''"/>
     
-    <!-- TODO: Escape the sequences used for escaping by Score using octal codes,   
-      but only if necessary because this messes up the string length calculation. -->
-    
     <if test="string-length($string) > 0 and $string != $trailingCharactersToOmit">
       <variable name="char" select="substring($string,1,1)"/>
-      <variable name="unescapedChars"><![CDATA[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;?!+-*=@#$%&<>`'"]]></variable>
+      <variable name="firstTwoChars" select="substring($string,1,2)"/>
+      <!-- The Score manual does not list "~" among the unescaped characters, but we do -->
+      <variable name="unescapedChars">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;?!+-*=@#$%&amp;&lt;&gt;`'"~</variable>
       
       <choose>
+        <when test="normalize-space($firstTwoChars) != '' and contains(             ' &lt;&lt; &gt;&gt; ^^ %% ##                ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t                !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z                ~a ~A ~n ~N ~o ~O                ?1 ?2 ?3 ?d ?0 ?8 ?9 ',             concat(' ',$firstTwoChars,' ')           )">
+          <value-of select="concat($char,' ')"/>
+          <message>
+            WARNING: Text from the mono:di data contained "<value-of select="$firstTwoChars"/>".
+            To prevent Score from interpreting this as an escape sequences, a space was inserted.
+          </message>
+        </when>
         <when test="contains($unescapedChars,$char)">
           <value-of select="$char"/>
         </when>
@@ -274,7 +288,9 @@
             '[]{}|\')"/>
         </when>
         <otherwise>
-          <message terminate="yes">
+          <value-of select="'?'"/>
+          <message>
+            WARNING:
             Unsupported character: "<value-of select="$char"/>"
             Rest of string: "<value-of select="$string"/>"
           </message>
@@ -289,7 +305,7 @@
   </template>
   
   
-  <template match="mei:ineume">
+  <template mode="mei2score" match="mei:ineume">
     <param name="P2"/>
     <param name="P3"/>
     
@@ -298,19 +314,19 @@
       <value-of select="concat('14 ',$P2,' ',$P3 - .25*$advance,' -1 &#10;')"/>
     </if>
     
-    <apply-templates select=".//mei:note/@accid">
+    <apply-templates mode="mei2score" select=".//mei:note/@accid">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$P3"/>
     </apply-templates>
     
-    <apply-templates select="*[1]">
+    <apply-templates mode="mei2score" select="*[1]">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$P3"/>
     </apply-templates>
   </template>
   
   
-  <template match="mei:uneume">
+  <template mode="mei2score" match="mei:uneume">
     <param name="P2"/>
     <param name="P3"/>
     
@@ -319,14 +335,14 @@
       <value-of select="concat('5 ',$P2,' ',$P3,' ',$slurP4,' ',$slurP4,' ',$P3 + (count(mei:note) - 1)*$advance, ' 2 -1 ',$slurP9,'&#10;')"/>
     </if>
     
-    <apply-templates select="*[1]">
+    <apply-templates mode="mei2score" select="*[1]">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$P3"/>
     </apply-templates>
   </template>
   
   
-  <template match="mei:note">
+  <template mode="mei2score" match="mei:note">
     <param name="P2"/>
     <param name="P3"/>
     
@@ -335,7 +351,7 @@
         <apply-templates select="." mode="get-notehead-p4"/>
       </variable>
       <variable name="P6">
-        <apply-templates select="." mode="get-note-p6"></apply-templates>
+        <apply-templates select="." mode="get-note-p6"/>
       </variable>
       
       <apply-templates mode="handle-typesetter-annotations" select="@xml:id">
@@ -350,14 +366,14 @@
       <value-of select="'&#10;'"/>
     </if>
     
-    <apply-templates select="(*|following::*[1])">
+    <apply-templates mode="mei2score" select="(*|following::*[1])">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$P3 + $advance"/>
     </apply-templates>
   </template>
   
   
-  <template match="@accid">
+  <template mode="mei2score" match="@accid">
     <param name="P2"/>
     <param name="P3"/>
     
@@ -390,7 +406,7 @@
   </template>
 
 
-  <template match="mei:sb[@source]|mei:pb">
+  <template mode="mei2score" match="mei:sb[@source]|mei:pb">
     <param name="P2"/>
     <param name="P3"/>
     
@@ -412,19 +428,20 @@
     </if>
     <text>&#10;</text>
     
-    <apply-templates select="following::*[1]">
+    <apply-templates mode="mei2score" select="following::*[1]">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$P3 + $advance"/>
     </apply-templates>
   </template>
-  
+
+
   <template match="@xml:id" mode="handle-typesetter-annotations">
     <param name="P2"/>
     <param name="P3"/>
     <param name="P4" select="$standardAnnotP4"/>
     
     <for-each select="key('typesetterAnnotStart',.)">
-      <value-of select="concat('t ',$P2,' ',$P3,' ',$P4,' ',$annotP5Onwards,'&#10;')"/>
+      <value-of select="concat('t ',$P2,' ',$P3,' ',$P4,' ',$annotP5toP7,'&#10;')"/>
       <value-of select="'_99%@'"/>
       <!-- If the annotation spans different elements, we create a start marker -->
       <if test="@startid != @endid">
@@ -438,7 +455,7 @@
 
     <!-- We create an annotation ending marker -->
     <for-each select="key('typesetterAnnotEnd',.)[@startid != @endid]">
-      <value-of select="concat('t ',$P2,' ',$P3,' ',$P4 - 4,' ',$annotP5Onwards,'&#10;')"/>
+      <value-of select="concat('t ',$P2,' ',$P3,' ',$P4 - 4,' ',$annotP5toP7,'&#10;')"/>
       <value-of select="'_99%@'"/>
       <call-template name="generate-score-escaped-string">
         <with-param name="string" select="@label"/>
