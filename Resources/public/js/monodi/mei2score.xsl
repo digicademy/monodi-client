@@ -91,9 +91,10 @@
     
     <variable name="newP2">
       <choose>
-        <!-- If we have sequential base chants, we stay on the same line. -->
+        <!-- If we have sequential base chants, we stay on the same line - unless we have a rubric (in @label). -->
         <when test="$precedingLineNumber != '' and contains($capitalLetters, $precedingLineNumber) 
-                                  and @n != '' and contains($capitalLetters, @n)">
+                                  and @n != '' and contains($capitalLetters, @n)
+                                  and @label = ''">
           <value-of select="$P2"/>
         </when>
         <when test="$P2 > 1">
