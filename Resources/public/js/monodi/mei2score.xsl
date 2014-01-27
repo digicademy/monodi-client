@@ -29,8 +29,11 @@
   <param name="slurP9" select="4"/>
   <param name="liquescentP15" select=".65"/>
   <param name="lineNumberP3" select=".01"/>
+
   <param name="standardFont" select="'_80'"/>
   <param name="smallCapsFont" select="'_85'"/>
+  <param name="corpusMonodicumFont" select="$standardFont"/> <!-- TODO: When glyphs for "<>" were added to Corpus monodicum font, use '_79' here -->
+
   <param name="standardAnnotP4" select="18"/>
   <param name="lyricsAnnotP4" select="$lyricsP4 - 4"/>
   <param name="annotP5toP7" select="'.9 .55 1'"/>
@@ -204,6 +207,10 @@
     <param name="P2"/>
     <param name="P3"/>
     
+    <message>
+      <value-of select="mei:syl"/>
+    </message>
+    
     <variable name="leadingBreakMarkers" select="(mei:sb|mei:pb)[not(preceding-sibling::mei:ineume)]"/>
     
     <variable name="newP3" select="$P3 + $advance*(1 + count($leadingBreakMarkers))"/>
@@ -215,10 +222,9 @@
     </apply-templates>
 
     <variable name="syl">
-      <call-template name="generate-score-escaped-string">
-        <with-param name="string" select="normalize-space(mei:syl)"/>
+      <apply-templates mode="generate-score-escaped-string" select="mei:syl">
         <with-param name="trailingCharactersToOmit" select="'-'"/>
-      </call-template>
+      </apply-templates>
     </variable>
 
     <variable name="font">
@@ -246,8 +252,8 @@
   </template>
   
   
-  <template name="generate-score-escaped-string">
-    <param name="string"/>
+  <template mode="generate-score-escaped-string" match="node()|@*">
+    <param name="string" select="normalize-space(.)"/>
     <param name="trailingCharactersToOmit" select="''"/>
     
     <if test="string-length($string) > 0 and $string != $trailingCharactersToOmit">
@@ -257,7 +263,20 @@
       <variable name="unescapedChars">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;?!+-*=@#$%&amp;&lt;&gt;`'"~</variable>
       
       <choose>
-        <when test="normalize-space($firstTwoChars) != '' and contains(             ' &lt;&lt; &gt;&gt; ^^ %% ##                ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t                !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z                ~a ~A ~n ~N ~o ~O                ?1 ?2 ?3 ?d ?0 ?8 ?9 ',             concat(' ',$firstTwoChars,' ')           )">
+        <!--  We replace < and > with these characters from te Corpus Monodicum font -->
+        <when test="contains('&lt;>',$char)">
+          <value-of select="concat($corpusMonodicumFont, $char, $standardFont)"/>
+          <!-- We might have to switch to the small caps font: -->
+          <apply-templates select="self::mei:syl/../preceding-sibling::mei:sb[not(@source)][1]" mode="get-syllable-font"/>
+        </when>
+        <when test="normalize-space($firstTwoChars) != '' and contains(
+          ' &lt;&lt; &gt;&gt; ^^ %% ## 
+            ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t 
+            !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z 
+            ~a ~A ~n ~N ~o ~O 
+            ?1 ?2 ?3 ?d ?0 ?8 ?9 ',
+            concat(' ',$firstTwoChars,' ')           
+        )">
           <value-of select="concat($char,' ')"/>
           <message>
             WARNING: Text from the mono:di data contained "<value-of select="$firstTwoChars"/>".
@@ -327,10 +346,10 @@
         </otherwise>
       </choose>
       
-      <call-template name="generate-score-escaped-string">
+      <apply-templates select="." mode="generate-score-escaped-string">
         <with-param name="string" select="substring($string,2)"/>
         <with-param name="trailingCharactersToOmit" select="$trailingCharactersToOmit"/>
-      </call-template>
+      </apply-templates>
     </if>
   </template>
   
@@ -477,9 +496,9 @@
       <if test="@startid != @endid">
         <value-of select="'?[?['"/>
       </if>
-      <call-template name="generate-score-escaped-string">
+      <apply-templates select="@label" mode="generate-score-escaped-string">
         <with-param name="string" select="concat(@label,';  ',normalize-space())"/>
-      </call-template>
+      </apply-templates>
       <value-of select="'&#10;'"/>
     </for-each>
 
@@ -487,9 +506,7 @@
     <for-each select="key('typesetterAnnotEnd',.)[@startid != @endid]">
       <value-of select="concat('t ',$P2,' ',$P3,' ',$P4 - 4,' ',$annotP5toP7,'&#10;')"/>
       <value-of select="'_99%@'"/>
-      <call-template name="generate-score-escaped-string">
-        <with-param name="string" select="@label"/>
-      </call-template>
+      <apply-templates select="@label" mode="generate-score-escaped-string"/>
       <value-of select="'?]?]&#10;'"/>
     </for-each>
   </template>
