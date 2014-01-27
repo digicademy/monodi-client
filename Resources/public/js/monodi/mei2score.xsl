@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><stylesheet xmlns="http://www.w3.org/1999/XSL/Transform" xmlns:mei="http://www.music-encoding.org/ns/mei" version="1.0">
+<?xml version="1.0" encoding="UTF-8"?>
+<stylesheet xmlns="http://www.w3.org/1999/XSL/Transform" xmlns:mei="http://www.music-encoding.org/ns/mei" version="1.0">
   
   <!-- This stylesheet creates a Score macro file.
        It is not strictly a PMX file because it does not only store item parameters,
@@ -40,12 +41,16 @@
   
   <template match="/">
     <for-each select="//mei:work[1]">
+      <!-- Transcription number may sometimes contain a colon, like "3:4". 
+           The number before the colon is an auxiliary number used for ordering transcriptions
+           if the actual transcription numbers (in this case found after the colon)
+           aren't in ascending order. We're only interested in the number after the colon. -->
       <variable name="transcriptionNumber" select="substring(translate(@n,':',''), string-length(substring-before(@n,':')) + 1)"/>
 
-      <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,'&#10;')"/>
+      <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 0 0 -1.1 &#10;')"/>
       <value-of select="concat($standardFont, $transcriptionNumber, '&#10;')"/>
 
-      <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 0 0 0 0 0 ',$staffP3,'&#10;')"/>
+      <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 0 0 -1.2 0 0 ',$staffP3,'&#10;')"/>
       <value-of select="$standardFont"/>
       <value-of select="normalize-space(mei:classification/mei:termList[@label='liturgicFunction'])"/>
       <apply-templates mode="list-line-numbers" select="(//mei:sb[not(@source)]/@n[not(.='')])[1]"/>
@@ -82,7 +87,7 @@
     <param name="P3" select="$staffP3"/>
     
     <variable name="precedingLineNumber" select="preceding-sibling::mei:sb[not(@source)][1]/@n"/>
-    <variable name="followingLineNumber" select="following-sibling::mei:pb[not(@source)][1]/@n"/>
+    <variable name="followingLineNumber" select="following-sibling::mei:sb[not(@source)][1]/@n"/>
     
     <variable name="newP2">
       <choose>
@@ -159,7 +164,7 @@
         </apply-templates>
       </when>
       <otherwise>
-        <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$marginaliaP4,'&#10;')"/>
+        <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$marginaliaP4,' 0 0 0 -2.1 &#10;')"/>
         <value-of select="concat($standardFont, $concatenatedLineNumbers, ., '&#10;')"/>
       </otherwise>
     </choose>
@@ -173,7 +178,7 @@
     <param name="rubricText" select="."/>
     
     <!-- Multiple rubrics are separated by a "#" and we need to split them -->
-    <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$P4,' 0 0 0 0 0 0 ',$staffP3,'&#10;')"/>
+    <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$P4,' 0 0 0 -2.2 0 0 ',$staffP3,'&#10;')"/>
     <value-of select="concat($standardFont, normalize-space(substring-before(concat($rubricText,'#'),'#')) ,'&#10;')"/>
     
     <if test="contains($rubricText,'#')">
@@ -219,7 +224,14 @@
       <apply-templates select="preceding-sibling::mei:sb[1]" mode="get-syllable-font"/>
     </variable>
     
-    <value-of select="concat('t ',$P2,' ',$newP3,' ',$lyricsP4,'&#10;')"/>
+    <variable name="P8textClass">
+      <choose>
+        <when test="$font = $smallCapsFont">-2.4</when>
+        <otherwise>-2.3</otherwise>
+      </choose>
+    </variable>
+    
+    <value-of select="concat('t ',$P2,' ',$newP3,' ',$lyricsP4,' 0 0 0 ', $P8textClass, '&#10;')"/>
     <value-of select="concat($font, $syl,'&#10;')"/>
     
     <if test="@wordpos='i' or @wordpos='m' or contains(mei:syl, '-')">
@@ -432,12 +444,12 @@
       <with-param name="P3" select="$P3"/>
     </apply-templates>
     
-    <value-of select="concat('t ',$P2,' ',$P3,' ',$lyricsP4,'&#10;')"/>
+    <value-of select="concat('t ',$P2,' ',$P3,' ',$lyricsP4,' 0 0 0 -2.5 &#10;')"/>
     <value-of select="concat($standardFont, '?|')"/>
     <!-- For page breaks, we need a second pipe and the folio number -->
     <if test="self::mei:pb">
       <text>?|&#10;</text>
-      <value-of select="concat('t ',$P2,' ',200,' ',$marginaliaP4,'&#10;')"/>
+      <value-of select="concat('t ',$P2,' ',200,' ',$marginaliaP4,' 0 0 0 -2.9 &#10;')"/>
       <value-of select="concat($standardFont, '?|?| ',@n)"/>
       <if test="@func='verso'">
         <text>v</text>
