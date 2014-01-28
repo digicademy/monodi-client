@@ -601,7 +601,7 @@
           //   - tab
           //   - /|| f. \d+v?/ // 
           /*jslint regexp: true*/
-          if (line.match(/^(\d*|[A-Z]?)\t([^\t]+)\t?(\|*\s*f\.\s*\d+[rv]?)?\s*$/)) {
+          if (line.match(/^(\d*|[A-Z]?)\*?\t([^\t]+)\t?(\|*\s*f\.\s*\d+[rv]?)?\s*$/)) {
             var columns = line.split(/\s*\t\s*/);
             // A line that has no line label in the left column,
             // only capital letters in the center column
