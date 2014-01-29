@@ -649,7 +649,7 @@
           position:absolute;
         }
         .annotLabel > a:hover > .annotSelectionExtender:before {
-          content:"+";
+          content:"↔";
           border:1px solid black;
           background-color: rgba(255,255,255,.5);
           padding:.4em;
