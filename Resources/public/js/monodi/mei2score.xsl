@@ -9,6 +9,7 @@
   
   <key name="typesetterAnnotStart" match="mei:annot[@type='typesetter']" use="substring(@startid,2)"/>
   <key name="typesetterAnnotEnd" match="mei:annot[@type='typesetter']" use="substring(@endid,  2)"/>
+  <key name="diacriticalMarkingAnnot" match="mei:annot[@type='diacriticalMarking']" use="substring(@startid, 2)"/>
   
   <output method="text"/>
   
@@ -35,6 +36,7 @@
   <param name="corpusMonodicumFont" select="$standardFont"/> <!-- TODO: When glyphs for "<>" were added to Corpus monodicum font, use '_79' here -->
 
   <param name="standardAnnotP4" select="18"/>
+  <param name="standardDiacriticalMarkingP4" select="$standardAnnotP4"/>
   <param name="lyricsAnnotP4" select="$lyricsP4 - 4"/>
   <param name="annotP5toP7" select="'.9 .55 1'"/>
   
@@ -85,7 +87,7 @@
   
 
   <template mode="mei2score" match="mei:sb[not(@source)]">
-    <!-- P2 is actually the "previous P2", so for the call to this template, we use $maxStaffsPerPage + 1 -->
+    <!-- P2 is actually the "previous P2", so for the initial call to this template, we use $maxStaffsPerPage + 1 -->
     <param name="P2" select="$maxStaffsPerPage + 1"/>
     <param name="P3" select="$staffP3"/>
     
@@ -198,7 +200,7 @@
   <template match="mei:sb" mode="get-syllable-font">
     <value-of select="$standardFont"/>
   </template>
-  <template match="mei:sb[contains('ABCDEFGHIJKLMNOPQRSTUVWXYZ', @n)]" mode="get-syllable-font">
+  <template match="mei:sb[contains('ABCDEFGHIJKLMNOPQRSTUVWXYZ', substring(@n,1,1))]" mode="get-syllable-font">
     <value-of select="$smallCapsFont"/>
   </template>
   
@@ -206,10 +208,6 @@
   <template mode="mei2score" match="mei:syllable">
     <param name="P2"/>
     <param name="P3"/>
-    
-    <message>
-      <value-of select="mei:syl"/>
-    </message>
     
     <variable name="leadingBreakMarkers" select="(mei:sb|mei:pb)[not(preceding-sibling::mei:ineume)]"/>
     
@@ -407,6 +405,10 @@
         <with-param name="P2" select="$P2"/>
         <with-param name="P3" select="$P3"/>
       </apply-templates>
+      <apply-templates mode="handle-diacriticalMarking-annotations" select="@xml:id">
+        <with-param name="P2" select="$P2"/>
+        <with-param name="P3" select="$P3"/>
+      </apply-templates>
       
       <value-of select="concat('1 ',$P2,' ',$P3,' ',$P4,' 0 ',$P6)"/>
       <if test="@mfunc='liquescent'">
@@ -448,6 +450,7 @@
   
   <template match="mei:note" mode="get-notehead-p4">
     <variable name="monodiStep">
+      <!-- The get-notehead-step template is imported from mei2xhtml.xsl -->
       <apply-templates select="." mode="get-notehead-step"/>
     </variable>
     
@@ -501,13 +504,29 @@
       </apply-templates>
       <value-of select="'&#10;'"/>
     </for-each>
-
+    
     <!-- We create an annotation ending marker -->
     <for-each select="key('typesetterAnnotEnd',.)[@startid != @endid]">
       <value-of select="concat('t ',$P2,' ',$P3,' ',$P4 - 4,' ',$annotP5toP7,'&#10;')"/>
       <value-of select="'_99%@'"/>
       <apply-templates select="@label" mode="generate-score-escaped-string"/>
       <value-of select="'?]?]&#10;'"/>
+    </for-each>
+  </template>
+
+
+  <template match="@xml:id" mode="handle-diacriticalMarking-annotations">
+    <param name="P2"/>
+    <param name="P3"/>
+    <param name="P4" select="$standardDiacriticalMarkingP4"/>
+    
+    <for-each select="key('diacriticalMarkingAnnot',.)">
+      <value-of select="concat('t ',$P2,' ',$P3,' ',$P4,' 0 0 0 -2.7 &#10;')"/>
+      <value-of select="$standardFont"/>
+      <apply-templates select="@label" mode="generate-score-escaped-string">
+        <with-param name="string" select="@label"/>
+      </apply-templates>
+      <value-of select="'&#10;'"/>
     </for-each>
   </template>
 </stylesheet>
