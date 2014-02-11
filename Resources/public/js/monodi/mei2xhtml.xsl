@@ -231,6 +231,9 @@
         min-width:<xsl:value-of select="$scaleStepSize * $sbPbWidth"/>px;
         height:100%;
       }
+      .breakWrapper > .musicLayer > .pb, .breakWrapper > .musicLayer > .sb {
+        z-index:10;
+      }
       <!-- We create the sort-of barlines that mark a page or system break in the source 
            using borders of pseudo-elements before and after -->
       .musicLayer > .sb:after, .musicLayer > .pb:after {
