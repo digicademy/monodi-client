@@ -25,10 +25,56 @@
         <title>mono:di 1.0 help</title>
         <link href="../css/main.css" rel="stylesheet" />
         <link href="../css/help.css" rel="stylesheet" />
+      <script type="application/javascript">//<![CDATA[
+/*
+ * Dynamic Table of Contents script
+ * by Matt Whitlock <http://www.whitsoftdev.com/>
+ */
+
+function createLink(href, innerHTML) {
+	var a = document.createElement("a");
+	a.setAttribute("href", href);
+	a.innerHTML = innerHTML;
+	return a;
+}
+
+function generateTOC(toc) {
+	var i2 = 0, i3 = 0, i4 = 0;
+	toc = toc.appendChild(document.createElement("ul"));
+	for (var i = 0; i < document.body.childNodes.length; ++i) {
+		var node = document.body.childNodes[i];
+		var tagName = node.nodeName.toLowerCase();
+		if (tagName == "h4") {
+			++i4;
+			if (i4 == 1) toc.lastChild.lastChild.lastChild.appendChild(document.createElement("ul"));
+			var section = i2 + "." + i3 + "." + i4;
+			node.insertBefore(document.createTextNode(section + ". "), node.firstChild);
+			node.id = "section" + section;
+			toc.lastChild.lastChild.lastChild.lastChild.appendChild(document.createElement("li")).appendChild(createLink("#section" + section, node.innerHTML));
+		}
+		else if (tagName == "h3") {
+			++i3, i4 = 0;
+			if (i3 == 1) toc.lastChild.appendChild(document.createElement("ul"));
+			var section = i2 + "." + i3;
+			node.insertBefore(document.createTextNode(section + ". "), node.firstChild);
+			node.id = "section" + section;
+			toc.lastChild.lastChild.appendChild(document.createElement("li")).appendChild(createLink("#section" + section, node.innerHTML));
+		}
+		else if (tagName == "h2") {
+			++i2, i3 = 0, i4 = 0;
+			var section = i2;
+			node.insertBefore(document.createTextNode(section + ". "), node.firstChild);
+			node.id = "section" + section;
+			toc.appendChild(h2item = document.createElement("li")).appendChild(createLink("#section" + section, node.innerHTML));
+		}
+	}
+} //]]>
+      </script>
     </head>
-    <body style="padding: 0 1px">
+  <body style="padding: 0 1px" onload="generateTOC(document.getElementById('toc'))">
 <h1>mono:di 1.0</h1>
 <h1>User manual</h1>
+      <div id="toc"></div>
 <h2>Introduction</h2>
 <p>Mono:di is an MEI-based, music-notation software program developed for <em>Corpus monodicum</em>, an editorial project sponsored by the Akademie der Wissenschaften und der Literatur, Mainz (as part of the Akademienprogramm der Union der deutschen Akademien der Wissenschaften), housed at the Institut f&uuml;r Musikforschung, Universit&auml;t W&uuml;rzburg. <em>Corpus monodicum</em>&nbsp;(CM) produces scholarly editions of the Latin-texted, medieval monophonic repertories&mdash;both sacred and secular&mdash;that form the historical foundation of European music, but have thus far been under-represented in musicological scholarship. Mono:di serves as a tool to assist CM's editors in transcribing and editing medieval chant. The program also allows for a digital transmission of the editors' work to the typesetters who help to produce CM's analogue publications.</p>
 <h3>Neumatic notation</h3>
@@ -69,7 +115,7 @@
 </tr>
 </tbody>
 </table>
-<table class="key-command-table" border="0">
+<table class="key-command-table">
 <caption>Delete an editorial line break</caption> 
 <tbody>
 <tr>
@@ -78,7 +124,7 @@
 </tr>
 </tbody>
 </table>
-<table class="key-command-table" border="0">
+<table class="key-command-table">
 <caption>Navigating syllables</caption> 
 <tbody>
 <tr>
@@ -143,7 +189,7 @@
 <p>The  rubric field can only contain a single line of text. To  enter multiple rubrics, which will appear in multiple lines in the print edition, type the rubrics in one line and separate them using  the symbol <em>#</em>.</p>
 <h3>Music level</h3>
 <p>Use these commands when a pitch or line/folio break is selected.</p>
-<table id="newPitchKeys" class="key-command-table" border="0">
+<table id="newPitchKeys" class="key-command-table">
 <caption>New pitches</caption> 
 <tbody>
 <tr>
@@ -160,7 +206,7 @@
 </tr>
 </tbody>
 </table>
-<table class="key-command-table" border="0">
+<table class="key-command-table">
 <caption>Adjusting pitch level</caption> 
 <tbody>
 <tr>
@@ -174,7 +220,7 @@
 </tbody>
 </table>
 <p>Special symbols and accidentals toggle on and off: press once to indicate; press again to remove.</p>
-<table id="specialSymbolKeys" class="key-command-table" border="0">
+<table id="specialSymbolKeys" class="key-command-table">
 <caption>Special symbols</caption> 
 <tbody>
 <tr>
@@ -203,7 +249,7 @@
 </tr>
 </tbody>
 </table>
-<table id="accidentalKeys" class="key-command-table" border="0">
+<table id="accidentalKeys" class="key-command-table">
 <caption>Accidentals</caption> 
 <tbody>
 <tr>
@@ -220,7 +266,7 @@
 </tr>
 </tbody>
 </table>
-<table id="lineAnFolioChanges" class="key-command-table" border="0">
+<table id="lineAnFolioChanges" class="key-command-table">
 <caption>Source line and folio changes</caption> 
 <tbody>
 <tr>
@@ -251,7 +297,7 @@
 </ul>
 <p>Annotations can be classified as one of five types, <a href="#annotationTypes">described below</a>.</p>
 <h4>Creating, editing, and deleting annotations</h4>
-<table class="key-command-table" border="0">
+<table class="key-command-table">
 <caption>Annotations</caption> 
 <tbody>
 <tr>
