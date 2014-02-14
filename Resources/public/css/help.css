@@ -53,3 +53,7 @@ body {
 	margin:0 .1em;
 	transform:translate(0,-.1em);
 }
+
+#toc li {
+    list-style-type: none;
+}
