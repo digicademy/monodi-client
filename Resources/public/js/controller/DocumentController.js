@@ -33,15 +33,15 @@ function DocumentCtrl($scope, $http) {
 	$scope.$on('saveDocument', function(e, data) {
 		var temp, doc;
 		if ($scope.online && $scope.access_token) {
-			if (($scope.active.id + '').indexOf('temp') < 0) {
-				if (data) {
-					doc = $scope.getLocal('document' + data.id);
-					temp = JSON.parse($scope.active);
-					$scope.setActive(doc);
-				} else {
-					$scope.active.content = monodi.document.getSerializedDocument();
-				}
+			if (data) {
+				doc = $scope.getLocal('document' + data.id);
+				temp = JSON.parse($scope.active);
+				$scope.setActive(doc);
+			} else {
+				$scope.active.content = monodi.document.getSerializedDocument();
+			}
 
+			if (($scope.active.id + '').indexOf('temp') < 0) {
 				var putObject = {
 					filename: $scope.active.filename,
 					content: $scope.active.content,
@@ -73,10 +73,9 @@ function DocumentCtrl($scope, $http) {
 						}
 					});
 
-				if (data) {
-					$scope.setActive(temp);
-				}
+				if (data) { $scope.setActive(temp); }
 			} else {
+				if (data) { $scope.setActive(temp); }
 				$scope.$broadcast('postNewDocument', data);
 			}
 		} else if (!data) {
