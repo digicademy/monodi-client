@@ -57,3 +57,6 @@ body {
 #toc li {
     list-style-type: none;
 }
+#toc {
+	margin:2em 0;
+}
