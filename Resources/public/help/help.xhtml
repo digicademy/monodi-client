@@ -6,8 +6,14 @@
     <!ENTITY uarr "&#8593;">
     <!ENTITY rarr "&#8594;">
     <!ENTITY darr "&#8595;">
+    <!ENTITY harr "&#8596;">
     <!ENTITY nbsp "&#160;">
-    <!ENTITY Uuml "&#220;">
+    <!ENTITY auml "ä">
+    <!ENTITY Auml "Ä">
+    <!ENTITY Ouml "Ö">
+    <!ENTITY ouml "ö">
+    <!ENTITY uuml "ü">
+    <!ENTITY Uuml "Ü">
     <!ENTITY rsquo "&#8217;">
     <!ENTITY ldquo "&#8220;">
     <!ENTITY rdquo "&#8221;">
@@ -21,264 +27,368 @@
         <link href="../css/help.css" rel="stylesheet" />
     </head>
     <body style="padding: 0 1px">
-        <h1>mono:di 1.0</h1>
-        <h1>User manual</h1>
-        <h2>Keyboard commands</h2>
-        <h3>Pitch level</h3>
-        <table class="key-command-table" border="0">
-            <caption>New pitches</caption> 
-            <tbody>
-                <tr>
-                    <td>under a slur</td>
-                    <td><span class="key">shift</span></td>
-                </tr>
-                <tr>
-                    <td>without a slur</td>
-                    <td><span class="key">space</span></td>
-                </tr>
-                <tr>
-                    <td>with greater distance</td>
-                    <td><span class="key">return</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="key-command-table" border="0">
-            <caption>adjusting pitch level</caption> 
-            <tbody>
-                <tr>
-                    <td>arrow keys</td>
-                    <td><span class="key">&uarr;</span> and <span class="key">&darr;</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="key-command-table" border="0">
-            <caption>Special symbols</caption> 
-            <tbody>
-                <tr>
-                    <td>liquescent</td>
-                    <td><span class="key">L</span></td>
-                </tr>
-                <tr>
-                    <td>liquescent ascending</td>
-                    <td><span class="key">A</span></td>
-                </tr>
-                <tr>
-                    <td>liquescent descending</td>
-                    <td><span class="key">D</span></td>
-                </tr>
-                <tr>
-                    <td>oriscus</td>
-                    <td><span class="key">O</span></td>
-                </tr>
-                <tr>
-                    <td>quilisma</td>
-                    <td><span class="key">Q</span></td>
-                </tr>
-                <tr>
-                    <td>strophicus</td>
-                    <td><span class="key">,</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="key-command-table" border="0">
-            <caption>Toggle accidentals</caption> 
-            <tbody>
-                <tr>
-                    <td>flat</td>
-                    <td><span class="key">B</span></td>
-                </tr>
-                <tr>
-                    <td>sharp</td>
-                    <td><span class="key">S</span></td>
-                </tr>
-                <tr>
-                    <td>natural</td>
-                    <td><span class="key">N</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="key-command-table" border="0">
-            <caption>Source line and folio changes</caption> 
-            <tbody>
-                <tr>
-                    <td>line change after selected pitch</td>
-                    <td><span class="key">i</span></td>
-                </tr>
-                <tr>
-                    <td>line change before selected pitch</td>
-                    <td><span class="key">J</span></td>
-                </tr>
-                <tr>
-                    <td>folio change after slected pitch</td>
-                    <td><span class="key">i</span><span class="key">i</span></td>
-                </tr>
-                <tr>
-                    <td>folio change before selected pitch</td>
-                    <td><span class="key">J</span><span class="key">J</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <h3>Text level</h3>
-        <table class="key-command-table" border="0">
-            <caption>New syllables</caption> 
-            <tbody>
-                <tr>
-                    <td>within a word</td>
-                    <td><span class="key">-</span></td>
-                </tr>
-                <tr>
-                    <td>beginning a new word</td>
-                    <td><span class="key">space</span></td>
-                </tr>
-                <tr>
-                    <td>beginning a new line</td>
-                    <td><span class="key">return</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <h3>General</h3>
-        <table class="key-command-table" border="0">
-            <caption>Navigating syllables and pitches</caption> 
-            <tbody>
-                <tr>
-                    <td>arrow keys</td>
-                    <td><span class="key">&larr;</span> and <span class="key">&rarr;</span></td>
-                </tr>
-                <tr>
-                    <td>next text element</td>
-                    <td><span class="key">tab</span></td>
-                </tr>
-                <tr>
-                    <td>previous text element</td>
-                    <td><span class="key">shift</span>+<span class="key">tab</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="key-command-table" border="0">
-            <caption>Create annotations</caption> 
-            <tbody>
-                <tr>
-                    <td>annotation for selected element</td>
-                    <td><span class="key">control</span>+<span class="key">K</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <table class="key-command-table" border="0">
-            <caption>Delete an editorial line break</caption> 
-            <tbody>
-                <tr>
-                    <td>Place cursor in line label</td>
-                    <td><span class="key">&larr; delete</span></td>
-                </tr>
-            </tbody>
-        </table>
-        <h4>Viewing</h4>
-        <p>zoom in&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;command +</p>
-        <p>zoom out &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;command -</p>
-        <h2>Creating a text file for import to mono:di</h2>
-        <p>In text documents for import to mono:di, rubrics and sung text must be organized in three tab separated columns.&nbsp; Make sure that in the tab stop bar exactly two tab stops are set, one separating the first column with line labels from the second column with rubrics and sung text, one separating the second column from the third one with folio changes.&nbsp; All columns must be separated by exactly one tab character.</p>
-        <ul>
-            <li>line labels (trope element numbers, etc.) in column 1</li>
-            <li>sung text in column 2</li>
-            <li>rubrics in capital letters in column 2</li>
-            <li>folio changes in column 3</li>
-            <li>if folio breaks and line breaks from the source coincide with editorial line breaks,             they need to be marked at the beginnings of the editorial lines, not at the endings</li>
-            <li>base chants should be in normal type, not capitals or small capitals</li>
-            <li>all elements receive their own line, even if they are short and will appear on the             same line in the print edition</li>
-            <li>start folio belongs in the header data, on the line with &Uuml;bersichtszeile. It must be             entered manually as part of the file&rsquo;s header data </li>
-            <li>do not import the &Uuml;bersichtszeile&mdash;enter the information manually in the header             data (except for the trope element numbers and letters for base chant cues, which will             be automatically generated).</li>
-        </ul>
-        <p><span style="font-size: 75%;">1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;         &Uuml;bersichtszeile&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;         start folio</span></p>
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       RUBRIC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-        <p>25&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Ho-di-e can-tan-dus || est no-bis       pu-er&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       || f. 22v</p>
-        <p>A&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Pu-er na-tus est | no-bis</p>
-        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | et       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-        <p>This is how the document should look with the formatting displayed:</p>
-        <h2>Managing files</h2>
-        <p>When a user moves from a document to the management page, the document is still open and can       be accessed by clicking &ldquo;Document.&rdquo;</p>
-        <p>To save a file to your computer, so that you can work without an internet connection,</p>
-        <ul>
-            <li>go to the management page</li>
-            <li>press the blue arrow button next to the file name</li>
-            <li>document is locally available when button turns yellow</li>
-        </ul>
-        <p>To work with perform the same command with multiple files,</p>
-        <ul>
-            <li>click the boxes prior to the file names</li>
-            <li>select a &ldquo;batch function&rdquo; from the drop-down list at the top of the management         screen</li>
-        </ul>
-        <p>Preparing Firefox for off-line functions</p>
-        <ul>
-            <li>Open Firefox window</li>
-            <li>select drop-down list under &ldquo;Firefox&rdquo;</li>
-            <li>select &ldquo;Preferences&rdquo;</li>
-            <li>select &ldquo;Privacy&rdquo;</li>
-            <li>under &ldquo;History&rdquo; select &ldquo;Firefox will: &lsquo;Use custom settings for         history&rsquo; &rdquo;</li>
-            <li>UNCHECK box in front of &ldquo;Clear history when Firefox closes&rdquo;</li>
-        </ul>
-        <h2>Working from a USB drive</h2>
-        <p>Documents that are locally available (marked with a yellow button in management view) are       placed in a small database on your hard disk that is managed by the browser you are using. If       you set up multiple user profiles on your computer or for your browser, an independent       database will be used for each user profile.</p>
-        <p>If you saved your work while being online, you can log in from any computer and any       supported browser to download your saved work from the server. However, it is also possible to       take your locally stored data with you on a USB drive by using a portable browser that runs       off a USB drive.</p>
-        <p>Portable browsers are available for Windows and Mac. They only work on one or the other,       so the local data can only be taken from one Mac to another or from one Windows PC to another.       Using a portable browser is only recommended if you are working on multiple computers with the       same operating system and your internet connection is unreliable.</p>
-        <p>Excellent portable browser versions for Windows are supplied by <a href="http://portableapps.com/">portableapps.com</a>. Portable Mac versions are generally       not as well supported. Users of portable browsers are advised to check regularly if their       browser version is still up to date for security reasons. If the browser does not auto-update       itself, newer versions have to be downloaded manually.</p>
-        <h3>Downloads</h3>
-        <h4>Firefox</h4>
-        <ul>
-            <li>There is no known up-to-date portable version of Firefox for Mac</li>
-            <li><a href="http://portableapps.com/apps/internet/firefox_portable">Windows</a></li>
-        </ul>
-        <h4>Chromium / Chrome</h4>
-        <ul>
-            <li><a href="http://sourceforge.net/projects/osxportableapps/files/Chromium/">Mac OS X         (Chromium)</a>. Pick the newest .dmg file and make sure it's not older than about half a         year. Installation of older versions is not recommended.</li>
-            <li><a href="http://portableapps.com/apps/internet/google_chrome_portable">Windows (Chrome)</a></li>
-        </ul>
-        <h2>Explanation of header fields</h2>
-        <p>Above the transcription, fields are listed where information concerning the entire chant can       be recorded. This information will enable certain search functions for users of CM       digital.</p>
-        <h3>Line 1</h3>
-        <h4>CM section no. &ndash; volume no.</h4>
-        <p>for example, CM II-1</p>
-        <h3>Line 2</h3>
-        <h4>source no.</h4>
-        <p>each source in the CM volume will receive a number, based on the order it appears in the       volume</p>
-        <h3>source identifier</h3>
-        <p>this is the abbreviation for the manuscript&rsquo;s shelfmark (Provins, Biblioth&egrave;que       municipale 12 (24) is recorded here as Pro 12)</p>
-        <h3>Line 3</h3>
-        <h4>transcription number</h4>
-        <p>This number appears in the print edition at the beginning of the transcription with a square       around it. This is the number of the transcription within each source. (The first trope       transcribed from Pro 12 will have a 1 in this field.)</p>
-        <h4>genre</h4>
-        <p>of the chant (trope = trop; offertory = off)</p>
-        <h4>incipit</h4>
-        <p>standardized spelling</p>
-        <h4>feast</h4>
-        <p>also abbreviated and standardized (Nativitas = Nat)</p>
-        <h4>start folio</h4>
-        <p>of the chant in the manuscript (f. 22v)</p>
-        <h3>Line 4</h3>
-        <p>All fields on this line are recorded from the text edition. If the text edition does not       contain the information, the field can be left blank.</p>
-        <h4>text edition incl. volume no</h4>
-        <p>(for example, CT I)</p>
-        <h4>text&rsquo;s identifying number</h4>
-        <p>only for text editions like Analecta hymnica, where each text receives its own number</p>
-        <h4>base chant incipit</h4>
-        <p>this field is for CT X and CT IX, which uses a base chant incipit to identify each element,       and we cite exactly corresponding to the CT.</p>
-        <h4>feast, service, base chant genre:</h4>
-        <p>as they appear in CT, for example Nat III intr</p>
-        <h3>Line 5</h3>
-        <h4>melody catalogue author, melody no., trope complex no.</h4>
-        <p>these fields are for CM&rsquo;s volumes of ordinary genres, which have catalogues of base       chant melodies and trope incipits (such as Schildbach)</p>
-        <p><strong>To transfer a volume to ngb</strong>, editors will need to save the files with names       that will place the transcriptions in the volume order, for example:</p>
-        <p>1 Hodie cantandus est&nbsp;</p>
-        <p>2 Puer natus est nobis (although the transcription number in the file is 1P)</p>
-        <h2>Troubleshooting</h2>
-        <h3>Printing</h3>
-        <h4>Staffs become solid black rectangles</h4>
-        <p>This problem is likely stemming from problems with the printer driver.&nbsp; Try to increase the print resolution.&nbsp; If you don't succeed, try creating a PDF with Chrome's built-in PDF print:</p>
-        <ul>
-            <li>Open Chrome's print dialogue (Ctrl+P)</li>
-            <li>click the "Change" button</li>
-            <li>select "Save as PDF"</li>
-            <li>click "Save" </li>
-            <li>print the saved PDF using a PDF viewer </li>
-        </ul>
+<h1>mono:di 1.0</h1>
+<h1>User manual</h1>
+<h2>Introduction</h2>
+<p>Mono:di is an MEI-based, music-notation software program developed for <em>Corpus monodicum</em>, an editorial project sponsored by the Akademie der Wissenschaften und der Literatur, Mainz (as part of the Akademienprogramm der Union der deutschen Akademien der Wissenschaften), housed at the Institut f&uuml;r Musikforschung, Universit&auml;t W&uuml;rzburg. <em>Corpus monodicum</em>&nbsp;(CM) produces scholarly editions of the Latin-texted, medieval monophonic repertories&mdash;both sacred and secular&mdash;that form the historical foundation of European music, but have thus far been under-represented in musicological scholarship. Mono:di serves as a tool to assist CM's editors in transcribing and editing medieval chant. The program also allows for a digital transmission of the editors' work to the typesetters who help to produce CM's analogue publications.</p>
+<h3>Neumatic notation</h3>
+<p>CM's manuscript sources often contain neumatic notation, which&mdash;in a manner of speaking&mdash;&ldquo;depicts&rdquo; the <em>motus cantilenae</em>, the movements of a melody. Rather than rendering melodies exclusively as distinct, individual pitches (as modern notation does), medieval scribes depicted small segments of melodic motion, which indicated the directions the singing voice traveled. Multiple pitch levels were often depicted with one stroke of ink. Medieval notation also contains several types of modified signs (such as the oriscus, strophicus, quilisma, and liquescent, which itself appears in multiple forms) that give information concerning particular nuances of vocal performance. Standard <a href="#references">reference works</a> on neumatic notation are listed below.</p>
+<h3>Transcription equivalents</h3>
+<p>CM&rsquo;s editors transfer these segments of melodic motion, as well as the pitch information shown by the manuscript&rsquo;s staff, into an artificial, scholarly notation. A group of pitches stemming from a single graphic stroke in the original notation is transcribed under a single bracket; pitches that form a group, but are not graphically combined in the original notation, are transcribed without a bracket, with small spaces between. When a syllable of sung text is conveyed with multiple groups of pitches, the groups are transcribed with larger spaces between them. Modified signs, like the oriscus, are rendered with signs that are foreign to contemporary music notation. Rubrics&mdash;the non-sung texts appearing in the manuscript sources&mdash;are recorded in mono:di's dedicated rubric fields; line and folio changes in the manuscript sources can also be documented.</p>
+<p>The line divisions in the editors&rsquo; transcriptions are based on the text of each chant; the beginning of a line signals the beginning of a syntactic unit in the Latin text. But in certain genres, these line beginnings also carry additional meanings. In the trope genre, for example, compositional additions (tropes) intertwine with existing chants (primary or base chants). The line breaks in CM&rsquo;s transcriptions occur not only between syntactic units, but also at the divisions between tropes and base chants. CM&rsquo;s editors label the beginnings of these lines in order to identify trope and base chant elements.</p>
+<h3>Workflow</h3>
+<h4>Text</h4>
+<p>To create a transcription in mono:di, the chant's text is entered first. This can be done in two ways:</p>
+<dl><dt>Direct input</dt> <dd>Choose <em>Document &rarr; New &rarr; Create empty document</em>, then select  the empty box below the staff to start typing. Spaces and hyphens will  create new syllables; the Return key will create a new editorial line. (See <a href="#textLevelKeys">Text Level - direct input</a> for a complete listing of keyboard commands). <a href="#rubrics">Rubrics</a> and line labels can also be entered as a part of this process. The input field to the left of the staff is used for editorial line labels; the input field above the staff is intended for rubrics.</dd> <dt>Importing the text from a Word document</dt> <dd>Choose <em>Document &rarr; New</em>, then copy the text passage from the Word document and paste it into the text field in the displayed dialogue box. The document formatting required for importing a chant's text is <a href="#wordImport">described in detail below</a>.</dd></dl>
+<h4>Pitches (<a href="#musicInput">music level</a>)</h4>
+<p>Pitches, special symbols, line and folio breaks from the source are added after the text.</p>
+<p>Click the staff above the sung text to add pitches. A pink "ghost note" will appear. Use the up/down arrow keys to adjust the pitch, and it will turn into a persistent note. You can create additional pitches for the same syllable by using the keys Shift, Space, and Return (as listed in the <a href="#newPitchKeys">table of keyboard commands</a>). You can move to the next syllable using the left/right arrow keys or by clicking the staff above a syllable.</p>
+<p>Instructions for entering <a href="#specialSymbolKeys">special symbols</a>, <a href="accidentalKeys">accidentals</a>, <a href="#lineAnFolioChanges">line and folio breaks</a> are listed below in the <a href="#musicInput">music level</a> section.</p>
+<h4>Annotations</h4>
+<p>Editorial <a href="#annotations">annotations</a> (concerning a single element or multiple elements of the transcription, including pitches, sung text, and rubrics) can be added at any point.</p>
+<h4>Metadata</h4>
+<p>Metadata&mdash;information concerning the entire chant, including the manuscript source it is transcribed from, the folio on which it begins, the liturgical feast it is associated with&mdash;can be recorded in the <a href="#header">header fields</a> at any point in the transcription process.</p>
+<h2>Transcribing</h2>
+<h3 id="textLevelKeys">Text level</h3>
+<h4>Direct input</h4>
+<p>Use these commands when a text syllable is selected.</p>
+<table class="key-command-table">
+<caption>New syllables</caption> 
+<tbody>
+<tr>
+<td>within a word</td>
+<td><span class="key">-</span></td>
+</tr>
+<tr>
+<td>beginning a new word</td>
+<td><span class="key">space</span></td>
+</tr>
+<tr>
+<td>beginning a new line</td>
+<td><span class="key">return</span></td>
+</tr>
+</tbody>
+</table>
+<table class="key-command-table" border="0">
+<caption>Delete an editorial line break</caption> 
+<tbody>
+<tr>
+<td>Place cursor in line label</td>
+<td><span class="key">&larr; delete</span></td>
+</tr>
+</tbody>
+</table>
+<table class="key-command-table" border="0">
+<caption>Navigating syllables</caption> 
+<tbody>
+<tr>
+<td>arrow keys</td>
+<td><span class="key">&larr;</span> and <span class="key">&rarr;</span></td>
+</tr>
+<tr>
+<td>next text element</td>
+<td><span class="key">tab</span></td>
+</tr>
+<tr>
+<td>previous text element</td>
+<td><span class="key">shift</span>+<span class="key">tab</span></td>
+</tr>
+</tbody>
+</table>
+<h4 id="wordImport">Word import</h4>
+<p>Importing a text from a Word document into mono:di requires the document to be formatted in specific ways. Sung text, line labels, rubrics, and folio breaks must be organized in three tab-separated columns. Make sure that in the tab-stop bar (found under Format - Tabs) exactly two tab-stops are set: one separating the first column (containing line labels) from the second column (containing rubrics and sung text); one separating the second column from the third (containing folio changes). All columns must be separated by exactly one tab character.</p>
+<p>Please observe the following formatting guidelines:</p>
+<ul>
+<li>line labels (trope element numbers, etc.) in column 1</li>
+<li>sung text in column 2</li>
+<li>rubrics in capital letters in column 2</li>
+<li>folio changes in column 3 (formatted as || f. #)</li>
+<li>if folio breaks and line breaks from the source coincide with editorial line breaks,             they should be marked at the beginnings of the editorial lines, not at the endings</li>
+<li>base chants should be in normal type, not capitals or small capitals</li>
+<li>all elements receive their own line, even if they are short and will appear on the             same line in the print edition</li>
+<li>the chant's start folio belongs in the header data, with the &Uuml;bersichtszeile. In mono:di, it must be             entered manually as part of the file&rsquo;s header data </li>
+<li>do not import the &Uuml;bersichtszeile into mono:di. Instead, enter the information manually in the header             data fields (except for the line labels, which will             be automatically generated).</li>
+<li>Words can be divided into syllables either before or after the text is imported into mono:di</li>
+</ul>
+<table>
+<tbody>
+<tr style="font-size: 75%;">
+<td style="min-width:3em">1</td>
+<td>&Uuml;bersichtszeile</td>
+<td>start folio</td>
+</tr>
+<tr>
+<td></td>
+<td>RUBRIC</td>
+<td></td>
+</tr>
+<tr>
+<td>25</td>
+<td style="padding-right:1.5em">| Ho-di-e can-tan-dus || est no-bis pu-er</td>
+<td>|| f. 22v</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Pu-er na-tus est | no-bis</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>| et</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="rubrics">Entering multiple rubrics without intervening music</h4>
+<p>The  rubric field can only contain a single line of text. To  enter multiple rubrics, which will appear in multiple lines in the print edition, type the rubrics in one line and separate them using  the symbol <em>#</em>.</p>
+<h3>Music level</h3>
+<p>Use these commands when a pitch or line/folio break is selected.</p>
+<table id="newPitchKeys" class="key-command-table" border="0">
+<caption>New pitches</caption> 
+<tbody>
+<tr>
+<td>under a slur</td>
+<td><span class="key">shift</span></td>
+</tr>
+<tr>
+<td>without a slur</td>
+<td><span class="key">space</span></td>
+</tr>
+<tr>
+<td>with greater distance</td>
+<td><span class="key">return</span></td>
+</tr>
+</tbody>
+</table>
+<table class="key-command-table" border="0">
+<caption>Adjusting pitch level</caption> 
+<tbody>
+<tr>
+<td>arrow keys</td>
+<td><span class="key">&uarr;</span> and <span class="key">&darr;</span></td>
+</tr>
+<tr>
+<td>Navigating pitches</td>
+<td><span class="key">&larr;</span> and <span class="key">&rarr;</span></td>
+</tr>
+</tbody>
+</table>
+<p>Special symbols and accidentals toggle on and off: press once to indicate; press again to remove.</p>
+<table id="specialSymbolKeys" class="key-command-table" border="0">
+<caption>Special symbols</caption> 
+<tbody>
+<tr>
+<td>liquescent</td>
+<td><span class="key">L</span></td>
+</tr>
+<tr>
+<td>liquescent ascending</td>
+<td><span class="key">A</span></td>
+</tr>
+<tr>
+<td>liquescent descending</td>
+<td><span class="key">D</span></td>
+</tr>
+<tr>
+<td>oriscus</td>
+<td><span class="key">O</span></td>
+</tr>
+<tr>
+<td>quilisma</td>
+<td><span class="key">Q</span></td>
+</tr>
+<tr>
+<td>strophicus</td>
+<td><span class="key">,</span></td>
+</tr>
+</tbody>
+</table>
+<table id="accidentalKeys" class="key-command-table" border="0">
+<caption>Accidentals</caption> 
+<tbody>
+<tr>
+<td>flat</td>
+<td><span class="key">B</span></td>
+</tr>
+<tr>
+<td>sharp</td>
+<td><span class="key">S</span></td>
+</tr>
+<tr>
+<td>natural</td>
+<td><span class="key">N</span></td>
+</tr>
+</tbody>
+</table>
+<table id="lineAnFolioChanges" class="key-command-table" border="0">
+<caption>Source line and folio changes</caption> 
+<tbody>
+<tr>
+<td>line change after selected pitch</td>
+<td><span class="key">i</span></td>
+</tr>
+<tr>
+<td>line change before selected pitch</td>
+<td><span class="key">J</span></td>
+</tr>
+<tr>
+<td>folio change after slected pitch</td>
+<td><span class="key">i</span><span class="key">i</span></td>
+</tr>
+<tr>
+<td>folio change before selected pitch</td>
+<td><span class="key">J</span><span class="key">J</span></td>
+</tr>
+</tbody>
+</table>
+<h3 id="annotations">Annotations</h3>
+<p>Annotations can be assigned to</p>
+<ul>
+<li>sung text</li>
+<li>pitches</li>
+<li>the beginning of a line as a whole (including its line number and rubric)</li>
+<li>line and folio break markers</li>
+</ul>
+<p>Annotations can be classified as one of five types, <a href="#annotationTypes">described below</a>.</p>
+<h4>Creating, editing, and deleting annotations</h4>
+<table class="key-command-table" border="0">
+<caption>Annotations</caption> 
+<tbody>
+<tr>
+<td>Create an annotation for selected element</td>
+<td><span class="key">control</span>+<span class="key">K</span></td>
+</tr>
+</tbody>
+</table>
+<p>When creating or editing an annotation, the Comment dialogue box appears. In this dialogue box, a label and a comment text can be entered. Although the label should be very short, the comment field can accommodate long, multiple-line texts. At least one of these two fields should be filled in. Annotations can also be classified as one of  five types, each coded with a different color in the transcription. The types appear as a drop-down list in the top field of the Comment dialogue box; they are <a href="#annotationTypes">described below</a>.</p>
+<p>The annotation's label is shown in the transcription in a small, colored rectangle, indicating that an annotation exists for this element. The full comment text is shown when the mouse pointer hovers above this rectangle or when the rectangle is clicked. If multiple annotations apply to one element, a gray label  containing "+" is displayed. The individual labels are unfolded when  hovering the mouse pointer over the gray label.</p>
+<p>Annotations can be edited and deleted by clicking on the color-coded labels and interacting with the Comment dialogue box.</p>
+<h4>Assigning an annotation to a range of elements</h4>
+<p>Once created, an annotation is associated with a single element (for  example, a single pitch). An annotation may also apply, however, to multiple elements, such as a group of  pitches or even an entire line of music. To extend the range of elements  the annotation applies to, click the "&harr;" sign that appears when the  mouse pointer hovers above an annotation label, then click the last  note or element that the annotation should apply to. The transcription will then display the annotation with starting and ending brackets. An annotation can span the music and the text layer when it is assigned to one element in the music layer and one element in the text layer. The brackets can be moved by clicking "&harr;" and selecting the element the bracket should be  moved to.</p>
+<h4 id="annotationTypes">Annotation types</h4>
+<dl><dt>1. Internal annotation</dt> <dd>An editor may use this type of annotation for reminders ("notes to self") or questions for co-editors. These annotations  will be removed when the document is published.</dd> <dt>2. Annotation for typesetter</dt> <dd>These annotations are carried over to the typesetting software and  will be presented to the typesetter. Any unusual situations that have  consequences for typesetting should be communicated using this type of  comment. Typical examples are:                                                                                                                                  
+<ul>
+<li>"Pseudo key signatures" that can not be input in mono:di. Assign a  typesetter annotation to the system or folio break after which the  pseudo key signature appears in the manuscript, instructing the  typesetter (for example) to place a key signature with one ♭ at this position.</li>
+<li>Usually the typesetter breaks overly long editorial lines according  to the established guidelines. If those rules might lead to an undesirable result in a specific situation, an annotation may be placed at a more desirable  breaking point.</li>
+</ul>
+This kind of annotation should not be over-used. Like internal  annotations, typesetter annotations will be removed before publication.</dd> <dt>3. Public annotation</dt><dd>These annotations will be presented to the user of CM's digital  edition. Anything that should be publicly documented can be conveyed  using this type of annotation. For example, comments for a transcription's apparatus can be recorded in the Comment dialogue box as: </dd><dd> 
+<ul>
+<li>drop-down list: public annotation</li>
+  <li>label field: App</li>
+  <li>comment text:&nbsp; et ] <em>korrigiert aus</em> que</li>
+</ul>
+</dd> <dt>4. Diacritical marking</dt> <dd>So-called diacritical markings carry references to the printed edition's Zeichentabelle. To apply a  diacritical marking to a group of notes, select one note of that group,  create an annotation of the diacritical-marking type and enter the marking  in the label field. The multi-line text field should usually be kept  empty.</dd> <dt>5. Special pitch property</dt> <dd>This annotation type was created  for two purposes:                                                                                                                            
+<ul>
+<li>to indicate that a pitch was written on a dry point line. In this case, "dp" is recorded in the annotation's label field.</li>
+<li>to indicate that a pitch was depicted with a modified sign, signaling  its pitch content as "mi." In this case, "mi" is recorded in the label  field.</li>
+</ul>
+</dd></dl>
+<h3>Metadata</h3>
+<p>Above each transcription, mono:di supplies fields where information  concerning the entire chant can       be recorded. This information will  enable certain search functions for users of CM's digital editions.</p>
+<h4>Line 1</h4>
+<dl><dt>CM section no. &ndash; volume no.</dt> <dd>for example, CM II-1</dd> </dl>
+<h4>Line 2</h4>
+<dl><dt>source no.</dt> <dd>each source in the CM volume will receive a number, based on the order it appears in the       volume</dd> <dt>source identifier</dt> <dd>this is the abbreviation for the manuscript&rsquo;s shelfmark (Provins,   Biblioth&egrave;que       municipale 12 (24) is recorded here as Pro 12)</dd></dl>
+<h4>Line 3</h4>
+<dl><dt>transcription numbers (order in source: printed transcription number)</dt> <dd>
+<p>This  field should include two numbers divided by a colon. The first number  indicates the order of the transcription in the source; the second  number appears in the print edition as the transcription number (at the  beginning of the transcription with a square       around it).</p>
+<p>As an example, in CM II-1, the first trope             complex in a source will have 1:1 in this header field. The base chant sung with this             trope complex, appearing immediately after it in the source, will have 2:1P in this             header field. On mono:di's management page, the files will be ordered           according to the <span style="text-decoration: underline;">first</span> number           in this field. Only the <span style="text-decoration: underline;">second</span> number will appear in the print edition. The first number serves a function for our typesetters; the second number serves a           coordinating function for the volume's readers.</p>
+</dd> <dt>genre</dt> <dd>of the chant (trope = trop; offertory = off)</dd> <dt>incipit</dt> <dd>standardized spelling</dd> <dt>feast</dt> <dd>also abbreviated and standardized according to Corpus troporum (Nativitas = Nat)</dd> <dt>start folio</dt> <dd>of the chant in the manuscript (22v) without f. or r.</dd></dl>
+<h4>Line 4</h4>
+<p>the information for this line is recorded from the chant's text edition. If the  text edition does not       contain the information, the field can be  left blank.</p>
+<dl><dt>text edition incl. volume no</dt> <dd>for example, CT I</dd> <dt>text&rsquo;s identifying number</dt> <dd>only for text editions like Analecta hymnica, where each text receives its own number</dd> <dt>base chant incipit</dt> <dd>This field is for CT X and CT IX, which uses a base chant incipit to  identify each element. We cite exactly corresponding to CT.</dd> <dt>feast, service, base chant genre</dt> <dd>as they appear in CT, for example Nat III intr</dd> </dl>
+<h4>Line 5</h4>
+<dl><dt>melody catalogue author, melody no., trope complex no.</dt> <dd>
+<p>These fields are for CM&rsquo;s volumes of ordinary genres, which have  catalogues of base       chant melodies and trope incipits (such as  Schildbach)</p>
+</dd></dl>
+<h2>Managing files&mdash;Management page</h2>
+<h3>File names</h3>
+<p>File names may only contain letters, numbers, "-" and "_" characters. No spaces can be used.</p>
+<p>When a user moves from a document to the management page, the  document is still open and can       be accessed by clicking &ldquo;Document.&rdquo;</p>
+<h3>Batch functions</h3>
+<p>The actions that are offered by the buttons on the right hand side in  management view can also be applied simultaneously to multiple  documents using the batch functions. Place check marks in front of the names of the documents you want to apply the action to and select  the respective action.</p>
+<p>The batch function "print" plays a special role. It allows all selected documents to be printed consecutively.</p>
+<h2>Working without logging in</h2>
+<h3>General</h3>
+<p>We strongly recommend that CM's editors log in  if possible. This way, saved documents will be accessible on  the server, even in the case of a browser or computer failure. Also, editing history is preserved on the server so that in case of an editing emergency  (like an accidental deletion of documents or broken delete keys), technical staff will be able to restore an earlier version of the documents.</p>
+<p>When working without internet connection, documents are stored in the browser's internal storage. The next time an editor logs in, the revised or newly created documents will be sent to the server.</p>
+<p>Regular user accounts can only be given to CM's editors. Users who are not members of the CM staff have access to a demo mode that allows documents to be created, edited, and saved in the browser's internal storage. These documents can also be printed.</p>
+<h3>Running multiple instances of mono:di</h3>
+<p>Running multiple instances of mono:di in multiple browser tabs or browser windows is not advised because it bears the risk of losing any work done in all but one window or tab. <strong>Mono:di 1.0 is not designed to manage local storage across multiple instances and cannot detect whether multiple mono:di tabs or windows are open.</strong> When working with an unstable internet connection or without being logged in, <strong>please do not edit more than one document at a time</strong>.</p>
+<p>(If you are adventurous and can rely on a stable internet connection, you may--at your own risk--work with multiple documents simultaneously, but it is vital to <strong>make sure you are logged in</strong>. If the connection to the server fails while working with multiple instances of mono:di--you will see a message in that case--you are almost certain to lose some of your work. Therefore make sure to save frequently. This ensures that your work is saved on the server and that you will be informed of a failed server connection as soon as possible. If the server connection fails while you are working with multiple instances, <strong>do not continue to work with mono:di on that browser until you can successfully log in again</strong> to minimize the data loss.)</p>
+<h3>Storing files locally for off-line work</h3>
+<p>Any files created or edited will be sent to the server (if you are logged in) and also saved on your computer. This local storage ensures they are still available for off-line work. To save additional documents for off-line work,</p>
+<ul>
+<li>go to the management page</li>
+<li>and click the blue arrow button next to the file name.</li>
+<li>The document is locally available when the button turns yellow.</li>
+</ul>
+<p>Documents can also be removed from the local storage by clicking the (now yellow) button again. This might be necessary if the browser's storage is full.</p>
+<h3>Making sure locally stored data is persistent</h3>
+<p>To make sure that locally stored data is not deleted when the browser is closed, check your browser settings.</p>
+<h4>Firefox</h4>
+<ul>
+<li>Open a window in Firefox</li>
+<li>select the drop-down list under &ldquo;Firefox&rdquo;</li>
+<li>select &ldquo;Preferences&rdquo;</li>
+<li>select &ldquo;Privacy&rdquo;</li>
+<li>under &ldquo;History&rdquo; select &ldquo;Firefox will: &lsquo;Use custom settings for         history&rsquo; &rdquo;</li>
+<li>Please make sure the  box in front of &ldquo;Clear history when Firefox closes&rdquo; is UNCHECKED.</li>
+</ul>
+<h4>Chrome</h4>
+<ul>
+<li> Click the Chrome menu ("three stripe button") and select "Settings"</li>
+<li> Click "Show advanced settings" at the bottom of the page </li>
+<li>Click "Content settings..."</li>
+<li>Select "Allow local data to be set (recommended)" </li>
+</ul>
+<h3 id="increaseQuota">Allowing a browser to store more data</h3>
+<p>Browsers impose restrictions upon how much data may be stored locally. If many chants need to be stored locally (for example, when working without a reliable internet connection), please use Firefox rather than Chrome. By default, Firefox can store more data than Chrome. Firefox also allows the user to relax the limits on local storage by following these steps:</p>
+<ul>
+<li>Type <code>about:config</code> in the address bar</li>
+<li>Accept the warning message</li>
+<li>Enter <code>dom.storage.default_quota</code> in the search bar</li>
+<li>Change the value (in Kilobytes) to any size you want. Minimum and default value is 5120.</li>
+</ul>
+<h3>Working from a USB drive</h3>
+<p>Documents that are locally available (marked with a yellow button on the management page) are       placed in a small database on a computer's hard disk  that is managed by the browser. If       a user creates multiple user profiles on the computer or for the browser, an  independent       database will be used for each user profile.</p>
+<p>If work is saved while online, an editor can log in from any  computer and any       supported browser to download the saved work  from the server. However, it is also possible to       place locally  stored data on a USB drive by using a portable browser that  runs       off a USB drive.</p>
+<p>Portable browsers are available for Windows and Mac. They only work  on one or the other platform,       so the local data can only be taken from one  Mac to another or from one Windows PC to another.       Using a portable  browser is only recommended if an editor would like to work on multiple computers  with the       same operating system and a reliable internet connection will not be available.</p>
+<p>Excellent portable browser versions for Windows are supplied by <a href="http://portableapps.com/">portableapps.com</a>.  Portable Mac versions are generally       not as well supported. Users  of portable browsers are advised, for security reasons, to determine regularly if their        browser version is still up to date. If the browser  does not auto-update       itself, newer versions have to be downloaded  manually. However, when downloading and installing new versions manually, the editor cannot be guaranteed that locally stored mono:di documents will be preserved.</p>
+<p>The recommended browser for use on a USB drive is Firefox for Windows. It has the most reliable auto-updating mechanism and the amount of mono:di data that can be stored on the USB drive <a href="#increaseQuota">is configurable</a>. This Windows program is even likely to run smoothly when plugged into on a Mac that has Wine installed (e.g. <a href="http://winebottler.kronenberg.org/">WineBottler</a>).</p>
+<h4>Downloads</h4>
+<p><strong>Firefox</strong></p>
+<ul>
+<li>There is no known up-to-date portable version of Firefox for Mac</li>
+<li><a href="http://portableapps.com/apps/internet/firefox_portable">Windows</a></li>
+</ul>
+<p><strong>Chromium / Chrome</strong></p>
+<ul>
+<li><a href="http://sourceforge.net/projects/osxportableapps/files/Chromium/">Mac OS X         (Chromium)</a>.  Pick the newest .dmg file and make sure it's not older than about half a          year. Installation of older versions is not recommended.</li>
+<li><a href="http://portableapps.com/apps/internet/google_chrome_portable">Windows (Chrome)</a></li>
+</ul>
+<h2>Troubleshooting</h2>
+<h3>500 Error</h3>
+<p>This error sometimes appears when the server is busy processing documents. No data will be lost, since the document is saved locally. If the page is reloaded, you might see that the document has been saved on the server already. If not, please wait a minute and try again to save on the server.</p>
+<h3>Printing</h3>
+<h4>Staffs become solid black rectangles</h4>
+<p>This problem likely stems from problems with the printer driver. Try to increase the print resolution. If that does not succeed, try creating a PDF with Chrome's built-in PDF print:</p>
+<ul>
+<li>Open Chrome's print dialogue (Ctrl+P)</li>
+<li>click the "Change" button</li>
+<li>select "Save as PDF"</li>
+<li>click "Save" </li>
+<li>print the saved PDF using a PDF viewer </li>
+</ul>
+<h4>Bottom of the page gets cut off</h4>
+<p>When editing in Chrome, rubrics can sometimes be split between two pages. To adjust, open the "print" dialogue box and select "Custom" in the drop down list next to MARGINS. On the image of the printout, drag the bottom dotted blue line UP to increase the bottom margin and force the rubric onto the following page.</p>
+<h2 id="references">References</h2>
+<p><a href="#_ftnref1"></a>Standard reference works on medieval notation include:</p>
+<ul>
+<li>S. Corbin, <em>Die Neumen,</em> Arno Volk: K&ouml;ln, 1977</li>
+<li>D. Hiley: <em>Western Plainchant</em>, Oxford University Press: Oxford, 1993</li>
+<li>N. Phillips: &ldquo;Notationen und Notationslehren von Boethius bis zum 12. Jahrhundert,&rdquo; in <em>Die Lehre vom einstimmigen liturgischen Gesang</em>, Wissenschaftliche Buchgesellschaft: Darmstadt, 2000</li>
+<li>B. St&auml;blein: <em>Schriftbild der einstimmigen Musik,</em> Deutscher Verlag f&uuml;r Musik: Leipzig, 1975</li>
+</ul>
 </body>
 </html>
