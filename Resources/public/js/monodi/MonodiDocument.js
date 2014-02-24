@@ -754,9 +754,9 @@
         "Parameter staticStyleElement must be an HTML style element"
       );
       dynamicStyleElement = ensureInstanceofHTMLElement(suppliedDynamicStyleElement,"style",
-        "Parameter staticStyleElement must be an HTML style element"
+        "Parameter dynamicStyleElement must be an HTML style element"
       );
-      if (mei) {staticStyleElement.innerHTML = transform("<style>").innerHTML;}
+      if (mei) {staticStyleElement.textContent = transform("<style>").textContent;}
       refresh();
     };
 
