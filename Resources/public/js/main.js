@@ -67,6 +67,8 @@ var placeCaretAtEnd = function(el) {
 
 //callback for delete annotated element
 $(document).on('keydown', function(e) {
+	if ($('.modal:visible').length) return;
+
 	var note = checkElement('note'),
 		syl = checkElement('syl'),
 		sbS = checkElement('sb', 'source'),
