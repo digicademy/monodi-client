@@ -74,6 +74,11 @@ function generateTOC(toc) {
   <body style="padding: 0 1px" onload="generateTOC(document.getElementById('toc'))">
 <h1>mono:di 1.0</h1>
 <h1>User manual</h1>
+    <p id="editorLink">Documentation for the <a href="https://monodi.corpus-monodicum.de/">mono:di editor</a>.</p>
+    <script type="application/javascript">
+      // Detect if this is displayed inside an iframe
+      if (top.location.href === "https://monodi.corpus-monodicum.de/") document.getElementById("editorLink").outerHTML = ""
+    </script>
       <div id="toc"></div>
 <h2>Introduction</h2>
 <p>Mono:di is an MEI-based, music-notation software program developed for <em>Corpus monodicum</em>, an editorial project sponsored by the Akademie der Wissenschaften und der Literatur, Mainz (as part of the Akademienprogramm der Union der deutschen Akademien der Wissenschaften), housed at the Institut f&uuml;r Musikforschung, Universit&auml;t W&uuml;rzburg. <em>Corpus monodicum</em>&nbsp;(CM) produces scholarly editions of the Latin-texted, medieval monophonic repertories&mdash;both sacred and secular&mdash;that form the historical foundation of European music, but have thus far been under-represented in musicological scholarship. Mono:di serves as a tool to assist CM's editors in transcribing and editing medieval chant. The program also allows for a digital transmission of the editors' work to the typesetters who help to produce CM's analogue publications.</p>
