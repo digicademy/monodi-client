@@ -1157,7 +1157,7 @@ function DocumentCtrl($scope, $http) {
 		var temp, doc;
 		if ($scope.online && $scope.access_token) {
 			if (data) {
-				doc = $scope.getLocal('document' + data.id);
+				doc = JSON.parse($scope.getLocal('document' + data.id));
 				temp = JSON.parse($scope.active);
 				$scope.setActive(doc);
 			} else {
