@@ -8,7 +8,7 @@
   <import href="mei2xhtml.xsl"/>
   
   <key name="typesetterAnnotStart" match="mei:annot[@type='typesetter']" use="substring(@startid,2)"/>
-  <key name="typesetterAnnotEnd" match="mei:annot[@type='typesetter']" use="substring(@endid,  2)"/>
+  <key name="typesetterAnnotEnd"   match="mei:annot[@type='typesetter']" use="substring(@endid,  2)"/>
   <key name="diacriticalMarkingAnnot" match="mei:annot[@type='diacriticalMarking']" use="substring(@startid, 2)"/>
   
   <output method="text"/>
@@ -19,8 +19,8 @@
   <param name="combineBaseChantsOnOneStaff" select="1"/><!-- 1 for true, 0 for false -->
   <param name="advance" select="3"/>
   <param name="marginaliaP4" select="5"/>
-  <param name="rubricTitleP4" select="20"/>
-  <param name="P4distanceBetweenRubricTitles" select="4"/>
+  <param name="rubricP4" select="20"/>
+  <param name="P4distanceBetweenRubrics" select="4"/>
   <param name="overviewLineP4" select="30"/>
   <param name="lyricsP4" select="-5"/>
   <param name="hyphenP4" select="-4"/>
@@ -30,15 +30,18 @@
   <param name="slurP9" select="4"/>
   <param name="liquescentP15" select=".65"/>
   <param name="lineNumberP3" select=".01"/>
+  <param name="rightColumnP3" select="170"/>
 
   <param name="standardFont" select="'_80'"/>
   <param name="smallCapsFont" select="'_85'"/>
-  <param name="corpusMonodicumFont" select="$standardFont"/> <!-- TODO: When glyphs for "<>" were added to Corpus monodicum font, use '_79' here -->
+  <param name="corpusMonodicumFont" select="'_79'"/>
 
   <param name="standardAnnotP4" select="18"/>
   <param name="standardDiacriticalMarkingP4" select="$standardAnnotP4"/>
   <param name="lyricsAnnotP4" select="$lyricsP4 - 4"/>
   <param name="annotP5toP7" select="'.9 .55 1'"/>
+  
+  <param name="alwaysOutputSourceId" select="'true'"/>
   
   <variable name="capitalLetters" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
 
@@ -51,13 +54,15 @@
            if the actual transcription numbers (in this case found after the colon)
            aren't in ascending order. We're only interested in the number after the colon. -->
       <variable name="transcriptionNumber" select="substring(translate(@n,':',''), string-length(substring-before(@n,':')) + 1)"/>
+      <variable name="sourceId" select="//mei:sourceDesc/mei:source/@label"/>
 
       <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 0 0 -1.1 &#10;')"/>
       <value-of select="concat($standardFont, $transcriptionNumber, '&#10;')"/>
+      <!-- Box for transcription number -->
       <value-of select="concat('12 ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 10&#10;')"/>
 
       <!-- Übersichtszeile -->
-      <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 0 0 -1.2 0 0 ',$staffP3,'&#10;')"/>
+      <value-of select="concat('t ',$maxStaffsPerPage,' ',$staffP3,' ',$overviewLineP4,' 0 0 0 -1.2 0 0&#10;')"/>
       <value-of select="$standardFont"/>
       <value-of select="normalize-space(mei:classification/mei:termList[@label='liturgicFunction'])"/>
 
@@ -73,10 +78,22 @@
         <value-of select="concat(' (',$textEditionString,')')"/>
       </if>
       <value-of select="'&#10;'"/>
+      
+      <!-- SourceId (e.g. "Wü 165").  We only need to print this for the first transcription in a source, but
+           as I'm not sure whether we can rely on $transcriptionNumber always being 1 in that case and e.g. in
+           the case of Aachen we have the source ID twice, once for the tropes and once for the base chants,
+           we create them for all transcriptions and later delete them while processing the Score data if
+           parameter alwaysOutputSourceId is left at its default. -->
+      <if test="$alwaysOutputSourceId='true' or ($transcriptionNumber = 1 and string-length($sourceId) > 0)">
+        <value-of select="concat('t ', $maxStaffsPerPage, ' ', $rightColumnP3, ' ', $overviewLineP4, ' 0 0 0 -1.9&#10;')"/>
+        <value-of select="$standardFont"/>
+        <apply-templates mode="generate-score-escaped-string" select="$sourceId"/>
+        <value-of select="'&#10;'"/>
+      </if>
     </for-each>
     
     <!-- We convert one line after the other because we need to keep track of
-         to how many Score line breaks an individual mei:sb translates to.
+         how many Score line breaks an individual mei:sb translates to.
          $maxStaffsPerPage is then used to determine when we need to start a new Score file. -->
     <apply-templates mode="mei2score" select="//mei:sb[not(@source)][1]"/>
   </template>
@@ -176,17 +193,22 @@
   <!-- Rubrics -->
   <template mode="mei2score" match="mei:sb[not(@source)]/@label[not(.='')]">
     <param name="P2"/>
-    <param name="P4" select="$rubricTitleP4"/>
+    <param name="P4" select="$rubricP4"/>
     <param name="rubricText" select="."/>
     
     <!-- Multiple rubrics are separated by a "#" and we need to split them -->
-    <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$P4,' 0 0 0 -2.2 0 0 ',$staffP3,'&#10;')"/>
-    <value-of select="concat($standardFont, normalize-space(substring-before(concat($rubricText,'#'),'#')) ,'&#10;')"/>
+    <value-of select="concat('t ',$P2,' ',$staffP3,' ',$P4,' 0 0 0 -2.2&#10;')"/>
+    <value-of select="$standardFont"/>
+    <apply-templates select="." mode="generate-score-escaped-string">
+      <with-param name="string" select="normalize-space(substring-before(concat($rubricText,'#'),'#'))"/>
+      <with-param name="allCaps" select="true()"/>
+    </apply-templates>
+    <value-of select="'&#10;'"/>
     
     <if test="contains($rubricText,'#')">
       <apply-templates mode="mei2score" select=".">
         <with-param name="P2" select="$P2"/>
-        <with-param name="P4" select="$P4 - $P4distanceBetweenRubricTitles"/>
+        <with-param name="P4" select="$P4 - $P4distanceBetweenRubrics"/>
         <with-param name="rubricText" select="substring-after($rubricText, '#')"/>
       </apply-templates>
     </if>
@@ -215,16 +237,17 @@
       <with-param name="P4" select="$lyricsAnnotP4"/>
     </apply-templates>
 
-    <variable name="syl">
-      <apply-templates mode="generate-score-escaped-string" select="mei:syl">
-        <with-param name="trailingCharactersToOmit" select="'-'"/>
-      </apply-templates>
-    </variable>
-
     <variable name="font">
       <apply-templates select="preceding-sibling::mei:sb[1]" mode="get-syllable-font"/>
     </variable>
     
+    <variable name="syl">
+      <apply-templates mode="generate-score-escaped-string" select="mei:syl">
+        <with-param name="trailingCharactersToOmit" select="'-'"/>
+        <with-param name="font" select="$font"/>
+      </apply-templates>
+    </variable>
+
     <variable name="P8textClass">
       <choose>
         <when test="$font = $smallCapsFont">-2.4</when>
@@ -249,100 +272,141 @@
   <template mode="generate-score-escaped-string" match="node()|@*">
     <param name="string" select="normalize-space(.)"/>
     <param name="trailingCharactersToOmit" select="''"/>
+    <param name="allCaps" select="false()"/>
+    <param name="font" select="$standardFont"/>
     
     <if test="string-length($string) > 0 and $string != $trailingCharactersToOmit">
       <variable name="char" select="substring($string,1,1)"/>
       <variable name="firstTwoChars" select="substring($string,1,2)"/>
       <!-- The Score manual does not list "~" among the unescaped characters, but we do -->
       <variable name="unescapedChars">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;?!+-*=@#$%&amp;&lt;&gt;`'"~</variable>
-      
-      <choose>
-        <!--  We replace < and > with these characters from te Corpus Monodicum font -->
-        <when test="contains('&lt;>',$char)">
-          <value-of select="concat($corpusMonodicumFont, $char, $standardFont)"/>
-          <!-- We might have to switch to the small caps font: -->
-          <apply-templates select="self::mei:syl/../preceding-sibling::mei:sb[not(@source)][1]" mode="get-syllable-font"/>
-        </when>
-        <when test="normalize-space($firstTwoChars) != '' and contains(
-          ' &lt;&lt; &gt;&gt; ^^ %% ## 
+
+      <variable name="escapedChar">
+        <choose>
+          <!--  We replace < and > with these characters from te Corpus Monodicum font -->
+          <when test="contains('&lt;>',$char)">
+            <value-of select="concat($corpusMonodicumFont, $char, $font)"/>
+            <!-- We might have to switch to the small caps font: -->
+            <apply-templates select="self::mei:syl/../preceding-sibling::mei:sb[not(@source)][1]" mode="get-syllable-font"/>
+          </when>
+          <when test="string-length(normalize-space($firstTwoChars)) = 2 and contains(
+            ' &lt;&lt; &gt;&gt; ^^ %% ## 
             ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t 
             !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z 
             ~a ~A ~n ~N ~o ~O 
             ?1 ?2 ?3 ?d ?0 ?8 ?9 ',
             concat(' ',$firstTwoChars,' ')           
-        )">
-          <value-of select="concat($char,' ')"/>
-          <message>
-            WARNING: Text from the mono:di data contained "<value-of select="$firstTwoChars"/>".
-            To prevent Score from interpreting this as an escape sequences, a space was inserted.
-          </message>
+            )">
+            <value-of select="concat($char,' ')"/>
+            <message>
+              WARNING: Text from the mono:di data contained "<value-of select="$firstTwoChars"/>".
+              To prevent Score from interpreting this as an escape sequences, a space was inserted.
+            </message>
+          </when>
+          <when test="contains($unescapedChars,$char)">
+            <value-of select="$char"/>
+          </when>
+          <when test="contains('ÄäËëÏïÖöÜüŸÿ',$char)">
+            <value-of select="concat('%%',translate($char,
+              'ÄäËëÏïÖöÜüŸÿ',
+              'AaEeIiOoUuYy'))"/>
+          </when>
+          <when test="contains('ÁáÉéÍíÓóÚú',$char)">
+            <value-of select="concat('&lt;&lt;',translate($char,
+              'ÁáÉéÍíÓóÚú',
+              'AaEeIiOoUu'))"/>
+          </when>
+          <when test="contains('ÀàÈèÌìÒòÙù',$char)">
+            <value-of select="concat('&lt;&lt;',translate($char,
+              'ÀàÈèÌìÒòÙù',
+              'AaEeIiOoUu'))"/>
+          </when>
+          <when test="contains('ÂâÊêÎîÔôÛû',$char)">
+            <value-of select="concat('^^',translate($char,
+              'ÂâÊêÎîÔôÛû',
+              'AaEeIiOoUu'))"/>
+          </when>
+          <when test="contains('ÂâÊêÎîÔôÛû',$char)">
+            <value-of select="concat('^^',translate($char,
+              'ÂâÊêÎîÔôÛû',
+              'AaEeIiOoUu'))"/>
+          </when>
+          <when test="contains('Çç',$char)">
+            <value-of select="concat('##',translate($char,
+              'Çç',
+              'Cc'))"/>
+          </when>
+          <when test="contains('\|[]{}−æÆ©œŒªłŁºøØ®ß™\♭♯♮𝅭',$char)">
+            <value-of select="concat('?',translate($char,
+              '\|[]{}−æÆ©œŒªłŁºøØ®ß™♭♯♮&#x1D16D;',
+              '\|[]{}-aAceEflLmoOrst123d'))"/>
+          </when>
+          <when test="contains('•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',$char)">
+            <value-of select="concat('!',translate($char,
+              '•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',
+              '012345679aAdDefghijklmnpqsSyzZ'))"/>
+          </when>
+          <when test="contains('ãÃñÑõÕ',$char)">
+            <value-of select="concat('~',translate($char,
+              'ãÃñÑõÕ',
+              'aAnNoO'))"/>
+          </when>
+          <when test="contains('𝅘𝅥𝅗𝅥𝅘𝅥𝅮𝅘𝅥𝅯𝅝/',$char)">
+            <value-of select="translate($char,
+              '𝅘𝅥𝅗𝅥𝅘𝅥𝅮𝅘𝅥𝅯𝅝/',
+              '[]{}|\')"/>
+          </when>
+          <when test="$char='°'">\\312</when>
+          <when test="$char='‰'">\\275</when>
+          <when test="$char='⁄'">\\244</when><!-- fraction -->
+          <when test="$char='_'">\\374</when>
+          <when test="$char='²'">\\366</when>
+          <when test="$char='¹'">\\365</when>
+          <when test="$char='¼'">\\362</when>
+          <when test="$char='½'">\\363</when>
+          <when test="$char='¾'">\\364</when>
+          <when test="$char='¹'">\\365</when>
+          <when test="$char='³'">\\367</when>
+          <otherwise>
+            <value-of select="'?'"/>
+            <message>
+              WARNING:
+              Unsupported character: "<value-of select="$char"/>"
+              Rest of string: "<value-of select="$string"/>"
+            </message>
+          </otherwise>
+        </choose>
+      </variable>
+      
+      <choose>
+        <!-- Score translates accented/special characters to escape sequences that are 
+             similar for the capital and small letters, e.g. ã becomes ~æ and Ã becomes ~A.
+             This means, if we want to convert everything to allCaps, we can take the escaped output 
+             and translate ASCII unaccented minuscules in to majuscules.
+             However, there are some character whos escaped variant contains a small letter,
+             but the original symbol is not a letter itself that can be capitalized.
+             For example, © becomes ?c, and there is no captialized variant of ©.
+             So we check for those non-capitalizable chars before capitalizing the escaped char. -->
+        <when test="$allCaps and not(contains('©ªº®ß™&#x1D16D;†‡…ƒ«»ﬁ‹›ﬂ—–¶¿>&lt;', $char))">
+          <value-of select="translate($escapedChar, 
+            'abcdefghijklmnopqrstuvwxyz;',
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
         </when>
-        <when test="contains($unescapedChars,$char)">
-          <value-of select="$char"/>
-        </when>
-        <when test="contains('ÄäËëÏïÖöÜüŸÿ',$char)">
-          <value-of select="concat('%%',translate($char,
-            'ÄäËëÏïÖöÜüŸÿ',
-            'AaEeIiOoUuYy'))"/>
-        </when>
-        <when test="contains('ÁáÉéÍíÓóÚú',$char)">
-          <value-of select="concat('&lt;&lt;',translate($char,
-            'ÁáÉéÍíÓóÚú',
-            'AaEeIiOoUu'))"/>
-        </when>
-        <when test="contains('ÀàÈèÌìÒòÙù',$char)">
-          <value-of select="concat('&lt;&lt;',translate($char,
-            'ÀàÈèÌìÒòÙù',
-            'AaEeIiOoUu'))"/>
-        </when>
-        <when test="contains('ÂâÊêÎîÔôÛû',$char)">
-          <value-of select="concat('^^',translate($char,
-            'ÂâÊêÎîÔôÛû',
-            'AaEeIiOoUu'))"/>
-        </when>
-        <when test="contains('ÂâÊêÎîÔôÛû',$char)">
-          <value-of select="concat('^^',translate($char,
-            'ÂâÊêÎîÔôÛû',
-            'AaEeIiOoUu'))"/>
-        </when>
-        <when test="contains('Çç',$char)">
-          <value-of select="concat('##',translate($char,
-            'Çç',
-            'Cc'))"/>
-        </when>
-        <when test="contains('\|[]{}−æÆ©œŒªłŁºøØ®ß™\♭♯♮𝅭',$char)">
-          <value-of select="concat('?',translate($char,
-            '\|[]{}−æÆ©œŒªłŁºøØ®ß™♭♯♮𝅭',
-            '\|[]{}-aAceEflLmoOrst123d'))"/>
-        </when>
-        <when test="contains('•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',$char)">
-          <value-of select="concat('!',translate($char,
-            '•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',
-            '012345679aAdDefghijklmnpqsSyzZ'))"/>
-        </when>
-        <when test="contains('ãÃñÑõÕ',$char)">
-          <value-of select="concat('~',translate($char,
-            'ãÃñÑõÕ',
-            'aAnNoO'))"/>
-        </when>
-        <when test="contains('𝅘𝅥𝅗𝅥𝅘𝅥𝅮𝅘𝅥𝅯𝅝/',$char)">
-          <value-of select="translate($char,
-            '𝅘𝅥𝅗𝅥𝅘𝅥𝅮𝅘𝅥𝅯𝅝/',
-            '[]{}|\')"/>
+        <when test="$allCaps and contains('>&lt;', $char) and starts-with($escapedChar, $corpusMonodicumFont)">
+          <!-- We have a larger variant of the angle brackets for allCaps in the Corpus monodicum font,
+               which are placed in the slot for { and }. Those have to be escaped like ?{ and ?} -->
+          <value-of select="concat($corpusMonodicumFont, '?', translate($char, '&lt;>', '{}'), $font)"/>
         </when>
         <otherwise>
-          <value-of select="'?'"/>
-          <message>
-            WARNING:
-            Unsupported character: "<value-of select="$char"/>"
-            Rest of string: "<value-of select="$string"/>"
-          </message>
+          <value-of select="$escapedChar"/>
         </otherwise>
       </choose>
       
       <apply-templates select="." mode="generate-score-escaped-string">
         <with-param name="string" select="substring($string,2)"/>
         <with-param name="trailingCharactersToOmit" select="$trailingCharactersToOmit"/>
+        <with-param name="allCaps" select="$allCaps"/>
+        <with-param name="font" select="$font"/>
       </apply-templates>
     </if>
   </template>
@@ -497,6 +561,7 @@
       </if>
       <apply-templates select="@label" mode="generate-score-escaped-string">
         <with-param name="string" select="concat(@label,';  ',normalize-space())"/>
+        <with-param name="font" select="'_99'"/>
       </apply-templates>
       <value-of select="'&#10;'"/>
     </for-each>
@@ -505,7 +570,9 @@
     <for-each select="key('typesetterAnnotEnd',.)[@startid != @endid]">
       <value-of select="concat('t ',$P2,' ',$P3,' ',$P4 - 4,' ',$annotP5toP7,'&#10;')"/>
       <value-of select="'_99%@'"/>
-      <apply-templates select="@label" mode="generate-score-escaped-string"/>
+      <apply-templates select="@label" mode="generate-score-escaped-string">
+        <with-param name="font" select="'_99'"/>
+      </apply-templates>
       <value-of select="'?]?]&#10;'"/>
     </for-each>
   </template>
@@ -519,9 +586,7 @@
     <for-each select="key('diacriticalMarkingAnnot',.)">
       <value-of select="concat('t ',$P2,' ',$P3,' ',$P4,' 0 0 0 -2.7 &#10;')"/>
       <value-of select="$standardFont"/>
-      <apply-templates select="@label" mode="generate-score-escaped-string">
-        <with-param name="string" select="@label"/>
-      </apply-templates>
+      <apply-templates select="@label" mode="generate-score-escaped-string"/>
       <value-of select="'&#10;'"/>
     </for-each>
   </template>
