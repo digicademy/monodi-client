@@ -54,11 +54,20 @@
 
       <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 0 0 -1.1 &#10;')"/>
       <value-of select="concat($standardFont, $transcriptionNumber, '&#10;')"/>
+      <value-of select="concat('12 ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 10&#10;')"/>
 
+      <!-- Übersichtszeile -->
       <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$overviewLineP4,' 0 0 0 -1.2 0 0 ',$staffP3,'&#10;')"/>
       <value-of select="$standardFont"/>
       <value-of select="normalize-space(mei:classification/mei:termList[@label='liturgicFunction'])"/>
-      <apply-templates mode="list-line-numbers" select="(//mei:sb[not(@source)]/@n[not(.='')])[1]"/>
+
+      <!-- We do not list line numbers for transcriptions that only have "Primärgesänge". 
+           Those transcrptions have a trailing "P" in their transcription number (like "10P"). -->
+      <if test="not(contains(@n, 'P'))">
+        <for-each select="//mei:sb[not(@source)]/@n[not(.='')]">
+          <value-of select="concat(' ',.)"/>
+        </for-each>
+      </if>
       <variable name="textEditionString" select="normalize-space(//mei:biblList[@type='textEditions'])"/>
       <if test="$textEditionString != ''">
         <value-of select="concat(' (',$textEditionString,')')"/>
@@ -71,20 +80,7 @@
          $maxStaffsPerPage is then used to determine when we need to start a new Score file. -->
     <apply-templates mode="mei2score" select="//mei:sb[not(@source)][1]"/>
   </template>
-  
-  <template match="mei:sb[not(@source)]/@n" mode="list-line-numbers">
-    <param name="precedingLineNumber"/>
-    
-    <if test="$precedingLineNumber = '' or not(contains($capitalLetters, .)) or not(contains($capitalLetters, $precedingLineNumber))">
-      <value-of select="' '"/>
-    </if>
-    <value-of select="."/>
-    
-    <apply-templates select="(../following-sibling::mei:sb[not(@source)]/@n[not(.='')])[1]" mode="list-line-numbers">
-      <with-param name="precedingLineNumber" select="."/>
-    </apply-templates>
-  </template>
-  
+
 
   <template mode="mei2score" match="mei:sb[not(@source)]">
     <!-- P2 is actually the "previous P2", so for the initial call to this template, we use $maxStaffsPerPage + 1 -->
