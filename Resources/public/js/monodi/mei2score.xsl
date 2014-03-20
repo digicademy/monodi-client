@@ -20,6 +20,9 @@
   <param name="advance" select="3"/>
   <param name="marginaliaP4" select="5"/>
   <param name="rubricP4" select="20"/>
+  <param name="mainSourceHeadingP4" select="60"/>
+  <param name="secondarySourceHeadingP4" select="53"/>
+  <param name="sourceDescriptionP4" select="48"/>
   <param name="P4distanceBetweenRubrics" select="4"/>
   <param name="overviewLineP4" select="30"/>
   <param name="lyricsP4" select="-5"/>
@@ -84,11 +87,27 @@
            the case of Aachen we have the source ID twice, once for the tropes and once for the base chants,
            we create them for all transcriptions and later delete them while processing the Score data if
            parameter alwaysOutputSourceId is left at its default. -->
-      <if test="$alwaysOutputSourceId='true' or ($transcriptionNumber = 1 and string-length($sourceId) > 0)">
+      <if test="$alwaysOutputSourceId='true' or ($transcriptionNumber = '1' and string-length($sourceId) > 0)">
         <value-of select="concat('t ', $maxStaffsPerPage, ' ', $rightColumnP3, ' ', $overviewLineP4, ' 0 0 0 -1.9&#10;')"/>
         <value-of select="$standardFont"/>
         <apply-templates mode="generate-score-escaped-string" select="$sourceId"/>
         <value-of select="'&#10;'"/>
+        <choose>
+          <when test="$transcriptionNumber = 1">
+            <!-- We assume there has to be a title on this page -->
+            <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $mainSourceHeadingP4, ' 0 2.5 0 -0.2&#10;')"/>
+            <value-of select="concat($standardFont, '#. Source provenance&#10;')"/>
+            <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $secondarySourceHeadingP4, ' 0 1.8 0 -0.3&#10;')"/>
+            <value-of select="concat($standardFont, 'Source location&#10;')"/>
+            <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4, ' 0 0 0 -0.5&#10;')"/>
+            <value-of select="concat($standardFont, 'Source description&#10;')"/>
+          </when>
+          <otherwise>
+            <!-- For most cases, the transcription number will have to be deleted, therefore we place a marker -->
+            <value-of select="concat('t ', $maxStaffsPerPage, ' ', $rightColumnP3, ' ', $overviewLineP4 + 5, ' 0 .8 0 -1.9&#10;')"/>
+            <value-of select="'_99%! Delete source ID or this comment!&#10;'"/>
+          </otherwise>
+        </choose>
       </if>
     </for-each>
     
@@ -559,7 +578,7 @@
       <if test="@startid != @endid">
         <value-of select="'?[?['"/>
       </if>
-      <apply-templates select="@label" mode="generate-score-escaped-string">
+      <apply-templates select="." mode="generate-score-escaped-string">
         <with-param name="string" select="concat(@label,';  ',normalize-space())"/>
         <with-param name="font" select="'_99'"/>
       </apply-templates>
