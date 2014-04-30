@@ -186,6 +186,7 @@
     <param name="P2" select="$maxStaffsPerPage + 1"/>
     <param name="P3" select="$staffP3"/>
     
+    <variable name="followingSb" select="(following-sibling::mei:sb[not(@source)])[1]"/>
     <variable name="precedingLineNumber" select="preceding-sibling::mei:sb[not(@source)][1]/@n"/>
     <variable name="followingLineNumber" select="following-sibling::mei:sb[not(@source)][1]/@n"/>
     <variable name="continueOnSameStaffForConsecutiveBaseChant" 
@@ -232,13 +233,21 @@
       <with-param name="P2" select="$newP2"/>
     </apply-templates>
 
-    <!-- Draw staff -->
-    <value-of select="concat('8 ',$newP2,' ',$newP3,' 0 ',$staffSize,'&#10;')"/>
+    <!-- Draw staff and clef -->
+    <value-of select="concat('8 ',$newP2,' ',$newP3,' 0 ',$staffSize)"/>
+    <!-- We only show staff lines and clef if there are notes beore the next system break -->
+    <choose>
+      <when test="not(following-sibling::mei:syllable[following-sibling::mei:sb/@xml:id = $followingSb/@xml:id][.//mei:note])">
+        <!-- p7=-1 hides staff lines if there are no notes -->
+        <value-of select="' 0 -1'"/>
+      </when>
+      <when test="not(preceding-sibling::mei:sb) and $typesetApparatusSnippets='false'">
+        <!-- On the first line in the chant, we place a clef -->
+        <value-of select="concat('&#10;3 ',$newP2,' ',$newP3 + $advance,' 0 500')"/>
+      </when>
+    </choose>
+    <value-of select="'&#10;'"/>
     
-    <!-- On the first line in the chant, we place a clef -->
-    <if test="not(preceding-sibling::mei:sb)">
-      <value-of select="concat('3 ',$newP2,' ',$newP3 + $advance,' 0 500&#10;')"/>
-    </if>
     
     <!-- If we didn't proceed to the next line, we don't draw a new line label -->
     <!-- We draw notes etc. one after the other because we need to keep track of 
