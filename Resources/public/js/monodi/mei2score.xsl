@@ -13,8 +13,24 @@
   
   <output method="text"/>
   
+  <!-- When converting snippets for the apparatus that will eventually be compiled in InDesign,
+       we don't want Übersichtszeilen and line labels (both will be done in InDesign).
+       That's why we need a flag here -->
+  <param name="typesetApparatusSnippets" select="'false'"/>
+  <param name="maxStaffsPerPage">
+    <choose>
+      <when test="$typesetApparatusSnippets='true'">1</when>
+      <otherwise>14</otherwise>
+    </choose>
+  </param>
+  <param name="alwaysOutputSourceId">
+    <choose>
+      <when test="$typesetApparatusSnippets">false</when>
+      <otherwise>true</otherwise>
+    </choose>
+  </param>
+  
   <param name="staffSize" select=".58"/>
-  <param name="maxStaffsPerPage" select="14"/>
   <param name="staffP3" select="10"/>
   <!--<param name="combineBaseChantsOnOneStaff" select="1"/>--><!-- 1 for true, 0 for false -->
   <param name="advance" select="3"/>
@@ -44,7 +60,6 @@
   <param name="lyricsAnnotP4" select="$lyricsP4 - 4"/>
   <param name="annotP5toP7" select="'.9 .55 1'"/>
   
-  <param name="alwaysOutputSourceId" select="'true'"/>
   <param name="fileNaming" select="'sequential'"/>
   
 
@@ -92,19 +107,29 @@
         </otherwise>
       </choose>
 
-      <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$uebersichtszeileP4,' 0 0 0 -1.1 &#10;')"/>
-      <value-of select="concat($standardFont, $transcriptionNumber, '&#10;')"/>
-      <!-- Box for transcription number -->
-      <value-of select="concat('12 ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$uebersichtszeileP4,' 0 10&#10;')"/>
-
-      <!-- Übersichtszeile -->
-      <value-of select="concat('t ',$maxStaffsPerPage,' ',$staffP3,' ',$uebersichtszeileP4,' 0 0 0 -1.2 0 0&#10;')"/>
-      <value-of select="$standardFont"/>
-      <value-of select="normalize-space(mei:classification/mei:termList[@label='liturgicFunction'])"/>
+      <choose>
+        <when test="$typesetApparatusSnippets='false'">
+          <value-of select="concat('t ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$uebersichtszeileP4,' 0 0 0 -1.1 &#10;')"/>
+          <value-of select="concat($standardFont, $transcriptionNumber, '&#10;')"/>
+          <!-- Box for transcription number -->
+          <value-of select="concat('12 ',$maxStaffsPerPage,' ',$lineNumberP3,' ',$uebersichtszeileP4,' 0 10&#10;')"/>
+          
+          <!-- Übersichtszeile -->
+          <value-of select="concat('t ',$maxStaffsPerPage,' ',$staffP3,' ',$uebersichtszeileP4,' 0 0 0 -1.2 0 0&#10;')"/>
+          <value-of select="$standardFont"/>
+          <value-of select="normalize-space(mei:classification/mei:termList[@label='liturgicFunction'])"/>
+        </when>
+        <when test="$typesetApparatusSnippets!='true'">
+          <message terminate="yes">
+            Parameter typesetApparatusSnippets can be set to 'true' or 'false', but found '<value-of select="$fileNaming"/>'
+          </message>
+        </when>
+      </choose>
 
       <!-- We do not list line numbers for transcriptions that only have "Primärgesänge". 
-           Those transcrptions have a trailing "P" in their transcription number (like "10P"). -->
-      <if test="not(contains(@n, 'P'))">
+           Those transcrptions have a trailing "P" in their transcription number (like "10P"). 
+           Also, snippets for the Apparatus will not have line numbers. -->
+      <if test="not(contains(@n, 'P')) and $typesetApparatusSnippets='false'">
         <for-each select="//mei:sb[not(@source)]/@n[not(.='')]">
           <value-of select="concat(' ',.)"/>
         </for-each>
@@ -120,7 +145,7 @@
            the case of Aachen we have the source ID twice, once for the tropes and once for the base chants,
            we create them for all transcriptions and later delete them while processing the Score data if
            parameter alwaysOutputSourceId is left at its default. -->
-      <if test="$alwaysOutputSourceId='true' or ($transcriptionNumber = '1' and string-length($sourceId) > 0)">
+      <if test="($alwaysOutputSourceId='true' or $transcriptionNumber = '1') and string-length($sourceId) > 0">
         <value-of select="concat('t ', $maxStaffsPerPage, ' ', $rightColumnP3, ' ', $uebersichtszeileP4, ' 0 0 0 -1.9&#10;')"/>
         <value-of select="$standardFont"/>
         <apply-templates mode="generate-score-escaped-string" select="$sourceId"/>
@@ -135,11 +160,11 @@
             <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4, ' 0 0 0 -0.5&#10;')"/>
             <value-of select="concat($standardFont, 'Source description&#10;')"/>
           </when>
-          <otherwise>
+          <when test="$typesetApparatusSnippets='false'">
             <!-- For most cases, the transcription number will have to be deleted, therefore we place a marker -->
             <value-of select="concat('t ', $maxStaffsPerPage, ' ', $rightColumnP3, ' ', $uebersichtszeileP4 + 5, ' 0 .8 0 -1.9&#10;')"/>
             <value-of select="'_99%! Delete source ID or this comment!&#10;'"/>
-          </otherwise>
+          </when>
         </choose>
       </if>
     </for-each>
@@ -163,13 +188,16 @@
     
     <variable name="precedingLineNumber" select="preceding-sibling::mei:sb[not(@source)][1]/@n"/>
     <variable name="followingLineNumber" select="following-sibling::mei:sb[not(@source)][1]/@n"/>
+    <variable name="continueOnSameStaffForConsecutiveBaseChant" 
+      select="$precedingLineNumber != '' and contains($capitalLetters, $precedingLineNumber) 
+              and @n != '' and contains($capitalLetters, @n)
+              and @label = ''
+              and $typesetApparatusSnippets='false'"/>
     
     <variable name="newP2">
       <choose>
         <!-- If we have sequential base chants, we stay on the same line - unless we have a rubric (in @label). -->
-        <when test="$precedingLineNumber != '' and contains($capitalLetters, $precedingLineNumber) 
-                                  and @n != '' and contains($capitalLetters, @n)
-                                  and @label = ''">
+        <when test="$continueOnSameStaffForConsecutiveBaseChant">
           <value-of select="$P2"/>
         </when>
         <when test="$P2 > 1">
@@ -183,7 +211,7 @@
     
     <variable name="newP3">
       <choose>
-        <when test="$newP2 = $P2">
+        <when test="$continueOnSameStaffForConsecutiveBaseChant">
           <copy-of select="$P3 + $advance"/>
         </when>
         <otherwise>
@@ -193,7 +221,7 @@
     </variable>
     
     <!-- Check whether we went beyond the bottom staff, so we have to move on to the next page. -->
-    <if test="$P2 &lt; $newP2">
+    <if test="$P2 &lt;= $newP2 and not($continueOnSameStaffForConsecutiveBaseChant)">
       sm
       if p1 > 0 then de
       snx
@@ -242,10 +270,10 @@
           <with-param name="concatenatedLineNumbers" select="concat($concatenatedLineNumbers, .)"/>
         </apply-templates>
       </when>
-      <otherwise>
+      <when test="$typesetApparatusSnippets='false'">
         <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$marginaliaP4,' 0 0 0 -2.1 &#10;')"/>
         <value-of select="concat($standardFont, $concatenatedLineNumbers, ., '&#10;')"/>
-      </otherwise>
+      </when>
     </choose>
   </template>
 
@@ -278,7 +306,7 @@
   <template match="mei:sb" mode="get-syllable-font">
     <value-of select="$standardFont"/>
   </template>
-  <template match="mei:sb[contains('ABCDEFGHIJKLMNOPQRSTUVWXYZ', substring(@n,1,1))]" mode="get-syllable-font">
+  <template match="mei:sb[contains('ABCDEFGHIJKLMNOPQRSTUVWXYZ+', substring(@n,1,1))]" mode="get-syllable-font">
     <value-of select="$smallCapsFont"/>
   </template>
   
@@ -593,10 +621,13 @@
     <!-- For page breaks, we need a second pipe and the folio number -->
     <if test="self::mei:pb">
       <text>?|&#10;</text>
-      <value-of select="concat('t ',$P2,' ',200,' ',$marginaliaP4,' 0 0 0 -2.9 &#10;')"/>
-      <value-of select="concat($standardFont, '?|?| ',@n)"/>
-      <if test="@func='verso'">
-        <text>v</text>
+      <!-- For apparatus snippets, we don't want the folio number in the right margin -->
+      <if test="$typesetApparatusSnippets='false'">
+        <value-of select="concat('t ',$P2,' ',200,' ',$marginaliaP4,' 0 0 0 -2.9 &#10;')"/>
+        <value-of select="concat($standardFont, '?|?| ',@n)"/>
+        <if test="@func='verso'">
+          <text>v</text>
+        </if>
       </if>
     </if>
     <text>&#10;</text>
