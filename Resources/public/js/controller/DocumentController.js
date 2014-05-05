@@ -66,7 +66,7 @@ function DocumentCtrl($scope, $http) {
 
 						$scope.hideLoader();
 					})
-					.error(function(data, status) {
+					.error(function(response, status) {
 						$scope.hideLoader();
 						$scope.checkOnline(status);
 						if (status != 0) {
