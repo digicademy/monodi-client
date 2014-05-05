@@ -13,11 +13,24 @@ function DocumentListCtrl($scope) {
 		$scope.$emit('openDocumentRequest', { id: id });
 	};
 
+	$scope.checkDocumentSync = function(id) {
+		if ($scope.isOnSyncList(id) &&
+			!confirm('Your work on document ' + JSON.parse(localStorage['document' + id]).title + ' was not sent to the server yet. Unless you cancel this operation, your edits will be lost.')) {
+			return false;
+		}
+
+		return true;
+	};
+
 	$scope.removeDocument = function(id, batch) {
 		if (!batch) {
 			if (!confirm('Delete document?')) {
 				return false;
 			}
+		}
+
+		if (!$scope.checkDocumentSync(id)) {
+			return false;
 		}
 
 		$scope.removeLocal(id);
@@ -29,7 +42,7 @@ function DocumentListCtrl($scope) {
 		if (!confirm('Delete documents?')) {
 			return false;
 		}
-		
+
 		angular.forEach(getBatchDocuments(), function(el) {
 			$scope.removeDocument(el, true);
 		});
@@ -40,17 +53,19 @@ function DocumentListCtrl($scope) {
 	};
 
 	$scope.print = function(ids) {
-	    var ids = ids instanceof Array ? ids : [ids],
-	        documents = [],
-	        i,
-	        printDivs;
-	    for (i = 0; i < ids.length; i += 1) {
+		var documents = [],
+			i,
+			printDivs;
+
+		ids = ids instanceof Array ? ids : [ids];
+
+		for (i = 0; i < ids.length; i += 1) {
 			$scope.getDocument(ids[i], function(){
-			    documents.push(this.content);
+				documents.push(this.content);
 			});
 			// Check whether adding document to the list was successful - if not, return.
 			if (documents.length < i+1) return;
-		};
+		}
 		printDivs = monodi.document.getPrintHtml(documents).querySelector("html > body > *");
 		$('#printContainer').append(printDivs).show(0, function(){
 			window.print();
@@ -74,6 +89,10 @@ function DocumentListCtrl($scope) {
 	};
 
 	$scope.removeDocumentLocal = function(id) {
+		if (!$scope.checkDocumentSync(id)) {
+			return false;
+		}
+
 		$scope.removeLocal('document' + id);
 		var documentList = $scope.getLocal('documentList');
 		if (documentList) {
@@ -255,7 +274,8 @@ function DocumentListCtrl($scope) {
 		return found;
 	};
 	$scope.saveNewDocumentHere = function(path) {
-		var error = false;
+		var error = false,
+			found;
 
 		if (!$scope.active.title || !/^[A-z0-9_\-]+$/.test($scope.active.title)) {
 			$('#fileName').focus();
@@ -278,11 +298,14 @@ function DocumentListCtrl($scope) {
 		document.title = "mono:di - " + $scope.active.filename;
 
 		$scope.active.path = path;
-		
+
 		$scope.active.content = monodi.document.getSerializedDocument();
 		$scope.active.id = 'temp' + new Date().getTime();
 
-		addFile($scope.documents, $scope.active, pathParts, 0);
+		found = addFile($scope.documents, $scope.active, pathParts, 0);
+		if (!found) {
+			alert('An error occurred and the document ' + $scope.active.filename + ' could not be saved. Please try to save the document again or contact the administrator.');
+		}
 
 		$scope.updateLocalDocuments();
 		$scope.setLocal($scope.active.id, true);
@@ -299,4 +322,4 @@ function DocumentListCtrl($scope) {
 			return this.name;
 		});
 	};
-};
+}

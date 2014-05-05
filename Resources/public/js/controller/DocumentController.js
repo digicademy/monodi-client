@@ -43,10 +43,15 @@ function DocumentCtrl($scope, $http) {
 
 			if (($scope.active.id + '').indexOf('temp') < 0) {
 				var putObject = {
-					filename: $scope.active.filename,
-					content: $scope.active.content,
-					folder: getParent($scope.active.id, $scope.documents).id
-				};
+						filename: $scope.active.filename,
+						content: $scope.active.content,
+						folder: getParent($scope.active.id, $scope.documents).id
+					};
+
+				if (!$scope.checkFolder(putObject.folder)) {
+					alert('An error occurred and the document ' + putObject.filename + ' could not be saved into this folder. Please try to save it in another folder or contact the administrator.');
+					return false;
+				}
 
 				$scope.showLoader();
 				$http.put(baseurl + 'api/v1/documents/' + $scope.active.id + '.json?access_token=' + $scope.access_token, angular.toJson(putObject))
@@ -65,11 +70,14 @@ function DocumentCtrl($scope, $http) {
 						$scope.hideLoader();
 						$scope.checkOnline(status);
 						if (status != 0) {
-							alert('The document could not be saved on the server. Please try again or contact the administrator (error-code ' + status + ').');
+							alert('The document ' + putObject.filename + ' could not be saved on the server. Please try again or contact the administrator (error-code ' + status + '). ' + JSON.stringify(response));
 						}
 
 						if (!data) {
 							$scope.saveToSyncList();
+						} else {
+							$scope.addToSyncErrorList(id);
+							$scope.$emit('sync');
 						}
 					});
 
@@ -174,6 +182,11 @@ function DocumentCtrl($scope, $http) {
 				folder: getParent($scope.active.id, $scope.documents).id
 			};
 
+			if (!$scope.checkFolder(putObject.folder)) {
+				alert('An error occurred and the document ' + putObject.filename + ' could not be saved into this folder. Please try to save it in another folder or contact the administrator.');
+				return false;
+			}
+
 			$scope.showLoader();
 			$http.post(baseurl + 'api/v1/documents/?access_token=' + $scope.access_token, angular.toJson(putObject))
 				.success( function(response, status, headers) {
@@ -188,7 +201,6 @@ function DocumentCtrl($scope, $http) {
 
 					$scope.hideLoader();
 
-					$scope.$emit('reloadDocuments');
 					$scope.$emit('sync');
 				}).error(function(response, status) {
 					$scope.hideLoader();
@@ -204,11 +216,14 @@ function DocumentCtrl($scope, $http) {
 
 						$scope.$emit('sync');
 					} else if (status != 0) {
-						alert('File could not be saved on server (error-code ' + status + ') but has been saved locally.');
+						alert('The document ' + putObject.filename + ' could not be saved on the server but has been saved locally. Please try again or contact the administrator (error-code ' + status + '). ' + JSON.stringify(response));
 					}
 
 					if (!data) {
 						$scope.saveToSyncList();
+					} else {
+						$scope.addToSyncErrorList(id);
+						$scope.$emit('sync');
 					}
 				});
 
@@ -223,6 +238,28 @@ function DocumentCtrl($scope, $http) {
 
 		$scope.addToDocumentList($scope.active.id, $scope.active);
 	});
+
+	$scope.checkFolder = function(folderId) {
+		if (!folderId || (folderId + '').indexOf('temp') > -1) {
+			return false;
+		}
+
+		return true;
+	};
+
+	$scope.addToSyncErrorList = function(id) {
+		var syncErrorList = $scope.getLocal('syncList');
+
+		$scope.removeFromSyncList(id);
+
+		if (syncErrorList) {
+			if (syncErrorList.indexOf(' ' + id + ',') < 0) {
+				$scope.setLocal('syncErrorList', syncErrorList + ' ' + id + ',');
+			}
+		} else {
+			$scope.setLocal('syncErrorList', ' ' + id + ',');
+		}
+	};
 
 	var initMonodiDocument = function(meiString) {
 		monodi.document = new MonodiDocument({

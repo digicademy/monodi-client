@@ -1,5 +1,5 @@
 function AppCtrl($scope, $http) {
-    $http.defaults.headers.common['Accept'] = 'application/json';
+    $http.defaults.headers.common.Accept = 'application/json';
     $scope.online = navigator.onLine;
     $scope.access_token = false;
     $scope.refresh_token = false;
@@ -8,7 +8,7 @@ function AppCtrl($scope, $http) {
     $scope.info = false;
     $scope.loading = false;
     $scope.reloadDocumentsWaiting = false;
-    $scope.reloadDocumentsLoading;
+    $scope.reloadDocumentsLoading = false;
 
     if (window.addEventListener) {
         $scope.setOnlineStatus = function() {
@@ -31,7 +31,7 @@ function AppCtrl($scope, $http) {
             if (syncList) {
                 $scope.syncDocuments = $scope.documents;
                 var id = syncList.split(',').shift().trim();
-                
+
                 if ($scope.getLocal('document' + id)) {
                     if ((id + '').indexOf('temp') < 0) {
                         $scope.$broadcast('syncDocument', { id: id });
@@ -41,6 +41,13 @@ function AppCtrl($scope, $http) {
                 } else {
                     $scope.$broadcast('sync');
                 }
+            } else {
+                var syncErrorList = $scope.getLocal('syncErrorList');
+                if (syncErrorList) {
+                    $scope.setLocal('syncList', syncErrorList);
+                }
+
+                $scope.$emit('reloadDocuments');
             }
         }
     });
@@ -142,11 +149,11 @@ function AppCtrl($scope, $http) {
         } else {
             // We need to load demo data synchronously because demo data needs to be
             // locally available before we continue initializing mono:di
-  
+
             var request = new XMLHttpRequest();
             request.open('GET', '/bundles/digitalwertmonodiclient/js/demo.json', false);  // `false` makes the request synchronous
             request.send(null);
-  
+
             if (request.status === 200) {
               $scope.documents = JSON.parse(request.responseText);
               $scope.files = extractFiles($scope.documents);
@@ -165,7 +172,7 @@ function AppCtrl($scope, $http) {
       var documentList = [],
           documentsInFolder;
       folderList.forEach(function(folder) {
-        
+
         documentList = documentList.concat(folder.documents || []);
         if (folder.folders) {
           folder.folders.forEach(function(subfolder) {
@@ -176,7 +183,7 @@ function AppCtrl($scope, $http) {
       });
       return documentList;
     }
-    
+
 
     $scope.getDocument = function(id, callback) {
         if ($scope.online && $scope.access_token && (id + '').indexOf('temp') == -1) {
@@ -482,7 +489,7 @@ function AppCtrl($scope, $http) {
 
         removeContentAttr(documents);
         $scope.setLocal('documents', JSON.stringify(documents));
-        
+
         angular.forEach(files, function(el) {
             if (el.content) {
                 delete el.content;
@@ -495,7 +502,7 @@ function AppCtrl($scope, $http) {
         var id = $scope.active.id;
 
         $scope.active.content = monodi.document.getSerializedDocument();
-        
+
         $scope.setLocal('document' + id, JSON.stringify($scope.active));
         var syncList = $scope.getLocal('syncList');
         if (syncList) {
@@ -506,6 +513,15 @@ function AppCtrl($scope, $http) {
             $scope.setLocal('syncList', ' ' + id + ',');
         }
         $scope.setDocumentLocalAttr(id, true);
+    };
+
+    $scope.isOnSyncList = function(id) {
+        var syncList = $scope.getLocal('syncList');
+        if (syncList) {
+            return syncList.indexOf(' ' + id + ',') > -1;
+        }
+
+        return false;
     };
 
     $scope.removeFromSyncList = function(id) {
