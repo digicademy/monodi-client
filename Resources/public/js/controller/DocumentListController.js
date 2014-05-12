@@ -262,7 +262,7 @@ function DocumentListCtrl($scope) {
 					el.document_count++;
 					el.documents.push(file);
 					$scope.files.push(file);
-					return true;
+					found = true;
 				}
 
 				if (!found && el.children_count > 0) {

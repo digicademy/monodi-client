@@ -30,6 +30,41 @@ function DocumentCtrl($scope, $http) {
 
 		return result;
 	};
+
+	$scope.createSaveObject = function() {
+		var filename = $scope.active.filename,
+			parentId = getParent($scope.active.id, $scope.documents).id,
+			data, d, m, y, newFilename;
+
+		if (!parentId) {
+			parentId = 333;
+
+			date = new Date();
+			y = date.getFullYear();
+			m = date.getMonth() + 1;
+			if (m < 10) m = '0' + m;
+			d = date.getDate();
+			if (d < 10) d = '0' + d;
+			h = date.getHours();
+			if (h < 10) h = '0' + h;
+			i = date.getMinutes();
+			if (i < 10) i = '0' + i;
+			s = date.getSeconds();
+			if (s < 10) s = '0' + s;
+
+			newFilename = [y, m, d, h, i, s, filename].join('-');
+
+			alert('The document ' + filename + ' could not be found in the document-list. It will be saved in the directory Editorenordner/rescued-files/shared as ' + newFilename + '.');
+			filename = newFilename;
+		}
+
+		return {
+			filename: filename,
+			content: $scope.active.content,
+			folder: parentId
+		};
+	};
+
 	$scope.$on('saveDocument', function(e, data) {
 		var temp, doc;
 		if ($scope.online && $scope.access_token) {
@@ -42,11 +77,7 @@ function DocumentCtrl($scope, $http) {
 			}
 
 			if (($scope.active.id + '').indexOf('temp') < 0) {
-				var putObject = {
-						filename: $scope.active.filename,
-						content: $scope.active.content,
-						folder: getParent($scope.active.id, $scope.documents).id
-					};
+				var putObject = $scope.createSaveObject();
 
 				if (!$scope.checkFolder(putObject.folder)) {
 					alert('An error occurred and the document ' + putObject.filename + ' could not be saved into this folder. Please try to save it in another folder or contact the administrator.');
@@ -176,11 +207,8 @@ function DocumentCtrl($scope, $http) {
 			} else {
 				$scope.active.content = monodi.document.getSerializedDocument();
 			}
-			var putObject = {
-				filename: $scope.active.filename,
-				content: $scope.active.content,
-				folder: getParent($scope.active.id, $scope.documents).id
-			};
+
+			var putObject = $scope.createSaveObject();
 
 			if (!$scope.checkFolder(putObject.folder)) {
 				alert('An error occurred and the document ' + putObject.filename + ' could not be saved into this folder. Please try to save it in another folder or contact the administrator.');
