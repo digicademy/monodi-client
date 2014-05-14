@@ -380,25 +380,22 @@
 
       <variable name="escapedChar">
         <choose>
-          <!--  We replace < and > with these characters from te Corpus Monodicum font -->
+          <!--  We replace < and > with these characters from the Corpus Monodicum font -->
           <when test="contains('&lt;>',$char)">
             <value-of select="concat($corpusMonodicumFont, $char, $font)"/>
-            <!-- We might have to switch to the small caps font: -->
-            <apply-templates select="self::mei:syl/../preceding-sibling::mei:sb[not(@source)][1]" mode="get-syllable-font"/>
           </when>
+          <!-- Certain sequences of characters are interpreted as escape sequences in Score.
+               To prevent that, we insert a redundant font definition.
+               e.g. "~n" becomes "~_00n", assuming that _00 is the current font. -->
           <when test="string-length(normalize-space($firstTwoChars)) = 2 and contains(
-            ' &lt;&lt; &gt;&gt; ^^ %% ## 
-            ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t 
-            !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z 
-            ~a ~A ~n ~N ~o ~O 
-            ?1 ?2 ?3 ?d ?0 ?8 ?9 ',
-            concat(' ',$firstTwoChars,' ')           
+              ' &lt;&lt; &gt;&gt; ^^ %% ## 
+              ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t 
+              !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z 
+              ~a ~A ~n ~N ~o ~O 
+              ?1 ?2 ?3 ?d ?0 ?8 ?9 ',
+              concat(' ',$firstTwoChars,' ')
             )">
-            <value-of select="concat($char,' ')"/>
-            <message>
-              WARNING: Text from the mono:di data contained "<value-of select="$firstTwoChars"/>".
-              To prevent Score from interpreting this as an escape sequences, a space was inserted.
-            </message>
+            <value-of select="concat($char, $font, substring($firstTwoChars,2))"/>
           </when>
           <when test="contains($unescapedChars,$char)">
             <value-of select="$char"/>
@@ -455,7 +452,7 @@
           </when>
           <when test="$char='°'">\\312</when>
           <when test="$char='‰'">\\275</when>
-          <when test="$char='⁄'">\\244</when><!-- fraction -->
+          <when test="$char='⁄'">\\244</when><!-- fraction (this is not the simple slash) -->
           <when test="$char='_'">\\374</when>
           <when test="$char='²'">\\366</when>
           <when test="$char='¹'">\\365</when>
@@ -481,7 +478,7 @@
              similar for the capital and small letters, e.g. ã becomes ~æ and Ã becomes ~A.
              This means, if we want to convert everything to allCaps, we can take the escaped output 
              and translate ASCII unaccented minuscules in to majuscules.
-             However, there are some character whos escaped variant contains a small letter,
+             However, there are some characters whose escaped variant contains a small letter,
              but the original symbol is not a letter itself that can be capitalized.
              For example, © becomes ?c, and there is no captialized variant of ©.
              So we check for those non-capitalizable chars before capitalizing the escaped char. -->
