@@ -60,10 +60,11 @@
   <param name="lyricsAnnotP4" select="$lyricsP4 - 4"/>
   <param name="annotP5toP7" select="'.9 .55 1'"/>
   
-  <param name="fileNaming" select="'sequential'"/>
+  <param name="fileNaming" select="'sequential'"/> <!-- Second option is sourceIdAndTranscriptionNumber -->
   
 
   <variable name="capitalLetters" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
+  <variable name="transcriptionNumber" select="substring(translate(//mei:work/@n,':',''), string-length(substring-before(@n,':')) + 1)"/>
 
 
   <template mode="mei2score" match="text()"/>
@@ -75,7 +76,6 @@
            if the actual transcription numbers (in this case found after the colon)
            aren't in ascending order. We're only interested in the number after the colon. -->
       <variable name="sourceId" select="//mei:sourceDesc/mei:source/@label"/>
-      <variable name="transcriptionNumber" select="substring(translate(@n,':',''), string-length(substring-before(@n,':')) + 1)"/>
       <variable name="orderingNumber" select="substring-before(concat(@n, ':'), ':')"/>
       
       <choose>
@@ -193,11 +193,11 @@
       select="$precedingLineNumber != '' and contains($capitalLetters, $precedingLineNumber) 
               and @n != '' and contains($capitalLetters, @n)
               and @label = ''
-              and $typesetApparatusSnippets='false'"/>
+              and $typesetApparatusSnippets='false'
+              and not(contains($transcriptionNumber, 'P'))"/>
     
     <variable name="newP2">
       <choose>
-        <!-- If we have sequential base chants, we stay on the same line - unless we have a rubric (in @label). -->
         <when test="$continueOnSameStaffForConsecutiveBaseChant">
           <value-of select="$P2"/>
         </when>
@@ -395,7 +395,7 @@
               ?1 ?2 ?3 ?d ?0 ?8 ?9 ',
               concat(' ',$firstTwoChars,' ')
             )">
-            <value-of select="concat($char, $font, substring($firstTwoChars,2))"/>
+            <value-of select="concat($char, $font)"/> <!-- The second character will be added in the next iteration -->
           </when>
           <when test="contains($unescapedChars,$char)">
             <value-of select="$char"/>
