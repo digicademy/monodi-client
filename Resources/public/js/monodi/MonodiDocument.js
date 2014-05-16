@@ -812,7 +812,7 @@
       return note;
     };
 
-    this.setIntm = function(intmValue, note) {
+    this.setIntm = function(intmValue, note, nonliquescent) {
       /* MEI's "intm" attribute specifies the melodic interval relative to the previous pitch.
        * For mono:di, we only need the values "u" for "up" and "d" for "down" when the
        * actual pitch of a note is unknown */
@@ -824,7 +824,9 @@
       note.removeAttribute("oct");
       note.removeAttribute("accid");
       note.setAttribute("intm", intmValue);
-      note.setAttribute("label", "liquescent");
+      if (!nonliquescent) {
+        note.setAttribute("label", "liquescent");
+      }
       refresh(note);
       return note;
     };
