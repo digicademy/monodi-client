@@ -57,7 +57,7 @@ function DocumentListCtrl($scope) {
 			i,
 			printDivs;
 
-		ids = ids instanceof String ? [ids] : ids;
+		ids = ids instanceof Object ? ids : [ids];
 
 		for (i = 0; i < ids.length; i += 1) {
 			$scope.getDocument(ids[i], function(){
