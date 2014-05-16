@@ -896,22 +896,22 @@ function DocumentListCtrl($scope) {
 			i,
 			printDivs;
 
-		ids = ids instanceof Array ? ids : [ids];
+		ids = ids instanceof String ? [ids] : ids;
 
 		for (i = 0; i < ids.length; i += 1) {
 			$scope.getDocument(ids[i], function(){
 				documents.push(this.content);
+				if (documents.length === ids.length) {
+					printDivs = monodi.document.getPrintHtml(documents).querySelector("html > body > *");
+					$('#printContainer').append(printDivs).show(0, function(){
+						window.print();
+						window.setTimeout(function(){
+							$('#printContainer').hide().children('.mei').remove();
+						}, 600);
+					});
+				}
 			});
-			// Check whether adding document to the list was successful - if not, return.
-			if (documents.length < i+1) return;
 		}
-		printDivs = monodi.document.getPrintHtml(documents).querySelector("html > body > *");
-		$('#printContainer').append(printDivs).show(0, function(){
-			window.print();
-			window.setTimeout(function(){
-				$('#printContainer').hide().children('.mei').remove();
-      }, 600);
-		});
 	};
 
 
@@ -1162,7 +1162,6 @@ function DocumentListCtrl($scope) {
 		});
 	};
 }
-
 function DocumentCtrl($scope, $http) {
 	$scope.$on('openDocument', function() {
 		initMonodiDocument($scope.active.content);
