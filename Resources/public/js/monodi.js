@@ -893,16 +893,16 @@ function DocumentListCtrl($scope) {
 
 	$scope.print = function(ids) {
 		var documents = [],
-			i,
-			printDivs;
+			i = 0;
 
 		ids = ids instanceof Object ? ids : [ids];
 
-		for (i = 0; i < ids.length; i += 1) {
+		while (ids[i]) {
 			$scope.getDocument(ids[i], function(){
+				var printDivs;
 				documents.push(this.content);
-				if (documents.length === ids.length) {
-					printDivs = monodi.document.getPrintHtml(documents).querySelector("html > body > *");
+				if (!ids[documents.length]) {
+					printDivs = monodi.document.getPrintHtml(documents).querySelectorAll("html > body > *");
 					$('#printContainer').append(printDivs).show(0, function(){
 						window.print();
 						window.setTimeout(function(){
@@ -911,6 +911,7 @@ function DocumentListCtrl($scope) {
 					});
 				}
 			});
+			i += 1;
 		}
 	};
 
