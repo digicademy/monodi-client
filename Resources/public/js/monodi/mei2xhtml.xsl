@@ -1237,7 +1237,7 @@
         </xsl:choose>
         
         <xsl:if test="@accid"> <!-- if > 0, we have an accidental -->
-          <svg:use class="accidental" xlink:href="#{@accid}Accidental"
+          <svg:use class="accidental" xlink:href="#{$idPrefix}{@accid}Accidental"
               x="{$scaleStepSize * (-.5*$noteSpace) + 1.2 * $accidentalSpace}" y="{$noteheadStep * $scaleStepSize}"/>
         </xsl:if>
         

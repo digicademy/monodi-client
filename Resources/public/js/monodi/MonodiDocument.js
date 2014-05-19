@@ -1398,13 +1398,9 @@
       var printDocument = transform(documents[0], idPrefix + "d0"),
         printDocumentBody = printDocument.getElementsByTagName("body")[0];
       for (i=1; i<documents.length; i+=1) {
-        var contentToAppend = transform(documents[i], idPrefix + "d" + i).getElementsByTagName("body")[0].firstElementChild;
-        var defElements = contentToAppend.getElementsByTagName("defs");
-        var j;
-        for (j=0; j<defElements.length; j+=1) {
-          defElements[j].parentNode.removeChild(defElements[j]);
-        } 
-        printDocumentBody.appendChild(contentToAppend);
+        printDocumentBody.appendChild(
+          transform(documents[i], idPrefix + "d" + i).getElementsByTagName("body")[0].firstElementChild
+        );
       }
       return printDocument;
     };
