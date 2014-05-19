@@ -54,15 +54,15 @@ function DocumentListCtrl($scope) {
 
 	$scope.print = function(ids) {
 		var documents = [],
-			i = 0;
+			i;
 
-		ids = ids instanceof Object ? ids : [ids];
+		ids = ids instanceof Array ? ids : [ids];
 
-		while (ids[i]) {
-			$scope.getDocument(ids[i], function(){
+		for (i = 0; i < ids.length; i += 1) {
+			$scope.getDocument(ids[i], function(i){
 				var printDivs;
 				documents.push(this.content);
-				if (!ids[documents.length]) {
+				if (documents.length === ids.length) {
 					printDivs = monodi.document.getPrintHtml(documents).querySelectorAll("html > body > *");
 					$('#printContainer').append(printDivs).show(0, function(){
 						window.print();
@@ -72,7 +72,6 @@ function DocumentListCtrl($scope) {
 					});
 				}
 			});
-			i += 1;
 		}
 	};
 
@@ -321,6 +320,6 @@ function DocumentListCtrl($scope) {
 	var getBatchDocuments = function() {
 		return $('.fileviews').children(':visible').find(':checked').map( function() {
 			return this.name;
-		});
+		}).get();
 	};
 }
