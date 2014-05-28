@@ -108,6 +108,17 @@
       return (new DOMParser()).parseFromString(parameters.xmlString,"application/xml");
     }
 
+    function escapeXmlContent(s) {
+      // Strings that are meant to be stored as attributes or elements can be escaped
+      // using this function, replacing quotes, & and <
+      // Modified from http://stackoverflow.com/questions/7753448/how-do-i-escape-quotes-in-html-attribute-values#9756789
+      return String(s)
+          .replace(/&/g, '&amp;') /* This MUST be the 1st replacement. */
+          .replace(/'/g, '&apos;')
+          .replace(/"/g, '&quot;')
+          .replace(/</g, '&lt;');
+    }
+
     function $ID(element) {
       // Takes an ID, an HTML or an MEI element and returns the proper ID.
       if (element instanceof HTMLElement || element instanceof SVGElement) {
@@ -541,17 +552,17 @@
       // If we don't succeed, we signal this to the user and ask the user to either fix the input
       // or make use of the fallback mode which interprets the input as one column of sung text.
       
-      function processSyllables(columns, rubricCaption) {
+      function processSyllables(columns, rubric) {
         /*jslint regexp: true*/
         var folioInfo = columns[2] || "",
-          sbN = columns[0] || "",
-          contentString = '<sb label="' + (rubricCaption || "").replace(/</g,"&lt;") + '" n="' + sbN + '"/>',
-          syllables = columns[1] ? columns[1].match(/(<[^>]+>)|([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : [""],
+          sbN = escapeXmlContent(columns[0] || ""),
+          contentString = '<sb label="' + escapeXmlContent(rubric || "") + '" n="' + sbN + '"/>',
+          syllables = columns[1] ? columns[1].match(/([^\s\-]+-?)|([\n\r]+)|(\|\|?)/g) : [""],
           breakMarkerString = "",
           folioInfoComponents = folioInfo.match(/^\|*\s*f\.\s*(\d+)([rv]?)$/) || [],
           i;
           
-        for (i=0; i<syllables.length; i+=1) {
+        for (i=0; syllables && i<syllables.length; i+=1) {
           var syllable = syllables[i];
           
           switch (syllable) {
@@ -565,7 +576,7 @@
               break;
             default :
               contentString += "<syllable>" +
-                                 "<syl>" + syllable.replace(/</g,"&lt;") + "</syl>" +
+                                 "<syl>" + escapeXmlContent(syllable) + "</syl>" +
                                  breakMarkerString +
                                "</syllable>";
               breakMarkerString = "";
@@ -588,50 +599,34 @@
         // We have three kinds of matches: Single syllables (delimited by spaces or "-"),
         // escaped areas (using <>) and line breaks.
         var contentStringHasValidColumns = true,
-          rubricCaption = "",
+          rubric = "",
           lines = text.split(/\s*[\n\r]+/),
-          line;
+          line,
+          columns;
         for (i=0; i<lines.length; i+=1) {
           line = lines[i];
-          // Line that consists of:
-          // - Line label (or nothing)
-          // - Tab
-          // - Line content
-          // - optional:
-          //   - tab
-          //   - /|| f. \d+v?/ // 
-          /*jslint regexp: true*/
-          if (line.match(/^(\d*|[A-Z]?)\*?\t([^\t]+)\t?(\|*\s*f\.\s*\d+[rv]?)?\s*$/)) {
-            var columns = line.split(/\s*\t\s*/);
+          if (line.trim() !== "") {
+            // Line that consists of:
+            // - Line label (or nothing)
+            // - Tab
+            // - Line content
+            // - optional:
+            //   - tab
+            //   - folio stuff /|| f. \d+v?/ // 
+            /*jslint regexp: true*/
+            columns = line.split(/\s*\t\s*/);
             // A line that has no line label in the left column,
             // only capital letters in the center column
             // and optionally folio information of the form /f\. \d+v?/ in the third column
-            // is a rubric caption.
-            if (columns[0] === "" && columns[1].match(/^[A-Z\s<>#]+$/)) {
-              // This is the rubric caption for the next line
-              rubricCaption = columns[1];
+            // is a rubric.
+            if (columns[0].trim() === "" && columns[1] === columns[1].toUpperCase()) {
+              // This is the rubric for the next line
+              rubric = columns[1];
             } else {
-              contentString += processSyllables(columns, rubricCaption);
-              rubricCaption = "";
+              contentString += processSyllables(columns, rubric);
+              rubric = "";
             }        
-          } else {
-            contentStringHasValidColumns = line.trim() === "";
-            break; 
-          }
-        }
-        if (!contentStringHasValidColumns) {
-          // We're offering a fallback method here that does not rely on strict syntax,
-          // but can not transcribe all
-          contentString = "";
-          // Using textValidationCallback, The user is asked whether he wants to process the text in fallback mode
-          // (no culomn interpretation) 
-          if (textValidationCallback(line, i)) {
-            for (i=0; i<lines.length; i+=1) {
-              contentString += processSyllables(lines[i]);
-            }
-          } else {
-            return;
-          }
+          }          
         }
       } else {
         contentString = processSyllables([]);
@@ -903,16 +898,9 @@
         selectedElement = null;
       }
       
-      removeEmptyElements(previouslySelectedElement);
-      
-      // TODO: Some code like this should go into main.js 
-      /*var contenteditable = evaluateXPath($HTML(selectedElement),"descendant-or-self::*[@contenteditable]")[0]
-      if (contenteditable) contenteditable.focus()*/
-      
+      removeEmptyElements(previouslySelectedElement);      
       return selectedElement;
     };
-    //selectElement = this.selectElement; // We need this because otherwise, private methods obviously 
-                                        // can't use this public method without violating strict mode.
     
     // As liquescents with unknown pitch are combined into one symbol together with their preceding note, 
     // we usually don't want to select them.  That's what parameter allowSelectionOfLiquescentsWithUnkownPitch is for.
@@ -1406,8 +1394,6 @@
     };
     
     //this.getMeiDocument = function(){return mei};
-
-    // TODO: - getter/setter für Vorgangsnummer
 
 
     //////// "Initialization" //////////
