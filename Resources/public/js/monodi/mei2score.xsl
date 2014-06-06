@@ -566,7 +566,7 @@
       </apply-templates>
       
       <value-of select="concat('1 ',$P2,' ',$P3,' ',$P4,' 0 ',$P6)"/>
-      <if test="@mfunc='liquescent'">
+      <if test="contains(concat(' ',@label,' '), ' liquescent ')">
         <value-of select="concat(' 0 0 0 0 0 0 0 0 ',$liquescentP15)"/>
       </if>
       <value-of select="'&#10;'"/>
