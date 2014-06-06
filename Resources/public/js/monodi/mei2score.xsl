@@ -76,6 +76,7 @@
            if the actual transcription numbers (in this case found after the colon)
            aren't in ascending order. We're only interested in the number after the colon. -->
       <variable name="sourceId" select="//mei:sourceDesc/mei:source/@label"/>
+      <variable name="asciiSourceId" select="translate($sourceId, 'äöüÄÖÜß', 'aouAOUs')"/>
       <variable name="orderingNumber" select="substring-before(concat(@n, ':'), ':')"/>
       
       <choose>
@@ -95,7 +96,7 @@
           <value-of select="'sa '"/>
           <!-- We shorten sourceId to a maximum of five characters so that the total file name length is within DOS limits 
            In case the ordering number is longer than two characters, we need to shorten it even further -->
-          <value-of select="substring(substring(translate($sourceId,' ',''), 1, 5), 1, 7 - string-length($orderingNumber))"/>
+          <value-of select="substring(substring(translate($asciiSourceId,' ',''), 1, 5), 1, 7 - string-length($orderingNumber))"/>
           <!-- We need to turn e.g. "1" into "01" to get nice ordering in file manager and for Score4 F3/F4 commands -->
           <value-of select="concat(substring('0', 1, 2 - string-length($orderingNumber)), $orderingNumber)"/>
           <value-of select="'a.mus&#10;'"/>
