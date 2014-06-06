@@ -278,18 +278,25 @@
     </choose>
     <value-of select="'&#10;'"/>
     
-    
-    <!-- If we didn't proceed to the next line, we don't draw a new line label -->
+
     <!-- We draw notes etc. one after the other because we need to keep track of 
          how much space each individual element takes up -->
-    <apply-templates mode="mei2score" select="
-        @n[$P2 != $newP2]|
-        @label|
-        following-sibling::*[1][$typesetApparatusSnippets='false' or not(self::mei:sb[not(@source)])]">
-      <with-param name="P2" select="$newP2"/>
-      <with-param name="P3" select="$newP3 + $advance"/>
-    </apply-templates>
-
+    <choose>
+      <when test="$typesetApparatusSnippets='true'">
+        <apply-templates mode="mei2score" select="following-sibling::*[1][not(self::mei:sb[not(@source)])]">
+          <with-param name="P2" select="$newP2"/>
+          <with-param name="P3" select="$newP3 + $advance"/>
+        </apply-templates>
+      </when>
+      <otherwise>
+        <!-- If we didn't proceed to the next line, we don't draw a new line label -->
+        <apply-templates mode="mei2score" select="(@n[$P2 != $newP2]|@label|following-sibling::*[1])">
+          <with-param name="P2" select="$newP2"/>
+          <with-param name="P3" select="$newP3 + $advance"/>
+        </apply-templates>
+      </otherwise>
+    </choose>
+    
   </template>
 
 
