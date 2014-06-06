@@ -169,16 +169,45 @@
         </choose>
       </if>
     </for-each>
-    
-    <!-- We convert one line after the other because we need to keep track of
+
+    <choose>
+      <when test="$typesetApparatusSnippets='true'">
+        <for-each select="//mei:annot[normalize-space(@label)='App']">
+          <!-- We want the file names to be in the same order as the annotated elements in the document. -->
+          <sort select="count(key('id', substring(@startid,'2'))/preceding::*)"/>
+          <apply-templates select="." mode="mei2scoreApparatus">
+            <with-param name="index" select="position()"/>
+          </apply-templates>
+        </for-each>
+      </when>
+      <otherwise>
+        <!-- We convert one line after the other because we need to keep track of
          how many Score line breaks an individual mei:sb translates to.
          $maxStaffsPerPage is then used to determine when we need to start a new Score file. -->
-    <apply-templates mode="mei2score" select="//mei:sb[not(@source)][1]"/>
+        <apply-templates select="//mei:sb[not(@source)][1]" mode="mei2score"/>
+      </otherwise>
+    </choose>
 
     <value-of select="'sm&#10;'"/>
     <if test="$fileNaming = 'sequential'">
       <value-of select="'snx&#10;'"/>
     </if>
+  </template>
+
+
+  <template match="mei:annot[@label='App']" mode="mei2scoreApparatus">
+    <param name="index"/>
+    <variable name="startElement" select="key('id', substring(@startid,2))"/>
+    <apply-templates select="(($startElement/preceding::mei:sb|$startElement/self::mei:sb)[not(@source)])[last()]" mode="mei2score">
+      <with-param name="P2">
+        <choose>
+          <!-- $index tells us whether we dealing with the first annot in a file.
+               If we have the first annot, -->
+          <when test="$index = 1">2</when>
+          <otherwise>1</otherwise>
+        </choose>
+      </with-param>
+    </apply-templates>
   </template>
 
 
@@ -236,9 +265,9 @@
 
     <!-- Draw staff and clef -->
     <value-of select="concat('8 ',$newP2,' ',$newP3,' 0 ',$staffSize)"/>
-    <!-- We only show staff lines and clef if there are notes beore the next system break -->
+    <!-- We only show staff lines and clef if there are notes before the next system break -->
     <choose>
-      <when test="not(following-sibling::mei:syllable[following-sibling::mei:sb/@xml:id = $followingSb/@xml:id][.//mei:note])">
+      <when test="not(following-sibling::mei:syllable[following-sibling::mei:sb/@xml:id = $followingSb/@xml:id or not($followingSb)][.//mei:note])">
         <!-- p7=-1 hides staff lines if there are no notes -->
         <value-of select="' 0 -1'"/>
       </when>
@@ -253,7 +282,10 @@
     <!-- If we didn't proceed to the next line, we don't draw a new line label -->
     <!-- We draw notes etc. one after the other because we need to keep track of 
          how much space each individual element takes up -->
-    <apply-templates mode="mei2score" select="@n[$P2 != $newP2]|@label|following-sibling::*[1]">
+    <apply-templates mode="mei2score" select="
+        @n[$P2 != $newP2]|
+        @label|
+        following-sibling::*[1][$typesetApparatusSnippets='false' or not(self::mei:sb[not(@source)])]">
       <with-param name="P2" select="$newP2"/>
       <with-param name="P3" select="$newP3 + $advance"/>
     </apply-templates>
@@ -360,7 +392,11 @@
       <value-of select="concat('4 ',$P2,' ',$newP3,' ',$hyphenP4,' ',$hyphenP4,' ',$newP3,' 0 0 0 0 0 0 0 0 0 1 0 ',$hyphenP17,' ',$hyphenP18,'&#10;')"/>
     </if>
     
-    <apply-templates mode="mei2score" select="($leadingBreakMarkers|mei:ineume|following::*)[1]">
+    <apply-templates mode="mei2score" select="(
+          $leadingBreakMarkers|
+          mei:ineume|
+          following::*
+        )[1][not(self::mei:sb[not(@source)]) or $typesetApparatusSnippets='false']">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$newP3 - $advance * count($leadingBreakMarkers)"/>
     </apply-templates>
@@ -572,8 +608,8 @@
       </if>
       <value-of select="'&#10;'"/>
     </if>
-    
-    <apply-templates mode="mei2score" select="(*|following::*[1])">
+
+    <apply-templates mode="mei2score" select="(*|following::*[1][$typesetApparatusSnippets='false' or not(self::mei:sb[not(@source)])])">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$P3 + $advance"/>
     </apply-templates>
@@ -638,8 +674,7 @@
       </if>
     </if>
     <text>&#10;</text>
-    
-    <apply-templates mode="mei2score" select="following::*[1]">
+    <apply-templates mode="mei2score" select="following::*[1][$typesetApparatusSnippets = 'false' or not(self::mei:sb[not(@source)])]">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$P3 + $advance"/>
     </apply-templates>
