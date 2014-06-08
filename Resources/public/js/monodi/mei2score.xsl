@@ -308,8 +308,6 @@
   <template match="mei:sb[not(@source)]" mode="create-apparatus-highlight-box">
     <param name="P2"/>
 
-    <!-- TODO: Properly position box on empty syllables -->
-
     <variable name="sbId" select="generate-id()"/>
     
     <for-each select="//mei:annot[@label='App']">
@@ -763,20 +761,27 @@
   </template>
   
   <template match="mei:note|mei:syllable|mei:sb[@source]|mei:pb" mode="get-p3">
+    <variable name="precedingSpacingElement" select="(
+        preceding::mei:note |
+        preceding::mei:syllable |
+        ancestor::mei:syllable |
+        preceding::mei:sb |
+        preceding::mei:pb
+      )[last()]"/>
     <variable name="precedingP3">
-      <apply-templates select="(
-          preceding::mei:note |
-          preceding::mei:syllable |
-          ancestor::mei:syllable |
-          preceding::mei:sb |
-          preceding::mei:pb
-        )[last()]" mode="get-p3"/>
+      <apply-templates select="$precedingSpacingElement" mode="get-p3"/>
     </variable>
-    <copy-of select="$precedingP3 + $advance"/>
+
+    <!-- Every spacing element (notes, syllables, sbs, pbs) gets one $advance space.
+         However, in order to make the first element in a syllable and the syllable text to align,
+         the syllable text gets an additional $advance space.
+         We have to subtract that additional space for the next spacing item. -->
+    <copy-of select="$precedingP3 + $advance * (1 + count(self::mei:syllable) - count($precedingSpacingElement/self::mei:syllable))"/>
   </template>
   
   <template match="mei:sb[not(@source)]" mode="get-p3">
-    <!-- This is only meant for apparatus snippets where we don't have multi-staff systems -->
+    <!-- This is only meant for apparatus snippets where we don't have multi-staff systems,
+         so all <pb>s without @source start a new system -->
     <copy-of select="$staffP3"/>
   </template>
 </stylesheet>
