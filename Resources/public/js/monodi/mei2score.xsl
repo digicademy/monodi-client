@@ -50,6 +50,8 @@
   <param name="liquescentP15" select=".65"/>
   <param name="lineNumberP3" select=".01"/>
   <param name="rightColumnP3" select="170"/>
+  <param name="highlightBoxP4" select="-1"/>
+  <param name="highlightBoxHeight" select="16"/>
 
   <param name="standardFont" select="'_80'"/>
   <param name="smallCapsFont" select="'_85'"/>
@@ -283,6 +285,9 @@
          how much space each individual element takes up -->
     <choose>
       <when test="$typesetApparatusSnippets='true'">
+        <apply-templates select="." mode='create-apparatus-highlight-box'>
+          <with-param name="P2" select="$newP2"/>
+        </apply-templates>
         <apply-templates mode="mei2score" select="following-sibling::*[1][not(self::mei:sb[not(@source)])]">
           <with-param name="P2" select="$newP2"/>
           <with-param name="P3" select="$newP3 + $advance"/>
@@ -297,6 +302,31 @@
       </otherwise>
     </choose>
     
+  </template>
+  
+  
+  <template match="mei:sb[not(@source)]" mode="create-apparatus-highlight-box">
+    <param name="P2"/>
+
+    <!-- TODO: Properly position box on empty syllables -->
+
+    <variable name="sbId" select="generate-id()"/>
+    
+    <for-each select="//mei:annot[@label='App']">
+      <variable name="startElement" select="key('id', substring(@startid, 2))"/>
+      <variable name="endElement" select="key('id', substring(@endid, 2))"/>
+      
+      <if test="generate-id($startElement/preceding::mei:sb[not(@source)][1]) = $sbId">
+        <value-of select="concat('4 ', $P2, ' ')"/>
+        <apply-templates select="$startElement" mode="get-p3"/>
+        <value-of select="concat(' ',$highlightBoxP4,' ',$highlightBoxP4,' ')"/>
+        <apply-templates select="$endElement" mode="get-p3"/>
+        <!-- Params 7-15 -->
+        <value-of select="concat(' 0 0 0 0 ',$highlightBoxHeight,' ',$highlightBoxHeight,' 0 0 0 ')"/>
+        <!-- Params 16-18 (offsets) -->
+        <value-of select="concat(' 1 ', -.2*$advance,' ', .6*$advance, '&#10;')"/>
+      </if>
+    </for-each>
   </template>
 
 
@@ -730,5 +760,23 @@
       <apply-templates select="@label" mode="generate-score-escaped-string"/>
       <value-of select="'&#10;'"/>
     </for-each>
+  </template>
+  
+  <template match="mei:note|mei:syllable|mei:sb[@source]|mei:pb" mode="get-p3">
+    <variable name="precedingP3">
+      <apply-templates select="(
+          preceding::mei:note |
+          preceding::mei:syllable |
+          ancestor::mei:syllable |
+          preceding::mei:sb |
+          preceding::mei:pb
+        )[last()]" mode="get-p3"/>
+    </variable>
+    <copy-of select="$precedingP3 + $advance"/>
+  </template>
+  
+  <template match="mei:sb[not(@source)]" mode="get-p3">
+    <!-- This is only meant for apparatus snippets where we don't have multi-staff systems -->
+    <copy-of select="$staffP3"/>
   </template>
 </stylesheet>
