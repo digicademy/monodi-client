@@ -2,8 +2,8 @@
 /**
  * @see http://symfony.com/doc/current/cookbook/templating/PHP.html
  * @see http://symfony.com/doc/current/cookbook/assetic/asset_management.html
- * 
- * @var Symfony\Bundle\FrameworkBundle\Templating\PhpEngine $view  
+ *
+ * @var Symfony\Bundle\FrameworkBundle\Templating\PhpEngine $view
  * $view['assets'] Symfony\Component\Templating\Helper\CoreAssetsHelper
  */
 $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
@@ -14,9 +14,9 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
 <html xmlns="http://www.w3.org/1999/xhtml" encoding="utf-8" manifest="/bundles/digitalwertmonodiclient/cache-manifest/cache.manifest">
     <head>
         <title>mono:di</title>
-        
+
         <link rel="stylesheet" href="/bundles/digitalwertmonodiclient/css/main.css" />
-        
+
         <script>
             baseurl = '<?php echo($baseUrl); ?>';
             client_id = '<?php echo($publicId); ?>';
@@ -179,7 +179,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                             <span class="icon-bar"></span>
                         </button>
                         <div class="brand">mono:di</div>
-                        <div class="version" style="float:left;padding: 10px 20px 10px 0;color:#999;"></div>
+                        <div class="version" style="float:left;padding: 10px 20px 10px 0;color:#333;"></div>
                         <div class="nav-collapse collapse">
                             <ul class="nav">
                                 <li>
@@ -198,7 +198,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                 </li>
                                 <li><button class="filecontrol btn btn-link" ng-click="showView('files')">Management</button></li>
                                 <li class="right version"></li>
-                                <li class="right"><a href="/bundles/digitalwertmonodiclient/impressum/index.html" target="_blank">Impressum</a></li>
+                                <li class="right"><a href="/bundles/digitalwertmonodiclient/impressum/index.html" target="_blank" class="btn btn-link">Impressum</a></li>
                                 <li class="right"><button class="help btn btn-link" ng-click="showView('help')">Help</button></li>
                                 <li class="right">
                                     <button class="btn btn-link" data-target="#changePassModal" data-toggle="modal" ng-show="access_token">Profil</button>
