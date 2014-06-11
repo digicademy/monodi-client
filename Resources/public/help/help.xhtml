@@ -283,7 +283,7 @@ function generateTOC(toc) {
 <td><span class="key">J</span></td>
 </tr>
 <tr>
-<td>folio change after slected pitch</td>
+<td>folio change after selected pitch</td>
 <td><span class="key">i</span><span class="key">i</span></td>
 </tr>
 <tr>
@@ -419,6 +419,11 @@ This kind of annotation should not be over-used. Like internal  annotations, typ
 <li><a href="http://portableapps.com/apps/internet/google_chrome_portable">Windows (Chrome)</a></li>
 </ul>
 <h2>Troubleshooting</h2>
+<h3>Editing</h3>
+<h4 id="deleteEmptySyllable">Empty syllable can not be deleted</h4>
+<p>If you have an apparently empty syllable (no pitches, no text, but an empty dotted text box below the staff) that will not automatically disappear, check whether there is a line or folio break marker attached to it.&nbsp; The folio break will appear left to the empty syllable box.&nbsp; If that line or folio break marker is deleted, the syllable will disappear automatically.</p>
+<h4>Melismas broken over lines or pages</h4>
+<p>Break markers imported from Word documents are associated with the syllable following the break marker.&nbsp; Music that is input after the break marker will therefore be put inside the following syllable. It is currently not possible to create pitches after the break marker that are associated with the preceding syllable. To achieve the desired result, the break marker has be input a second time inside the preceding syllable. The originally generated marker has to be deleted.</p>
 <h3>500 Error</h3>
 <p>This error sometimes appears when the server is busy processing documents. No data will be lost, since the document is saved locally. If the page is reloaded, you might see that the document has been saved on the server already. If not, please wait a minute and try again to save on the server.</p>
 <h3>Printing</h3>

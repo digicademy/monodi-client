@@ -893,25 +893,25 @@ function DocumentListCtrl($scope) {
 
 	$scope.print = function(ids) {
 		var documents = [],
-			i,
-			printDivs;
+			i;
 
 		ids = ids instanceof Array ? ids : [ids];
 
 		for (i = 0; i < ids.length; i += 1) {
-			$scope.getDocument(ids[i], function(){
+			$scope.getDocument(ids[i], function(i){
+				var printDivs;
 				documents.push(this.content);
+				if (documents.length === ids.length) {
+					printDivs = monodi.document.getPrintHtml(documents).querySelectorAll("html > body > *");
+					$('#printContainer').append(printDivs).show(0, function(){
+						window.print();
+						window.setTimeout(function(){
+							$('#printContainer').hide().children('.mei').remove();
+						}, 600);
+					});
+				}
 			});
-			// Check whether adding document to the list was successful - if not, return.
-			if (documents.length < i+1) return;
 		}
-		printDivs = monodi.document.getPrintHtml(documents).querySelector("html > body > *");
-		$('#printContainer').append(printDivs).show(0, function(){
-			window.print();
-			window.setTimeout(function(){
-				$('#printContainer').hide().children('.mei').remove();
-      }, 600);
-		});
 	};
 
 
@@ -1159,10 +1159,9 @@ function DocumentListCtrl($scope) {
 	var getBatchDocuments = function() {
 		return $('.fileviews').children(':visible').find(':checked').map( function() {
 			return this.name;
-		});
+		}).get();
 	};
 }
-
 function DocumentCtrl($scope, $http) {
 	$scope.$on('openDocument', function() {
 		initMonodiDocument($scope.active.content);

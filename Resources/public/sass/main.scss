@@ -355,7 +355,8 @@ html, body {
 }
 
 @media print {
-    #printContainer button {
+    #printContainer button,
+    body > div:not(#printContainer) {
         display: none;
     }
 

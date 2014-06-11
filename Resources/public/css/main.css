@@ -5428,7 +5428,8 @@ html, body {
   pointer-events: none; }
 
 @media print {
-  #printContainer button {
+  #printContainer button,
+  body > div:not(#printContainer) {
     display: none; }
 
   .mei,
