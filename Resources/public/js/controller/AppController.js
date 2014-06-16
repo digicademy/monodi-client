@@ -113,6 +113,7 @@ function AppCtrl($scope, $http) {
         if ($scope.online && $scope.access_token) {
             $scope.reloadDocumentsLoading = true;
             $scope.showLoader();
+
             $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token, {cache:false}).success(function (data) {
                 if ($scope.getLocal('documents')) { mergeServerAndLocalstorage(JSON.parse($scope.getLocal('documents')), data); }
 

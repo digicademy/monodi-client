@@ -89,7 +89,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                                     </tr>
                                 </thead>
                                 <tbody class="table-hover">
-                                    <tr ng-repeat="el in files">
+                                    <tr ng-repeat="el in files | filter: { local: true }">
                                         <td><input type="checkbox" name="{{el.id}}" id="list-document-{{el.id}}" /></td>
                                         <td>{{el.path}}</td>
                                         <td><button class="btn btn-link" ng-click="openDocument(el.id)">{{el.filename}}</button></td>

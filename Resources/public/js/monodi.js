@@ -285,6 +285,7 @@ function AppCtrl($scope, $http) {
         if ($scope.online && $scope.access_token) {
             $scope.reloadDocumentsLoading = true;
             $scope.showLoader();
+
             $http.get(baseurl + 'api/v1/metadata.json?access_token=' + $scope.access_token, {cache:false}).success(function (data) {
                 if ($scope.getLocal('documents')) { mergeServerAndLocalstorage(JSON.parse($scope.getLocal('documents')), data); }
 
@@ -739,7 +740,6 @@ function AppCtrl($scope, $http) {
 
     $scope.$broadcast('reloadDocuments');
 }
-
 function NavCtrl($scope, $http) {
 	$scope.login = function(id) {
         var url = baseurl + 'oauth/v2/auth?client_id=' + client_id + '&response_type=token&redirect_uri=' + client_uri,
@@ -760,7 +760,6 @@ function NavCtrl($scope, $http) {
                     });
 
                     $scope.$emit('sync');
-                    $scope.$emit('reloadDocuments', {});
                     $modal.modal('hide');
 
                     $scope.showLoader();
@@ -1257,8 +1256,6 @@ function DocumentCtrl($scope, $http) {
 						}
 
 						$scope.removeFromSyncList(id);
-						$scope.$emit('sync');
-
 						$scope.hideLoader();
 					})
 					.error(function(response, status) {
