@@ -93,8 +93,6 @@ function DocumentCtrl($scope, $http) {
 						}
 
 						$scope.removeFromSyncList(id);
-						$scope.$emit('sync');
-
 						$scope.hideLoader();
 					})
 					.error(function(response, status) {
