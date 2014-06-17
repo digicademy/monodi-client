@@ -264,7 +264,7 @@ function AppCtrl($scope, $http) {
     $scope.saveDocument = function() {
         if (!$scope.active) {
             alert('No active document!');
-        } else if ($scope.active.id) {
+        } else if ($scope.active.id && (($scope.active.id + '').indexOf('temp') < 0)) {
             $scope.$broadcast('saveDocument');
         } else {
             $scope.$broadcast('saveNewDocument');
