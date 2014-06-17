@@ -319,8 +319,8 @@
         <apply-templates select="$startElement" mode="get-p3"/>
         <value-of select="concat(' ',$highlightBoxP4,' ',$highlightBoxP4,' ')"/>
         <apply-templates select="$endElement" mode="get-p3"/>
-        <!-- Params 7-15 -->
-        <value-of select="concat(' 0 0 0 0 ',$highlightBoxHeight,' ',$highlightBoxHeight,' 0 0 0 ')"/>
+        <!-- Params 7-15; We "misuse" P8=-2 to classify this as highlight box -->
+        <value-of select="concat(' 0 -2 0 0 ',$highlightBoxHeight,' ',$highlightBoxHeight,' 0 0 0 ')"/>
         <!-- Params 16-18 (offsets) -->
         <value-of select="concat(' 1 ', -.2*$advance,' ', .6*$advance, '&#10;')"/>
       </if>
@@ -424,7 +424,8 @@
     <value-of select="concat($font, $syl,'&#10;')"/>
     
     <if test="@wordpos='i' or @wordpos='m' or contains(mei:syl, '-')">
-      <value-of select="concat('4 ',$P2,' ',$newP3,' ',$hyphenP4,' ',$hyphenP4,' ',$newP3,' 0 0 0 0 0 0 0 0 0 1 0 ',$hyphenP17,' ',$hyphenP18,'&#10;')"/>
+      <!-- We "misuse" P8 = -1 for classifying this as a hyphen -->
+      <value-of select="concat('4 ',$P2,' ',$newP3,' ',$hyphenP4,' ',$hyphenP4,' ',$newP3,' 0 -1 0 0 0 0 0 0 0 1 0 ',$hyphenP17,' ',$hyphenP18,'&#10;')"/>
     </if>
     
     <apply-templates mode="mei2score" select="(
