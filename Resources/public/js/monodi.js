@@ -437,7 +437,7 @@ function AppCtrl($scope, $http) {
     $scope.saveDocument = function() {
         if (!$scope.active) {
             alert('No active document!');
-        } else if ($scope.active.id) {
+        } else if ($scope.active.id && (($scope.active.id + '').indexOf('temp') < 0)) {
             $scope.$broadcast('saveDocument');
         } else {
             $scope.$broadcast('saveNewDocument');
@@ -860,8 +860,8 @@ function DocumentListCtrl($scope) {
 		return true;
 	};
 
-	$scope.removeDocument = function(id, batch) {
-		if (!batch) {
+	$scope.removeDocument = function(id, callback) {
+		if (!callback) {
 			if (!confirm('Delete document?')) {
 				return false;
 			}
@@ -872,7 +872,7 @@ function DocumentListCtrl($scope) {
 		}
 
 		$scope.removeLocal(id);
-		$scope.deleteDocument(id);
+		$scope.deleteDocument(id, callback);
 		$scope.removeFromSyncList(id);
 	};
 
@@ -881,9 +881,12 @@ function DocumentListCtrl($scope) {
 			return false;
 		}
 
-		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.removeDocument(el, true);
-		});
+		var ids = getBatchDocuments(),
+			callback = function() {
+				if (ids.length) $scope.removeDocument(ids.shift(), callback);
+			};
+
+		callback();
 	};
 
 	$scope.printBatch = function() {
@@ -914,16 +917,21 @@ function DocumentListCtrl($scope) {
 	};
 
 
-	$scope.saveDocumentLocal = function(id) {
+	$scope.saveDocumentLocal = function(id, callback) {
 		$scope.getDocument(id, function() {
 			$scope.addToDocumentList(id, this);
+
+			if (callback) callback();
 		});
 	};
 
 	$scope.saveLocalBatch = function() {
-		angular.forEach(getBatchDocuments(), function(el) {
-			$scope.saveDocumentLocal(el);
-		});
+		var ids = getBatchDocuments(),
+			callback = function() {
+				if (ids.length) $scope.saveDocumentLocal(ids.shift(), callback);
+			};
+
+		callback();
 	};
 
 	$scope.removeDocumentLocal = function(id) {
