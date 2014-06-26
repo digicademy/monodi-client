@@ -72,7 +72,7 @@ function generateTOC(toc) {
       </script>
     </head>
   <body style="padding: 0 1px" onload="generateTOC(document.getElementById('toc'))">
-<h1>mono:di 1.0</h1>
+<h1>mono:di 1.1</h1>
 <h1>User manual</h1>
     <p id="editorLink">Documentation for the <a href="https://monodi.corpus-monodicum.de/">mono:di editor</a>.</p>
     <script type="application/javascript">
@@ -424,8 +424,20 @@ This kind of annotation should not be over-used. Like internal  annotations, typ
 <p>If you have an apparently empty syllable (no pitches, no text, but an empty dotted text box below the staff) that will not automatically disappear, check whether there is a line or folio break marker attached to it.&nbsp; The folio break will appear left to the empty syllable box.&nbsp; If that line or folio break marker is deleted, the syllable will disappear automatically.</p>
 <h4>Melismas broken over lines or pages</h4>
 <p>Break markers imported from Word documents are associated with the syllable following the break marker.&nbsp; Music that is input after the break marker will therefore be put inside the following syllable. It is currently not possible to create pitches after the break marker that are associated with the preceding syllable. To achieve the desired result, the break marker has be input a second time inside the preceding syllable. The originally generated marker has to be deleted.</p>
-<h3>500 Error</h3>
+<h3>Error messages</h3>
+<h4>Server error 401</h4>
+<p>If you are receiving this error, there has not been interaction between your browser and the mono:di server for a longer timespan so that the server terminated the session. Reload the page and log in again.</p>
+<h4>Server error 500</h4>
 <p>This error sometimes appears when the server is busy processing documents. No data will be lost, since the document is saved locally. If the page is reloaded, you might see that the document has been saved on the server already. If not, please wait a minute and try again to save on the server.</p>
+<h4>The local storage in your browser is full</h4>
+<p>To make space in the local storage, you can delete local documents from your local storage in Management view by clicking the yellow button to the right of a listed document.&nbsp; If you want to clear your entire local storage, follow these steps:</p>
+<ul>
+<li>go to the Management page</li>
+<li>click the "local documents" button</li>
+<li>click the checkbox in the title row of the document table (this will select all documents in the list)</li>
+<li>select Batch functions =&gt; delete locally</li>
+</ul>
+<p>If you require a large amount of documents to be available for offline work, use Firefox and  <a href="#increaseQuota">increase the local storage quota</a>.</p>
 <h3>Printing</h3>
 <h4>Staffs become solid black rectangles</h4>
 <p>This problem likely stems from problems with the printer driver. Try to increase the print resolution. If that does not succeed, try creating a PDF with Chrome's built-in PDF print:</p>
