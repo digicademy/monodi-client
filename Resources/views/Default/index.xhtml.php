@@ -50,7 +50,7 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                 <div class="row-fluid">
                     <div class="fileviewToggle btn-group span4 offset8">
                         <button class="btn active"><i class="icon-align-left"></i> directory structure</button>
-                        <button class="btn"><i class="icon-th-list"></i> document list</button>
+                        <button class="btn"><i class="icon-th-list"></i> local documents</button>
                     </div>
 
                     <div class="batch btn-group span4">
