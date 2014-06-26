@@ -1052,7 +1052,7 @@
       <xsl:value-of select="concat($idPrefix,.)"/>
     </xsl:attribute>
     <xsl:variable name="idRef" select="concat('#',.)"/>
-    <xsl:variable name="annotations" select="//mei:annot[contains(concat(@plist,' ',@startid,' ',@endid,' '),concat($idRef,' '))]"/>
+    <xsl:variable name="annotations" select="//mei:annot[contains(concat(@plist, @startid, @endid), $idRef)]"/>
     <xsl:variable name="annotationLabels">
       <xsl:for-each select="$annotations">
         <div class="annotLabel {@type}" data-annotation-id="{@xml:id}">
@@ -1068,7 +1068,7 @@
               <xsl:when test="(@startid=$idRef and @endid=$idRef) or normalize-space(@plist)=$idRef">
                 <xsl:value-of select="' singleElementAnnot '"/>
               </xsl:when>
-              <xsl:when test="contains(concat(@plist,' '),concat($idRef,' '))">
+              <xsl:when test="contains(@plist, $idRef)">
                 <xsl:value-of select="' multiElementAnnot '"/>
               </xsl:when>
               <xsl:when test="@startid=$idRef"> startAnnot </xsl:when>
