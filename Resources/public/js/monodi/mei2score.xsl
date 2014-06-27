@@ -361,10 +361,14 @@
   </template>
 
 
-  <template match="mei:sb" mode="get-syllable-font">
+  <template match="mei:syllable" mode="get-syllable-font">
     <value-of select="$standardFont"/>
   </template>
-  <template match="mei:sb[contains('ABCDEFGHIJKLMNOPQRSTUVWXYZ+', substring(@n,1,1))]" mode="get-syllable-font">
+  <!-- Base chants are written in small caps and have a capital letter line label OR a P in the transcription number -->
+  <template mode="get-syllable-font" match="mei:syllable[
+        contains('ABCDEFGHIJKLMNOPQRSTUVWXYZ+', substring(preceding-sibling::mei:sb[string-length(@n)>0][1]/@n, 1, 1))
+        or contains(ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n, 'P')
+      ]">
     <value-of select="$smallCapsFont"/>
   </template>
   
@@ -382,7 +386,7 @@
     </apply-templates>
 
     <variable name="font">
-      <apply-templates select="preceding-sibling::mei:sb[string-length(@n)>0][1]" mode="get-syllable-font"/>
+      <apply-templates select="." mode="get-syllable-font"/>
     </variable>
     
     <variable name="P8textClass">
