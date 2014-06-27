@@ -40,7 +40,7 @@ html, body {
     .version {
         float: none;
         padding: 10px 15px 10px;
-        color: #777;
+        color: #333;
     }
 
     .btn-link {
@@ -48,9 +48,13 @@ html, body {
         text-shadow: none;
 
         &:hover {
-            color: #fff;
-            background-color: transparent;
+			text-decoration: underline;
         }
+
+		&[ng-click="login()"] {
+			color: #fffee8;
+			background-color: #333;
+		}
     }
 
     .dropdown-menu .btn-link {
@@ -60,11 +64,6 @@ html, body {
             color: #222;
         }
     }
-}
-
-.navbar-inverse .nav > li > a {
-    color: #777;
-    text-shadow: none;
 }
 
 .modal-body hr {

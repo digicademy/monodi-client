@@ -18,7 +18,6 @@ function NavCtrl($scope, $http) {
                     });
 
                     $scope.$emit('sync');
-                    $scope.$emit('reloadDocuments', {});
                     $modal.modal('hide');
 
                     $scope.showLoader();

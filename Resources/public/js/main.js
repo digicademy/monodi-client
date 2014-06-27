@@ -374,4 +374,4 @@ $(window).on('beforeunload', function() {
 	return 'Are you sure you want to close the application? All unsaved changes will be lost!';
 });
 
-$('.version').text('v1.0');
+$('.version').text('v1.1');
