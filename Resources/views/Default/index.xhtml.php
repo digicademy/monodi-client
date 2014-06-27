@@ -179,7 +179,6 @@ $bundleAssetPath = '/bundles/digitalwertmonodiclient/';
                             <span class="icon-bar"></span>
                         </button>
                         <div class="brand">mono:di</div>
-                        <div class="version" style="float:left;padding: 10px 20px 10px 0;color:#999;"></div>
                         <div class="nav-collapse collapse">
                             <ul class="nav">
                                 <li>
