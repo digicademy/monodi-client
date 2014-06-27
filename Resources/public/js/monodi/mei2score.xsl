@@ -221,7 +221,6 @@
       <with-param name="P2" select="$P2"/>
       <!-- If we don't have music on this system, we make the staff insivible -->
       <with-param name="staffsAreVisible" select="boolean($syllablesInLine/mei:ineume)"/>
-      <with-param name="lineIsFirstLineInSource" select="position()=1"/>
     </apply-templates>
     
     <if test="$P2 = 1 or position() = last()">
@@ -277,7 +276,6 @@
     <param name="P2"/>
     <param name="P3" select="$advance * position()"/>
     <param name="staffsAreVisible" select="true()"/>
-    <param name="lineIsFirstLineInSource"/>
     
     <apply-templates mode="handle-typesetter-annotations" select="@xml:id">
       <with-param name="P2" select="$P2"/>
@@ -292,7 +290,7 @@
         <!-- p7=-1 hides staff lines if there are no notes -->
         <value-of select="' 0 -1'"/>
       </when>
-      <when test="$lineIsFirstLineInSource and $target='edition'">
+      <when test="$target='edition' and not(preceding-sibling::mei:sb[not(@source)])">
         <!-- On the first line in the chant, we place a clef; 500 is the clef symbol in the library -->
         <value-of select="concat('&#10;3 ',$P2,' ',$P3 + .5 * $advance,' 0 500')"/>
       </when>
