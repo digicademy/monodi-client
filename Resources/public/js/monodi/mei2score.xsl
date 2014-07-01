@@ -396,8 +396,15 @@
       </choose>
     </variable>
     
+    <variable name="firstFollowingElementWithMusic" select="generate-id(following-sibling::*[self::mei:sb[not(@source)] or mei:ineume][1])"/>
+    
     <value-of select="concat('t ',$P2,' ',$P3,' ',$lyricsP4,' 0 0 0 ', $P8textClass, '&#10;')"/>
-    <apply-templates mode="generate-score-escaped-string" select="mei:syl">
+    <apply-templates mode="generate-score-escaped-string" select=".">
+      <with-param name="string">
+        <for-each select=". | following-sibling::mei:syllable[string-length($firstFollowingElementWithMusic)=0 or following-sibling::*[generate-id()=$firstFollowingElementWithMusic]]">
+          <value-of select="concat(normalize-space(mei:syl), ' ')"/>
+        </for-each>
+      </with-param>
       <with-param name="trailingCharactersToOmit" select="'-'"/>
       <with-param name="font" select="$font"/>
     </apply-templates>
@@ -407,6 +414,8 @@
       <value-of select="concat('4 ',$P2,' ',$P3,' ',$hyphenP4,' ',$hyphenP4,' ',$P3,' 0 -1 0 0 0 0 0 0 0 1 0 ',$hyphenP17,' ',$hyphenP18,'&#10;')"/>
     </if>
   </template>
+  
+  <template mode="mei2score" match="mei:syllable[not(mei:ineume or preceding-sibling::*[1]/mei:ineume)]"/>
   
   
   <template mode="generate-score-escaped-string" match="node()|@*">
