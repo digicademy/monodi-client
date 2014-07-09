@@ -121,8 +121,11 @@
         <value-of select="concat($standardFont, '#. Source provenance&#10;')"/>
         <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $secondarySourceHeadingP4, ' 0 1.8 0 -0.3&#10;')"/>
         <value-of select="concat($standardFont, 'Source location&#10;')"/>
+        <!-- We'll need at least two source description lines, so for convenience, create them right away -->
         <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4, ' 0 0 0 -0.5&#10;')"/>
-        <value-of select="concat($standardFont, 'Source description&#10;')"/>
+        <value-of select="concat($standardFont, 'Source description line 1&#10;')"/>
+        <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4 - 4, ' 0 0 0 -0.5&#10;')"/>
+        <value-of select="concat($standardFont, 'Source description line 2&#10;')"/>
         
         <value-of select="concat('t ', $maxStaffsPerPage, ' 200 ', $uebersichtszeileP4, ' 0 0 0 -1.9&#10;')"/>
         <apply-templates mode="generate-score-escaped-string" select=".">
@@ -147,14 +150,14 @@
             A special case are transcription numbers that contain a P, like 10P. 
             Those documents only contain complete base chants, which we don't want to put on one line. 
          For the appratus ($idsWithAppAnnots/...) -->
-    <apply-templates select="
+    <apply-templates mode="generate-line" select="
       $meiElements[$target='edition']/mei:music[1]/mei:body[1]/mei:mdiv/mei:score/mei:section/mei:staff/mei:layer/mei:sb[not(@source)][
         not(contains($capitalLetters, substring(concat(@n,' '), 1, 1))) 
         or not(contains($capitalLetters, substring(concat(preceding-sibling::mei:sb[not(@source)][1]/@n, ' '), 1, 1)))
         or contains(ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n, 'P')
       ] |
       $idsWithAppAnnots/ancestor::mei:syllable[1]/preceding-sibling::mei:sb[not(@source)][1] |
-      $idsWithAppAnnots/ancestor::mei:sb[not(@source)][1]" mode="generate-line">
+      $idsWithAppAnnots/ancestor::mei:sb[not(@source)][1]">
       <!-- We first sort numerically by ordering number of the containgin document, so that 1 will be before 10, 
            and if there's a P present, we have to also sort by string so that "10" will be before "10P".
            However, in most cases where we have transcription numbers with P, an ordering number will be given
@@ -177,7 +180,7 @@
       and contains($capitalLetters, substring(concat(@n,' '), 1, 1))
       and not(contains(ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n, 'P'))"/>
     
-    <!-- The first <sb> in a line gets an Übersichtszeile -->
+    <!-- The first <sb> in a transcription gets an Übersichtszeile -->
     <apply-templates mode="generate-uebersichtszeile"
       select="self::mei:sb[$target = 'edition'][not(preceding-sibling::mei:sb)]">
       <with-param name="P2" select="$P2"/>
@@ -224,7 +227,7 @@
     </apply-templates>
     
     <if test="$P2 = 1 or position() = last()">
-      <!-- Save file -->
+      <!-- Save file if we're at the last staff on the page (P2=1) or in the source -->
       sm
       <if test="position() != last()">
         <!-- Move on to the next file -->
@@ -265,10 +268,11 @@
     </variable>
     
     <!-- Übersichtszeile -->
-    <value-of select="concat('t ',$P2,' ',$staffP3,' ',$uebersichtszeileP4,' 0 0 0 -1.2 0 0&#10;')"/>
+    <value-of select="concat('&#10;t ',$P2,' ',$staffP3,' ',$uebersichtszeileP4,' 0 0 0 -1.2 0 0&#10;')"/>
     <apply-templates select="." mode="generate-score-escaped-string">
       <with-param name="string" select="normalize-space($uebersichtszeile)"/>
     </apply-templates>
+    <value-of select="'&#10;'"/>
   </template>
 
 
