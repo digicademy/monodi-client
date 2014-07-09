@@ -188,13 +188,11 @@
     
     <!-- If we have a <sb> of a base chant (with capital letter @n) with immediately following base chants,
            we combine them on one line, therefore in this case the next line start is not the next <sb> element. -->
-    <variable name="followingLineStartId" select="generate-id((
-        following-sibling::mei:sb[not(@source)][1] |
-        self::*[
-          $combineWithConsequentBaseChants
-        ]/following-sibling::mei:sb[not(@source)][not(contains($capitalLetters, substring(concat(@n,' '), 1, 1)))][1]
-      )[last()])"/>
-    <variable name="syllablesAndEditionSbsInLine" select=".|following-sibling::*[not($followingLineStartId) or following-sibling::*[generate-id()=$followingLineStartId]]"/>
+    <variable name="followingLineStartId" select="generate-id(
+      following-sibling::mei:sb[not(@source)][
+        not($combineWithConsequentBaseChants and contains($capitalLetters, substring(concat(@n,' '), 1, 1)))
+      ][1])"/>
+    <variable name="syllablesAndEditionSbsInLine" select=".|following-sibling::*[not($followingLineStartId) or following-sibling::mei:sb[generate-id()=$followingLineStartId]]"/>
     <variable name="syllablesInLine" select="$syllablesAndEditionSbsInLine/self::mei:syllable"/>
     <variable name="lineLabels" select="$syllablesAndEditionSbsInLine/self::mei:sb/@n"/>
     
