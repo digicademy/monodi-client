@@ -209,19 +209,27 @@
     <apply-templates mode="create-apparatus-highlight-box"
       select="$syllablesInLine//@xml:id[key('appAnnotStart', .)]"/>
     
+    <variable name="stafflessSyllables" select="$syllablesInLine[not($syllablesInLine//mei:ineume)]"/>
+    
+    <!-- If we have no ineumes, we have a staffless system. 
+         In this case, combine all syllables and sb/pb markers in one text string.
+         For this purpose, we only apply the template to the first element in the line
+         and tell him what elements it should combine with the help of $stafflessSyllables -->
     <apply-templates mode="mei2score" select="
-      $syllablesAndEditionSbsInLine | 
-      $syllablesInLine/mei:sb[@source] |
-      $syllablesInLine/mei:pb[@source] |
-      $syllablesInLine/mei:ineume[preceding-sibling::*[1]/self::mei:ineume] |
-      $syllablesInLine/mei:ineume/mei:uneume/mei:note[@pname and @oct]">
+        $syllablesAndEditionSbsInLine/self::mei:sb[not(@source)] |
+        $syllablesInLine[not($stafflessSyllables) or preceding-sibling::*[1]/self::mei:sb[not(@source)]] |
+        $syllablesInLine[not($stafflessSyllables)]/mei:*[@source][self::mei:sb or self::mei:pb] |
+        $syllablesInLine/mei:ineume[preceding-sibling::*[1]/self::mei:ineume] |
+        $syllablesInLine/mei:ineume/mei:uneume/mei:note[@pname and @oct or not(preceding-sibling::mei:note)]">
       <!-- We don't select <uneumes> here. 
            We make the first note inside a uneume responsible for drawing slurs (if necessary).
            Like this, we don't waste space for <uneume> elements as we derive the P3 value
-           from the position() in the selected elements. -->
+           from the position() in the selected elements. 
+           Ineumes are responsible for creating distance lines and accidentals before groups.
+           Notes without pitch are combined into one symbol with their preceding notes. -->
       <with-param name="P2" select="$P2"/>
       <!-- If we don't have music on this system, we make the staff insivible -->
-      <with-param name="staffsAreVisible" select="boolean($syllablesInLine/mei:ineume)"/>
+      <with-param name="stafflessSyllables" select="$stafflessSyllables"/>
     </apply-templates>
     
     <if test="$P2 = 1 or position() = last()">
@@ -277,7 +285,7 @@
   <template match="mei:sb[not(@source)]" mode="mei2score">
     <param name="P2"/>
     <param name="P3" select="$advance * position()"/>
-    <param name="staffsAreVisible" select="true()"/>
+    <param name="stafflessSyllables" select="true()"/>
     
     <apply-templates mode="handle-typesetter-annotations" select="@xml:id">
       <with-param name="P2" select="$P2"/>
@@ -288,7 +296,7 @@
     <value-of select="concat('8 ',$P2,' ',$P3,' 0 ',$staffSize)"/>
     <!-- We only show staff lines and clef if there are notes before the next system break -->
     <choose>
-      <when test="not($staffsAreVisible)">
+      <when test="$stafflessSyllables">
         <!-- p7=-1 hides staff lines if there are no notes -->
         <value-of select="' 0 -1'"/>
       </when>
@@ -380,8 +388,10 @@
     <!-- We want the syllable and the first note to align, so we need to check whether we have music (i.e. an <ineume>).
          We also have to account for leading <sb>/<pb>s -->
     <param name="P3" select="$advance * (position() + count(mei:ineume[1] | mei:ineume[1]/preceding-sibling::*[not(self::mei:syl)]))"/>
+    <param name="syllablesAndEditionSbsInLine"/>
+    <param name="stafflessSyllables"/>
     
-    <apply-templates mode="handle-typesetter-annotations" select="@xml:id | mei:syl/@xml:id">
+    <apply-templates mode="handle-typesetter-annotations" select="(. | $stafflessSyllables)/@xml:id | (. | $stafflessSyllables)/mei:syl/@xml:id">
       <with-param name="P2" select="$P2"/>
       <with-param name="P3" select="$P3"/>
       <with-param name="P4" select="$lyricsAnnotP4"/>
@@ -398,13 +408,16 @@
       </choose>
     </variable>
     
-    <variable name="firstFollowingElementWithMusic" select="generate-id(following-sibling::*[self::mei:sb[not(@source)] or mei:ineume][1])"/>
-    
     <value-of select="concat('t ',$P2,' ',$P3,' ',$lyricsP4,' 0 0 0 ', $P8textClass, '&#10;')"/>
     <apply-templates mode="generate-score-escaped-string" select=".">
       <with-param name="string">
-        <for-each select=". | following-sibling::mei:syllable[string-length($firstFollowingElementWithMusic)=0 or following-sibling::*[generate-id()=$firstFollowingElementWithMusic]]">
-          <value-of select="concat(normalize-space(mei:syl), ' ')"/>
+        <!-- If we have a staffless system, we combine all syllables and line breaks in one text item -->
+        <for-each select=". | $stafflessSyllables">
+          <value-of select="concat(
+              substring('|| ',  2*count(mei:sb[1]), 4*count((mei:sb | mei:pb)[$stafflessSyllables])),
+              translate(normalize-space(mei:syl),'-',''),
+              ' '
+            )"/>
         </for-each>
       </with-param>
       <with-param name="trailingCharactersToOmit" select="'-'"/>
@@ -416,8 +429,6 @@
       <value-of select="concat('4 ',$P2,' ',$P3,' ',$hyphenP4,' ',$hyphenP4,' ',$P3,' 0 -1 0 0 0 0 0 0 0 1 0 ',$hyphenP17,' ',$hyphenP18,'&#10;')"/>
     </if>
   </template>
-  
-  <template mode="mei2score" match="mei:syllable[not(mei:ineume or preceding-sibling::*[1]/mei:ineume)]"/>
   
   
   <template mode="generate-score-escaped-string" match="node()|@*">
