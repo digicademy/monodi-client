@@ -434,8 +434,7 @@
       <when test="string-length($string) > 0 and $string != $trailingCharactersToOmit">
         <variable name="char" select="substring($string,1,1)"/>
         <variable name="firstTwoChars" select="substring($string,1,2)"/>
-        <!-- The Score manual does not list "~" among the unescaped characters, but we do -->
-        <variable name="unescapedChars">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;?!+-*=@#$%&amp;&lt;&gt;`'"~</variable>
+        <variable name="unescapedChars">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;?!+-*=@#$%&amp;&lt;&gt;`'"</variable>
   
         <variable name="escapedChar">
           <choose>
@@ -479,11 +478,6 @@
                 'ÂâÊêÎîÔôÛû',
                 'AaEeIiOoUu'))"/>
             </when>
-            <when test="contains('ÂâÊêÎîÔôÛû',$char)">
-              <value-of select="concat('^^',translate($char,
-                'ÂâÊêÎîÔôÛû',
-                'AaEeIiOoUu'))"/>
-            </when>
             <when test="contains('Çç',$char)">
               <value-of select="concat('##',translate($char,
                 'Çç',
@@ -520,6 +514,8 @@
             <when test="$char='¾'">\\364</when>
             <when test="$char='¹'">\\365</when>
             <when test="$char='³'">\\367</when>
+            <when test="$char='^'">\\303</when>
+            <when test="$char='~'">\\304</when>
             <when test="$char='&#160;'"> </when><!-- "&nbsp;" -->
             <otherwise>
               <value-of select="'?'"/>
