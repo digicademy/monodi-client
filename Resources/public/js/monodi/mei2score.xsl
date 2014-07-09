@@ -679,7 +679,7 @@
       <value-of select="concat('t ',$P2,' 200 ',$marginaliaP4,' 0 0 0 -2.9 &#10;')"/>
       <apply-templates select="." mode="generate-score-escaped-string">
         <with-param name="string">
-          <value-of select="concat('|| ',@n)"/>
+          <value-of select="concat('|| f. ',@n)"/>
           <if test="@func='verso'">v</if>
         </with-param>
       </apply-templates>
