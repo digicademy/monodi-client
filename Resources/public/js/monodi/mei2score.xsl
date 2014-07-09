@@ -575,13 +575,9 @@
     <param name="P2"/>
     <param name="P3" select="$advance * position()"/>
     
-    <value-of select="concat('14 ',$P2,' ',$P3,' -1 &#10;')"/>
-    
-    <apply-templates mode="mei2score" select=".//mei:note/@accid">
-      <with-param name="P2" select="$P2"/>
-      <!-- The accidental should be aligned with the next note, so we go one P3 step forward -->
-      <with-param name="P3" select="$P3 + $advance"/>
-    </apply-templates>
+    <if test="preceding-sibling::*[1]/self::mei:ineume">
+      <value-of select="concat('14 ',$P2,' ',$P3,' -1 &#10;')"/>
+    </if>
   </template>
 
 
@@ -606,6 +602,15 @@
       <with-param name="P3" select="$P3"/>
     </apply-templates>
 
+    <!-- Accidentals are aligned with the first note in a an ineume -->
+    <apply-templates mode="mei2score" select="
+        self::*[not(preceding-sibling::mei:note)]/
+        parent::*[not(preceding-sibling::mei:uneume)]/
+        parent::*/*/*/@accid">
+      <with-param name="P2" select="$P2"/>
+      <with-param name="P3" select="$P3"/>
+    </apply-templates>
+    
     <!-- If this is the first note in a multi-note <uneume>, we draw a slur -->
     <if test="not(preceding-sibling::mei:note) and following-sibling::mei:note[@pname and not(@intm)]">
       <value-of select="concat('5 ',$P2,' ',$P3,' ',$slurP4,' ',$slurP4,' ',$P3 + count(following-sibling::mei:note) * $advance, ' 2 -1 ',$slurP9,'&#10;')"/>
