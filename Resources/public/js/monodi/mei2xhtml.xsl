@@ -447,6 +447,9 @@
           border-radius:<xsl:value-of select="$annotLabelBorderRadius"/>px;
           z-index:-1;
         }
+        .musicLayer > .sb.source > .annotLabel:before {
+          height:<xsl:value-of select="$musicAreaHeight"/>px;
+        }
         .annotLabel > a { <!-- This contains the actual label text -->
           <!--position:absolute;-->
           position:relative;
@@ -463,6 +466,7 @@
           min-width:1em;
           margin-bottom:-.8em;
           max-width:100%;
+          z-index:1;
         }
         .annotLabel > a, .annotLabel:before { <!-- In general, we shift the label "out of the way" to the top... -->
           margin-top:-1em;
@@ -476,7 +480,10 @@
         .textLayer .annotLabel > a,
         .textLayer .annotLabel:before,  
         .sb.edition .annotLabel > a,
-        .sb.edition .annotLabel:before { 
+        .sb.edition .annotLabel:before,
+        .musicLayer > .sb.source > .annotLabel > a, 
+        .musicLayer > .sb.source > .annotLabel:before 
+        { 
           margin-top:1px;
         }
         <!-- This is the background for the label -->
