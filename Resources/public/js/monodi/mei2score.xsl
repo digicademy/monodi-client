@@ -520,12 +520,11 @@
             <when test="$char='‰'">\\275</when>
             <when test="$char='⁄'">\\244</when><!-- fraction (this is not the simple slash) -->
             <when test="$char='_'">\\374</when>
-            <when test="$char='²'">\\366</when>
-            <when test="$char='¹'">\\365</when>
             <when test="$char='¼'">\\362</when>
             <when test="$char='½'">\\363</when>
             <when test="$char='¾'">\\364</when>
             <when test="$char='¹'">\\365</when>
+            <when test="$char='²'">\\366</when>
             <when test="$char='³'">\\367</when>
             <when test="$char='^'">\\303</when>
             <when test="$char='~'">\\304</when>
