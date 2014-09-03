@@ -889,33 +889,35 @@ function DocumentListCtrl($scope) {
 		callback();
 	};
 
-	$scope.printBatch = function() {
-		$scope.print(getBatchDocuments());
+	var print = function(documents) {
+		var printDivs = monodi.document.getPrintHtml(documents).querySelectorAll("html > body > *");
+		$('#printContainer').append(printDivs).show(0, function(){
+			window.print();
+			window.setTimeout(function(){
+				$('#printContainer').hide().children('.mei').remove();
+			}, 600);
+		});
 	};
 
-	$scope.print = function(ids) {
-		var documents = [],
-			i;
-
-		ids = ids instanceof Array ? ids : [ids];
-
-		for (i = 0; i < ids.length; i += 1) {
-			$scope.getDocument(ids[i], function(i){
-				var printDivs;
-				documents.push(this.content);
-				if (documents.length === ids.length) {
-					printDivs = monodi.document.getPrintHtml(documents).querySelectorAll("html > body > *");
-					$('#printContainer').append(printDivs).show(0, function(){
-						window.print();
-						window.setTimeout(function(){
-							$('#printContainer').hide().children('.mei').remove();
-						}, 600);
-					});
-				}
-			});
-		}
+	$scope.printBatch = function(ids, documents) {
+		ids = ids || getBatchDocuments();
+		documents = documents || [];
+		
+		$scope.getDocument(ids.shift(), function() {
+			documents.push(this.content);
+			if (ids.length > 0) {
+				$scope.printBatch(ids, documents);
+			} else {
+				print(documents);
+			}
+		});
 	};
 
+	$scope.print = function(id) {
+		$scope.getDocument(id, function() {
+			print([this.content]);
+		});
+	};
 
 	$scope.saveDocumentLocal = function(id, callback) {
 		$scope.getDocument(id, function() {
