@@ -52,7 +52,7 @@ function DocumentListCtrl($scope) {
 	};
 
 	var print = function(documents) {
-		printDivs = monodi.document.getPrintHtml(documents).querySelectorAll("html > body > *");
+		var printDivs = monodi.document.getPrintHtml(documents).querySelectorAll("html > body > *");
 		$('#printContainer').append(printDivs).show(0, function(){
 			window.print();
 			window.setTimeout(function(){
