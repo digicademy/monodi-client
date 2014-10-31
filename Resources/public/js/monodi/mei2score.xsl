@@ -57,7 +57,8 @@
   <param name="standardFont" select="'_80'"/>
   <param name="smallCapsFont" select="'_85'"/>
   <param name="corpusMonodicumFont" select="'_79'"/>
-
+  <param name="corpusMonodicumSymbolFont" select="'_86'"/>
+  
   <param name="standardAnnotP4" select="18"/>
   <param name="standardDiacriticalMarkingP4" select="$standardAnnotP4"/>
   <param name="lyricsAnnotP4" select="$lyricsP4 - 4"/>
@@ -432,6 +433,7 @@
   
   
   <template mode="generate-score-escaped-string" match="node()|@*">
+    <!-- TODO: Improve support for Symbol font characters, i.e. complete conversion of the available character set. -->
     <param name="string" select="normalize-space(.)"/>
     <param name="trailingCharactersToOmit" select="''"/>
     <param name="allCaps" select="false()"/>
@@ -448,7 +450,9 @@
         <variable name="char" select="substring($string,1,1)"/>
         <variable name="firstTwoChars" select="substring($string,1,2)"/>
         <variable name="unescapedChars">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;?!+-*=@#$%&amp;&lt;&gt;`'"</variable>
-  
+        <variable name="symbolFontChars"           >ęĘαβχδεφγηιφκλμνοπθρστυπωξψζ</variable>
+        <variable name="symbolFontCharTranslations">'"abcdefghijklmnopqrstuvwxyz</variable>
+        
         <variable name="escapedChar">
           <choose>
             <!--  We replace < and > with these characters from the Corpus Monodicum font -->
@@ -529,6 +533,15 @@
             <when test="$char='^'">\\303</when>
             <when test="$char='~'">\\304</when>
             <when test="$char='&#160;'"> </when><!-- "&nbsp;" -->
+            <when test="$char='ę' and $font = $smallCapsFont">
+              <value-of select="concat($corpusMonodicumSymbolFont, '@', $font)"/>
+            </when>
+            <when test="contains($symbolFontChars, $char)">
+              <value-of select="concat(
+                $corpusMonodicumSymbolFont,
+                translate($char, $symbolFontChars, $symbolFontCharTranslations),
+                $font)"/>
+            </when>
             <otherwise>
               <value-of select="'?'"/>
               <message>
