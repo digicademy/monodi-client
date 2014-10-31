@@ -353,19 +353,28 @@
   <!-- Rubrics; There may be multiple rubrics on one line, separated by #. We process them recursively -->
   <template mode="mei2score" match="mei:sb[not(@source)]/@label[not(.='')]">
     <param name="P2"/>
-    <param name="P4" select="$rubricP4"/>
-    <param name="rubricText" select="."/>
+    <param name="rubricText" select="normalize-space()"/>
+    <param name="P4" select="$rubricP4 + $P4distanceBetweenRubrics * (string-length($rubricText) - string-length(translate($rubricText, '#', '')))"/>
+    
+    <variable name="rubricTextWithoutFolio" select="substring-before(concat(translate($rubricText, '(', '#'), '#'), '#')"/>
+    <variable name="folioNumber" select="substring-before(substring-after($rubricText, '('), ')')"/>
     
     <value-of select="concat('t ',$P2,' ',$staffP3,' ',$P4,' 0 0 0 -2.2&#10;')"/>
     <apply-templates select="." mode="generate-score-escaped-string">
-      <with-param name="string" select="normalize-space(substring-before(concat($rubricText,'#'),'#'))"/>
+      <with-param name="string" select="normalize-space($rubricTextWithoutFolio)"/>
       <with-param name="allCaps" select="true()"/>
     </apply-templates>
+   
+    <if test="$folioNumber != ''">
+      <value-of select="concat('t ',$P2,' 200 ',$P4,' 0 0 0 -2.9&#10;')"/>
+      <apply-templates select="." mode="generate-score-escaped-string">
+        <with-param name="string" select="normalize-space($folioNumber)"/>
+      </apply-templates>
+    </if>
     
     <if test="contains($rubricText,'#')">
       <apply-templates mode="mei2score" select=".">
         <with-param name="P2" select="$P2"/>
-        <with-param name="P4" select="$P4 - $P4distanceBetweenRubrics"/>
         <with-param name="rubricText" select="substring-after($rubricText, '#')"/>
       </apply-templates>
     </if>
