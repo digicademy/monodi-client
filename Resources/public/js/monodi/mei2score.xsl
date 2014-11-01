@@ -84,6 +84,10 @@
   <param name="annotP5toP7" select="'.9 .55 1'"/>
   
   <variable name="capitalLetters" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
+  <variable name="untreatedChars">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;+-*=@$&amp;`'"</variable>
+  <variable name="unescapedChars" select="concat($untreatedChars, '?!#%&lt;&gt;')"></variable>
+  <variable name="symbolFontChars"           >ęĘαβχδεφγηιφκλμνοπθρστυπωξψζ</variable>
+  <variable name="symbolFontCharTranslations">'"abcdefghijklmnopqrstuvwxyz</variable>
   
   <!-- This stylesheet can either be applied to an MEI file or a list file of a form like
       <list>
@@ -259,12 +263,13 @@
     
     <if test="$target = 'edition' and $lineLabels[string() != '']">
       <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$marginaliaP4,' 0 0 0 -2.1 &#10;')"/>
-      <variable name="lineLabelString">
-        <apply-templates mode="generate-score-escaped-string" select="$lineLabels">
-          <with-param name="wholePmxLine" select="false()"/>
-        </apply-templates>
-      </variable>
-      <value-of select="concat($standardFont, translate(normalize-space($lineLabelString),' ',''), '&#10;')"/>
+      <apply-templates select="." mode="generate-score-escaped-string">
+        <with-param name="string">
+          <for-each select="$lineLabels">
+            <value-of select="."/>
+          </for-each>
+        </with-param>
+      </apply-templates>
     </if>
 
     <apply-templates mode="create-apparatus-highlight-box"
@@ -485,7 +490,6 @@
             )"/>
         </for-each>
       </with-param>
-      <with-param name="trailingCharactersToOmit" select="'-'"/>
       <with-param name="font" select="$font"/>
     </apply-templates>
     
@@ -555,160 +559,159 @@
               part needing special treatment in the <choose> statement like we do now.
               Like this, we could bypass many iterations and <choose> statements. -->
     <param name="string" select="normalize-space(.)"/>
-    <param name="trailingCharactersToOmit" select="''"/>
     <param name="allCaps" select="false()"/>
     <param name="font" select="$standardFont"/>
     <param name="firstIteration" select="true()"/>
-    <param name="wholePmxLine" select="true()"/>
     
-    <if test="$wholePmxLine and $firstIteration">
+    
+    <if test="$firstIteration">
       <value-of select="$font"/>
     </if>
     
-    <choose>
-      <when test="string-length($string) > 0 and $string != $trailingCharactersToOmit">
-        <variable name="char" select="substring($string,1,1)"/>
-        <variable name="firstTwoChars" select="substring($string,1,2)"/>
-        <variable name="unescapedChars">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;?!+-*=@#$%&amp;&lt;&gt;`'"</variable>
-        <variable name="symbolFontChars"           >ęĘαβχδεφγηιφκλμνοπθρστυπωξψζ</variable>
-        <variable name="symbolFontCharTranslations">'"abcdefghijklmnopqrstuvwxyz</variable>
-        
-        <variable name="escapedChar">
-          <choose>
-            <!--  We replace < and > with these characters from the Corpus Monodicum font -->
-            <when test="contains('&lt;>',$char)">
-              <value-of select="concat($corpusMonodicumFont, $char, $font)"/>
-            </when>
-            <!-- Certain sequences of characters are interpreted as escape sequences in Score.
-                 To prevent that, we insert a redundant font definition.
-                 e.g. "~n" becomes "~_00n", assuming that _00 is the current font. -->
-            <when test="string-length(normalize-space($firstTwoChars)) = 2 and contains(
-                ' &lt;&lt; &gt;&gt; ^^ %% ## 
-                ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t 
-                !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z 
-                ~a ~A ~n ~N ~o ~O 
-                ?1 ?2 ?3 ?d ?0 ?8 ?9 ',
-                concat(' ',$firstTwoChars,' ')
-              )">
-              <value-of select="concat($char, $font)"/> <!-- The second character will be added in the next iteration -->
-            </when>
-            <when test="contains($unescapedChars,$char)">
-              <value-of select="$char"/>
-            </when>
-            <when test="contains('ÄäËëÏïÖöÜüŸÿ',$char)">
-              <value-of select="concat('%%',translate($char,
-                'ÄäËëÏïÖöÜüŸÿ',
-                'AaEeIiOoUuYy'))"/>
-            </when>
-            <when test="contains('ÁáÉéÍíÓóÚú',$char)">
-              <value-of select="concat('&lt;&lt;',translate($char,
-                'ÁáÉéÍíÓóÚú',
-                'AaEeIiOoUu'))"/>
-            </when>
-            <when test="contains('ÀàÈèÌìÒòÙù',$char)">
-              <value-of select="concat('&lt;&lt;',translate($char,
-                'ÀàÈèÌìÒòÙù',
-                'AaEeIiOoUu'))"/>
-            </when>
-            <when test="contains('ÂâÊêÎîÔôÛû',$char)">
-              <value-of select="concat('^^',translate($char,
-                'ÂâÊêÎîÔôÛû',
-                'AaEeIiOoUu'))"/>
-            </when>
-            <when test="contains('Çç',$char)">
-              <value-of select="concat('##',translate($char,
-                'Çç',
-                'Cc'))"/>
-            </when>
-            <when test="contains('\|[]{}−æÆ©œŒªłŁºøØ®ß™\♭♯♮𝅭',$char)">
-              <value-of select="concat('?',translate($char,
-                '\|[]{}−æÆ©œŒªłŁºøØ®ß™♭♯♮&#x1D16D;',
-                '\|[]{}-aAceEflLmoOrst123d'))"/>
-            </when>
-            <when test="contains('•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',$char)">
-              <value-of select="concat('!',translate($char,
-                '•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',
-                '012345679aAdDefghijklmnpqsSyzZ'))"/>
-            </when>
-            <when test="contains('ãÃñÑõÕ',$char)">
-              <value-of select="concat('~',translate($char,
-                'ãÃñÑõÕ',
-                'aAnNoO'))"/>
-            </when>
-            <when test="contains('𝅘𝅥𝅗𝅥𝅘𝅥𝅮𝅘𝅥𝅯𝅝/',$char)">
-              <value-of select="translate($char,
-                '𝅘𝅥𝅗𝅥𝅘𝅥𝅮𝅘𝅥𝅯𝅝/',
-                '[]{}|\')"/>
-            </when>
-            <when test="$char='°'">\\312</when>
-            <when test="$char='‰'">\\275</when>
-            <when test="$char='⁄'">\\244</when><!-- fraction (this is not the simple slash) -->
-            <when test="$char='_'">\\374</when>
-            <when test="$char='¼'">\\362</when>
-            <when test="$char='½'">\\363</when>
-            <when test="$char='¾'">\\364</when>
-            <when test="$char='¹'">\\365</when>
-            <when test="$char='²'">\\366</when>
-            <when test="$char='³'">\\367</when>
-            <when test="$char='^'">\\303</when>
-            <when test="$char='~'">\\304</when>
-            <when test="$char='&#160;'"> </when><!-- "&nbsp;" -->
-            <when test="$char='ę' and $font = $smallCapsFont">
-              <value-of select="concat($corpusMonodicumSymbolFont, '@', $font)"/>
-            </when>
-            <when test="contains($symbolFontChars, $char)">
-              <value-of select="concat(
-                $corpusMonodicumSymbolFont,
-                translate($char, $symbolFontChars, $symbolFontCharTranslations),
-                $font)"/>
-            </when>
-            <otherwise>
-              <value-of select="'?'"/>
-              <message>
-                WARNING:
-                Unsupported character: "<value-of select="$char"/>"
-                Rest of string: "<value-of select="$string"/>"
-              </message>
-            </otherwise>
-          </choose>
-        </variable>
-        
+    <variable name="firstTreatedChar" select="substring(translate($string, $untreatedChars, ''), 1, 1)"/>
+    <variable name="leadingUntreatedStringPart" select="substring-before($string, $firstTreatedChar)"/>
+    <variable name="remainingStringPart" select="substring-after($string, $firstTreatedChar)"/>
+    
+    <value-of select="$leadingUntreatedStringPart"/>
+    <if test="not($firstTreatedChar)">
+      <value-of select="concat($string, '&#10;')"/>
+    </if>
+    
+    <if test="$firstTreatedChar">
+      <variable name="char" select="$firstTreatedChar"/>
+      <variable name="firstTwoChars" select="concat($char, substring($remainingStringPart, 1, 1))"/>
+      
+      <variable name="escapedChar">
         <choose>
-          <!-- Score translates accented/special characters to escape sequences that are 
-               similar for the capital and small letters, e.g. ã becomes ~æ and Ã becomes ~A.
-               This means, if we want to convert everything to allCaps, we can take the escaped output 
-               and translate ASCII unaccented minuscules in to majuscules.
-               However, there are some characters whose escaped variant contains a small letter,
-               but the original symbol is not a letter itself that can be capitalized.
-               For example, © becomes ?c, and there is no captialized variant of ©.
-               So we check for those non-capitalizable chars before capitalizing the escaped char. -->
-          <when test="$allCaps and not(contains('©ªº®ß™&#x1D16D;†‡…ƒ«»ﬁ‹›ﬂ—–¶¿>&lt;', $char))">
-            <value-of select="translate($escapedChar, 
-              'abcdefghijklmnopqrstuvwxyz;',
-              'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+          <!--  We replace < and > with these characters from the Corpus Monodicum font -->
+          <when test="contains('&lt;>',$char)">
+            <value-of select="concat($corpusMonodicumFont, $char, $font)"/>
           </when>
-          <when test="$allCaps and contains('>&lt;', $char) and starts-with($escapedChar, $corpusMonodicumFont)">
-            <!-- We have a larger variant of the angle brackets for allCaps in the Corpus monodicum font,
-                 which are placed in the slot for { and }. Those have to be escaped like ?{ and ?} -->
-            <value-of select="concat($corpusMonodicumFont, '?', translate($char, '&lt;>', '{}'), $font)"/>
+          <!-- Certain sequences of characters are interpreted as escape sequences in Score.
+               To prevent that, we insert a redundant font definition.
+               e.g. "~n" becomes "~_00n", assuming that _00 is the current font. -->
+          <when test="string-length(normalize-space($firstTwoChars)) = 2 and contains(
+              ' &lt;&lt; &gt;&gt; ^^ %% ## 
+              ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t 
+              !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z 
+              ~a ~A ~n ~N ~o ~O 
+              ?1 ?2 ?3 ?d ?0 ?8 ?9 ',
+              concat(' ',$firstTwoChars,' ')
+            )">
+            <value-of select="concat($char, $font)"/> <!-- The second character will be added in the next iteration -->
+          </when>
+          <when test="contains($unescapedChars,$char)">
+            <value-of select="$char"/>
+          </when>
+          <when test="contains('ÄäËëÏïÖöÜüŸÿ',$char)">
+            <value-of select="concat('%%',translate($char,
+              'ÄäËëÏïÖöÜüŸÿ',
+              'AaEeIiOoUuYy'))"/>
+          </when>
+          <when test="contains('ÁáÉéÍíÓóÚú',$char)">
+            <value-of select="concat('&lt;&lt;',translate($char,
+              'ÁáÉéÍíÓóÚú',
+              'AaEeIiOoUu'))"/>
+          </when>
+          <when test="contains('ÀàÈèÌìÒòÙù',$char)">
+            <value-of select="concat('&lt;&lt;',translate($char,
+              'ÀàÈèÌìÒòÙù',
+              'AaEeIiOoUu'))"/>
+          </when>
+          <when test="contains('ÂâÊêÎîÔôÛû',$char)">
+            <value-of select="concat('^^',translate($char,
+              'ÂâÊêÎîÔôÛû',
+              'AaEeIiOoUu'))"/>
+          </when>
+          <when test="contains('Çç',$char)">
+            <value-of select="concat('##',translate($char,
+              'Çç',
+              'Cc'))"/>
+          </when>
+          <when test="contains('\|[]{}−æÆ©œŒªłŁºøØ®ß™\♭♯♮𝅭',$char)">
+            <value-of select="concat('?',translate($char,
+              '\|[]{}−æÆ©œŒªłŁºøØ®ß™♭♯♮&#x1D16D;',
+              '\|[]{}-aAceEflLmoOrst123d'))"/>
+          </when>
+          <when test="contains('•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',$char)">
+            <value-of select="concat('!',translate($char,
+              '•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',
+              '012345679aAdDefghijklmnpqsSyzZ'))"/>
+          </when>
+          <when test="contains('ãÃñÑõÕ',$char)">
+            <value-of select="concat('~',translate($char,
+              'ãÃñÑõÕ',
+              'aAnNoO'))"/>
+          </when>
+          <when test="contains('𝅘𝅥𝅗𝅥𝅘𝅥𝅮𝅘𝅥𝅯𝅝/',$char)">
+            <value-of select="translate($char,
+              '𝅘𝅥𝅗𝅥𝅘𝅥𝅮𝅘𝅥𝅯𝅝/',
+              '[]{}|\')"/>
+          </when>
+          <when test="$char='°'">\\312</when>
+          <when test="$char='‰'">\\275</when>
+          <when test="$char='⁄'">\\244</when><!-- fraction (this is not the simple slash) -->
+          <when test="$char='_'">\\374</when>
+          <when test="$char='¼'">\\362</when>
+          <when test="$char='½'">\\363</when>
+          <when test="$char='¾'">\\364</when>
+          <when test="$char='¹'">\\365</when>
+          <when test="$char='²'">\\366</when>
+          <when test="$char='³'">\\367</when>
+          <when test="$char='^'">\\303</when>
+          <when test="$char='~'">\\304</when>
+          <when test="$char='&#160;'"> </when><!-- "&nbsp;" -->
+          <when test="$char='ę' and $font = $smallCapsFont">
+            <value-of select="concat($corpusMonodicumSymbolFont, '@', $font)"/>
+          </when>
+          <when test="contains($symbolFontChars, $char)">
+            <value-of select="concat(
+              $corpusMonodicumSymbolFont,
+              translate($char, $symbolFontChars, $symbolFontCharTranslations),
+              $font)"/>
           </when>
           <otherwise>
-            <value-of select="$escapedChar"/>
+            <value-of select="'?'"/>
+            <message>
+              WARNING:
+              Unsupported character: "<value-of select="$char"/>"
+              Rest of string: "<value-of select="$remainingStringPart"/>"
+            </message>
           </otherwise>
         </choose>
-        
-        <apply-templates select="." mode="generate-score-escaped-string">
-          <with-param name="string" select="substring($string,2)"/>
-          <with-param name="trailingCharactersToOmit" select="$trailingCharactersToOmit"/>
-          <with-param name="allCaps" select="$allCaps"/>
-          <with-param name="font" select="$font"/>
-          <with-param name="firstIteration" select="false()"/>
-        </apply-templates>
-      </when>
-      <when test="$wholePmxLine">
-        <value-of select="'&#10;'"/>
-      </when>
-    </choose>
+      </variable>
+      
+      <choose>
+        <!-- Score translates accented/special characters to escape sequences that are 
+             similar for the capital and small letters, e.g. ã becomes ~æ and Ã becomes ~A.
+             This means, if we want to convert everything to allCaps, we can take the escaped output 
+             and translate ASCII unaccented minuscules in to majuscules.
+             However, there are some characters whose escaped variant contains a small letter,
+             but the original symbol is not a letter itself that can be capitalized.
+             For example, © becomes ?c, and there is no captialized variant of ©.
+             So we check for those non-capitalizable chars before capitalizing the escaped char. -->
+        <when test="$allCaps and not(contains('©ªº®ß™&#x1D16D;†‡…ƒ«»ﬁ‹›ﬂ—–¶¿>&lt;', $char))">
+          <value-of select="translate($escapedChar, 
+            'abcdefghijklmnopqrstuvwxyz;',
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+        </when>
+        <when test="$allCaps and contains('>&lt;', $char) and starts-with($escapedChar, $corpusMonodicumFont)">
+          <!-- We have a larger variant of the angle brackets for allCaps in the Corpus monodicum font,
+               which are placed in the slot for { and }. Those have to be escaped like ?{ and ?} -->
+          <value-of select="concat($corpusMonodicumFont, '?', translate($char, '&lt;>', '{}'), $font)"/>
+        </when>
+        <otherwise>
+          <value-of select="$escapedChar"/>
+        </otherwise>
+      </choose>
+      
+      <apply-templates select="." mode="generate-score-escaped-string">
+        <with-param name="string" select="$remainingStringPart"/>
+        <with-param name="allCaps" select="$allCaps"/>
+        <with-param name="font" select="$font"/>
+        <with-param name="firstIteration" select="false()"/>
+      </apply-templates>
+    </if>
   </template>
   
   
