@@ -25,10 +25,29 @@
        That's why we need a flag here -->
   <!-- TODO: Replace typsetApparatusSnippets by following parameter $target -->
   <param name="target" select="'edition'"/><!-- Can also be set to apparatus -->
+  <param name="sourcesTableFile"/><!-- This is an XML file that contains a list of sources in the following form:
+    <sources abteilung="2" band="2">
+        <source id="Ut 417" number="01a"/>
+        <source id="Aa 13" number="02a"/>
+        ...
+    </sources> 
+  If provided, file names will be generated according to the data found there:
+    2201a_aa.mus
+    2201a_ab.mus
+  etc. for Ut 417,
+    2202a_aa.mus
+  etc. for Aa 13
+  -->
   <param name="maxStaffsPerPage">
     <choose>
       <when test="$target='apparatus'">1</when>
-      <otherwise>14</otherwise>
+      <when test="$target='edition'">14</when>
+      <otherwise>
+        <message terminate="yes">
+          <text>Parameter "target" can be set to "edition" and "apparatus", but not </text>
+          <value-of select="concat('&quot;', $target, '&quot;')"/>
+        </message>
+      </otherwise>
     </choose>
   </param>
   
@@ -73,74 +92,84 @@
       </list>
     (node names don't matter).
   -->
-  <variable name="documents" select="document(/*[not(self::mei:mei)]/*)|/mei:mei/.."/>
-
+  <variable name="documents" select="document(/*[not(self::mei:mei)]/*) | /mei:mei/.."/>
+  <variable name="sourcesTable" select="document($sourcesTableFile)"/>
+  
+  <variable name="documentSourceIdAttributes" select="$documents/mei:mei/mei:meiHead[1]/mei:fileDesc[1]/mei:sourceDesc[1]/mei:source[1]/@label"/>
+  <variable name="listSourceIdAttributes" select="$sourcesTable//source/@id"/>
+  
   <template mode="mei2score" match="text()"/>
 
+  
+  <template name="check-source-id-consistency">
+    <if test="$sourcesTable//source[not(@id)]">
+      <message terminate="yes">
+        <value-of select="concat('Source lacking ID attribute in source list file ', $sourcesTableFile)"/>
+      </message>
+    </if>
 
-  <template name="process-sources" match="/">
-    <param name="sourceIdAttributes" select="$documents/mei:mei/mei:meiHead[1]/mei:fileDesc[1]/mei:sourceDesc[1]/mei:source[1]/@label"/>
-    <param name="remainingSourceIdAttributes" select="$sourceIdAttributes"/>
-    <variable name="currentSourceId" select="normalize-space($remainingSourceIdAttributes[1])"/>
+    <for-each select="$listSourceIdAttributes">
+      <!-- We also check for the correct format of the source number (two digits followed by one letter) -->
+      <variable name="sourceNumberLetter" select="translate(../@number, '1234567890', '')"/>
+      <variable name="sourceNumberDigits" select="substring-before(../@number, $sourceNumberLetter)"/>
+      
+      <if test="string-length($sourceNumberDigits) != 2 or string-length($sourceNumberLetter) != 1 or concat($sourceNumberDigits, $sourceNumberLetter) != ../@number">
+        <message terminate="yes">
+          <value-of select="concat('Invalid source number ', ../@number, ' in the source list file ', $sourcesTableFile, '.&#10;')"/>
+          <value-of select="'Convention is two digits and one letter.'"/>
+        </message>
+      </if>
+      
+      <if test="not($documentSourceIdAttributes[. = current()])">
+        <message terminate="yes">
+          <value-of select="concat('ID ', ., ' present in the source list file ', $sourcesTableFile, ', but not in any supplied MEI document')"/>
+        </message>
+      </if>
+    </for-each>
     
-    <!-- Make sure no source ID is processed twice -->
-    <if test="not($remainingSourceIdAttributes[position() > 1][normalize-space() = $currentSourceId])">
-      <call-template name="process-source">
-        <with-param name="sourceId" select="$currentSourceId"/>
-        <with-param name="meiElements" select="$sourceIdAttributes[normalize-space() = $currentSourceId]/ancestor::mei:mei"/>
-      </call-template>
+    <for-each select="$documentSourceIdAttributes">
+      <if test="not($listSourceIdAttributes[. = current()])">
+        <message terminate="yes">
+          <value-of select="concat('ID ', ., ' present in an MEI document, but not in the the source list file ', $sourcesTableFile)"/>
+        </message>
+      </if>
+    </for-each>
+    
+  </template>
+  
+  
+  <template name="process-sources" match="/">
+    <param name="sourceIdAttributes" select="$listSourceIdAttributes | $documentSourceIdAttributes"/>
+
+    <if test="$sourcesTableFile">
+      <call-template name="check-source-id-consistency"/>
     </if>
-    <if test="count($remainingSourceIdAttributes) > 1">
-      <call-template name="process-sources">
-        <with-param name="sourceIdAttributes" select="$sourceIdAttributes"/>
-        <with-param name="remainingSourceIdAttributes" select="$remainingSourceIdAttributes[position() > 1]"/>
-      </call-template>
-    </if>
+    
+    <for-each select="$sourceIdAttributes">
+      <apply-templates mode="process-source"
+        select="self::node()[generate-id($sourceIdAttributes[.=current()][1]) = generate-id()]"/>
+    </for-each>    
   </template>
 
 
-  <template name="process-source">
-    <param name="sourceId"/>
-    <param name="meiElements"/>
+  <template name="process-source" mode="process-source" match="@*">
+    <param name="sourceId" select="."/>
+    <param name="meiElements" select="$documentSourceIdAttributes[. = $sourceId]/ancestor::mei:mei"/>
     
-    <variable name="asciiSourceId" select="translate($sourceId, 'äöüÄÖÜß ', 'aouAOUs')"/>
-    <variable name="filenameSaveWithPlaceholder" select="concat('sa ', substring($asciiSourceId, 1, 6), '##.mus&#10;')"/>
+    <variable name="filenamPrefix">
+      <choose>
+        <when test="$sourcesTable">
+          <value-of select="concat($sourcesTable//@abteilung, $sourcesTable//@band)"/>
+        </when>
+        <otherwise>
+          <value-of select="translate(substring($sourceId, 1, 6), 'äöüÄÖÜß ', 'aouAOUs')"/>
+        </otherwise>
+      </choose>
+    </variable>
     
-    <!-- Clear the page by deleting everything. Filename will be given in the called templates -->
-    <value-of select="'&#10;if p1>0 then de&#10;'"/>
     <!-- We save as a name that consist of source ID (max 6 letters) and "00" for the apparatus
          and "aa" for the edition, so we have 26^2=676 possible sequential names for the edition of this source. -->
-    <choose>
-      <when test="$target='apparatus'">
-        <value-of select="translate($filenameSaveWithPlaceholder, '#', '0')"/>
-      </when>
-      <when test="$target='edition'">
-        <value-of select="translate($filenameSaveWithPlaceholder, '#', 'a')"/>
-
-        <!-- We put titles and the source ID on the first page -->
-        <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $mainSourceHeadingP4, ' 0 2.5 0 -0.2&#10;')"/>
-        <value-of select="concat($standardFont, '#. Source provenance&#10;')"/>
-        <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $secondarySourceHeadingP4, ' 0 1.8 0 -0.3&#10;')"/>
-        <value-of select="concat($standardFont, 'Source location&#10;')"/>
-        <!-- We'll need at least two source description lines, so for convenience, create them right away -->
-        <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4, ' 0 0 0 -0.5&#10;')"/>
-        <value-of select="concat($standardFont, 'Source description line 1&#10;')"/>
-        <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4 - 4, ' 0 0 0 -0.5&#10;')"/>
-        <value-of select="concat($standardFont, 'Source description line 2&#10;')"/>
         
-        <value-of select="concat('t ', $maxStaffsPerPage, ' 200 ', $uebersichtszeileP4, ' 0 0 0 -1.9&#10;')"/>
-        <apply-templates mode="generate-score-escaped-string" select=".">
-          <with-param name="string" select="$sourceId"/>
-        </apply-templates>
-      </when>
-      <otherwise>
-        <message terminate="yes">
-          <text>Parameter "target" can be set to "edition" and "apparatus", but not </text>
-          <value-of select="concat('&quot;', $target, '&quot;')"/>
-        </message>
-      </otherwise>
-    </choose>
-    
     <variable name="idsWithAppAnnots" select="$meiElements[$target = 'apparatus']//@xml:id[key('appAnnotStart', .)]"/>
     
     <!-- Now we can step through all the <sb>s and generate the lines.
@@ -167,11 +196,14 @@
            As the sorting is stable, the <sb>s from the same document will still be in document order. -->
       <sort select="substring-before(concat(ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n, ':'), ':')" data-type="number"/>
       <sort select="ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n"/>
+      <with-param name="sourceId" select="$sourceId"/>
     </apply-templates>
   </template>
   
   
   <template match="mei:sb[not(@source)]" mode="generate-line">
+    <param name="sourceId"/>
+    
     <variable name="P2" select="$maxStaffsPerPage - ((position() - 1) mod $maxStaffsPerPage)"/>
     <!-- If we have a base chant, we combine it with consequent base chant lines, unless we have a document 
          with a "P" transcription number, which indicates we have a base-chant-only document.
@@ -180,6 +212,34 @@
       $target = 'edition'
       and contains($capitalLetters, substring(concat(@n,' '), 1, 1))
       and not(contains(ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n, 'P'))"/>
+    
+    <if test="$P2 = $maxStaffsPerPage">
+      <variable name="fileName">
+        <call-template name="get-mus-filename">
+          <with-param name="pageNumber" select="(position() - 1) div $maxStaffsPerPage"/>
+          <with-param name="sourceId" select="$sourceId"/>
+        </call-template>
+      </variable>
+      <value-of select="concat('&#10;RS&#10;SA ', $fileName, '&#10;')"/>
+    </if>
+    
+    <if test="$target='edition' and position() = 1">
+      <!-- We put titles and the source ID on the first page -->
+      <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $mainSourceHeadingP4, ' 0 2.5 0 -0.2&#10;')"/>
+      <value-of select="concat($standardFont, '#. Source provenance&#10;')"/>
+      <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $secondarySourceHeadingP4, ' 0 1.8 0 -0.3&#10;')"/>
+      <value-of select="concat($standardFont, 'Source location&#10;')"/>
+      <!-- We'll need at least two source description lines, so for convenience, create them right away -->
+      <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4, ' 0 0 0 -0.5&#10;')"/>
+      <value-of select="concat($standardFont, 'Source description line 1&#10;')"/>
+      <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4 - 4, ' 0 0 0 -0.5&#10;')"/>
+      <value-of select="concat($standardFont, 'Source description line 2&#10;')"/>
+      
+      <value-of select="concat('t ', $maxStaffsPerPage, ' 200 ', $uebersichtszeileP4, ' 0 0 0 -1.9&#10;')"/>
+      <apply-templates mode="generate-score-escaped-string" select=".">
+        <with-param name="string" select="$sourceId"/>
+      </apply-templates>
+    </if>
     
     <!-- The first <sb> in a transcription gets an Übersichtszeile -->
     <apply-templates mode="generate-uebersichtszeile"
@@ -235,12 +295,7 @@
     
     <if test="$P2 = 1 or position() = last()">
       <!-- Save file if we're at the last staff on the page (P2=1) or in the source -->
-      sm
-      <if test="position() != last()">
-        <!-- Move on to the next file -->
-        snx
-        if p1>0 then de
-      </if>
+      SM
     </if>
   </template> 
   
@@ -441,8 +496,64 @@
   </template>
   
   
+  <template name="get-mus-filename">
+    <param name="pageNumber"/>
+    <param name="sourceId"/>
+    
+    <if test="not($pageNumber &lt; 1000 and translate($pageNumber, '+-.', '') = $pageNumber)">
+      <message terminate="yes">
+        <value-of select="concat('Page number ', $pageNumber, ' is malformed or two high.')"/>
+      </message>
+    </if>
+    <variable name="paddedPageNumber" select="substring(concat('00', $pageNumber), string-length($pageNumber), 3)"/>
+    
+    <choose>
+      <when test="$sourcesTableFile">
+        <!-- For the PPMX file, we format the file names as follows:
+            ABCCaDDD.mus
+          * "A" is the number of the "Abteilung"
+          * "B" number of "Band"
+          * "CC" source number
+          * "a" letter to distinguish when there are multiple sources with the same number (usually only "a")
+          * "DDD" page number -->
+        <value-of select="concat(
+            $sourcesTable//@abteilung,
+            $sourcesTable//@band,
+            $sourcesTable//source[@id=$sourceId]/@number,
+            $paddedPageNumber
+          )"/>
+      </when>
+
+      <otherwise>
+        <!-- If we don't have a list of sources, we generate the filename from the source's ID.
+          TODO: There is a risk that we generate non-unique filenames here. -->
+        <variable name="asciiSourceId" select="translate($sourceId, 'äöüÄÖÜß ', 'aouAOUs')"/>
+        <if test="translate($asciiSourceId, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_', '') != ''">
+          <message terminate="yes">
+            <value-of select="concat('Invalid file name generation for source ID &quot;', $sourceId, '&quot; (', $asciiSourceId, ')&#10;')"/>
+            <value-of select='"Please report this ID to the software&apos;s maintainer."'/>
+          </message>
+        </if>
+        <value-of select="substring($asciiSourceId, 1, 5)"/>
+        <value-of select="$paddedPageNumber"/>
+      </otherwise>
+    </choose>
+    
+    <choose>
+      <when test="$target = 'apparatus'">.app</when>
+      <otherwise>.edi</otherwise>
+    </choose>
+  </template>
+
+
   <template mode="generate-score-escaped-string" match="node()|@*">
     <!-- TODO: Improve support for Symbol font characters, i.e. complete conversion of the available character set. -->
+    <!-- TODO: Check whether straightforward output of unproblematic strings can significantly speed up the whole transformation.
+              Unproblematic characters are: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;+-*=@$&amp;`'" 
+              A string can be checked for characters that need special treatment by translating all unproblematic characters to ''. 
+              This could be done in each iteration, directly writing the unproblematic part and treating the first char in the 
+              part needing special treatment in the <choose> statement like we do now.
+              Like this, we could bypass many iterations and <choose> statements. -->
     <param name="string" select="normalize-space(.)"/>
     <param name="trailingCharactersToOmit" select="''"/>
     <param name="allCaps" select="false()"/>
