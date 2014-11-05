@@ -583,18 +583,19 @@
       
       <variable name="escapedChar">
         <choose>
-          <!--  We replace < and > with these characters from the Corpus Monodicum font -->
-          <when test="contains('&lt;>',$char)">
+          <!--  We replace < and > with these characters from the Corpus Monodicum font - unless we're inside a comment -->
+          <when test="contains('&lt;>',$char) and $font != '_99'">
             <value-of select="concat($corpusMonodicumFont, $char, $font)"/>
           </when>
           <!-- Certain sequences of characters are interpreted as escape sequences in Score.
                To prevent that, we insert a redundant font definition.
-               e.g. "~n" becomes "~_00n", assuming that _00 is the current font. -->
+               e.g. "!n" becomes "!_00n", assuming that _00 is the current font. 
+               "~" is not listed here because it will be transforedm to \\304 anyway,
+               so there is no risk that Score will interpret it as escape character. -->
           <when test="string-length(normalize-space($firstTwoChars)) = 2 and contains(
               ' &lt;&lt; &gt;&gt; ^^ %% ## 
               ?\ ?| ?[ ?] ?{ ?} ?- ?a ?A ?c ?e ?E ?f ?l ?L ?m ?o ?O ?r ?s ?t 
               !0 !1 !2 !3 !4 !5 !6 !7 !8 !9 !a !A !d !D !e !f !g !h !i !j !k !l !m !n !p !q !s !S !y !z !Z 
-              ~a ~A ~n ~N ~o ~O 
               ?1 ?2 ?3 ?d ?0 ?8 ?9 ',
               concat(' ',$firstTwoChars,' ')
             )">
@@ -629,9 +630,10 @@
               'Cc'))"/>
           </when>
           <when test="contains('\|[]{}−æÆ©œŒªłŁºøØ®ß™\♭♯♮𝅭',$char)">
+            <!-- ı (dotlessi) seems to be undocumented -->
             <value-of select="concat('?',translate($char,
-              '\|[]{}−æÆ©œŒªłŁºøØ®ß™♭♯♮&#x1D16D;',
-              '\|[]{}-aAceEflLmoOrst123d'))"/>
+              'ı\|[]{}−æÆ©œŒªłŁºøØ®ß™♭♯♮&#x1D16D;',
+              'i\|[]{}-aAceEflLmoOrst123d'))"/>
           </when>
           <when test="contains('•„”¡¢£§¤“åÅ†‡…ƒ«»ﬁ‹›ﬂ—–¶¿šŠ¥žŽ',$char)">
             <value-of select="concat('!',translate($char,
@@ -664,7 +666,7 @@
           <when test="$char='ę' and $font = $smallCapsFont">
             <value-of select="concat($corpusMonodicumSymbolFont, '@', $font)"/>
           </when>
-          <when test="contains($symbolFontChars, $char)">
+          <when test="contains($symbolFontChars, $char) and $font != '_99'">
             <value-of select="concat(
               $corpusMonodicumSymbolFont,
               translate($char, $symbolFontChars, $symbolFontCharTranslations),
@@ -695,7 +697,7 @@
             'abcdefghijklmnopqrstuvwxyz;',
             'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
         </when>
-        <when test="$allCaps and contains('>&lt;', $char) and starts-with($escapedChar, $corpusMonodicumFont)">
+        <when test="$allCaps and contains('>&lt;', $char) and starts-with($escapedChar, $corpusMonodicumFont) and $font != '_99'">
           <!-- We have a larger variant of the angle brackets for allCaps in the Corpus monodicum font,
                which are placed in the slot for { and }. Those have to be escaped like ?{ and ?} -->
           <value-of select="concat($corpusMonodicumFont, '?', translate($char, '&lt;>', '{}'), $font)"/>
