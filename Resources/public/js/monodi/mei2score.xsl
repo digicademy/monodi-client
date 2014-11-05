@@ -807,7 +807,7 @@
     <param name="P2"/>
     <!-- If a break marker is the first element in a syllable, it must not coincide with the syllable.
          Therefore, we move it to the left by half a p3 advance step. -->
-    <param name="P3" select="$advance * (position() - 1 + count(preceding-sibling::mei:*[not(self::mei:syl)][1]))"/>
+    <param name="P3" select="$advance * (position() - 1.5 + 0.5*count(preceding-sibling::mei:*[not(self::mei:syl)][1]))"/>
     
     <apply-templates mode="handle-typesetter-annotations" select="@xml:id">
       <with-param name="P2" select="$P2"/>
