@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<stylesheet xmlns="http://www.w3.org/1999/XSL/Transform" xmlns:mei="http://www.music-encoding.org/ns/mei" version="1.0">
+<stylesheet 
+  xmlns="http://www.w3.org/1999/XSL/Transform" 
+  xmlns:mei="http://www.music-encoding.org/ns/mei" 
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" 
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" 
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  version="2.0">
   
   <!-- This stylesheet creates a Score macro file.
        It is not strictly a PMX file because it does not only store item parameters,
@@ -11,13 +18,29 @@
   <key name="typesetterAnnotEnd"   match="mei:annot[@type='typesetter']" use="substring(@endid,  2)"/>
   <key name="diacriticalMarkingAnnotStart" match="mei:annot[@type='diacriticalMarking']" use="substring(@startid, 2)"/>
   <key name="appAnnotStart" match="mei:annot[normalize-space(@label)='App']" use="substring(@startid, 2)"/>
-<!--  <key name="appAnnotByLineStartId" match="mei:annot[normalize-space(@label)='App']" use="
-    ancestor::mei:mei[1]//@xml:id[
-      .=substring(current()/@startid,2)
-    ]/ancestor::*[
-      self::mei:sb[not(@source) or self::mei:syllable]
-    ][1]"/>
--->  
+  
+  <!-- In ODT documents, the source ID is in the last column of the first Übersichtszeile -->
+  <key name="odtBySourceId" match="text:p[@text:style-name='Uebersichtszeile'][1]/text:tab[2]" 
+    use="normalize-space(string-join(following-sibling::node(), ''))"/>
+  <key name="superscript" match="style:style[starts-with(style:text-properties/@style:text-position, 'super')]" use="@style:name"/>
+  <key name="subscript" match="style:style[starts-with(style:text-properties/@style:text-position, 'sub')]" use="@style:name"/>
+  
+  <key name="uebersichtszeileByTranscriptionNumber" match="text:p[@text:style-name='Uebersichtszeile']" use="string-join(text:tab[1]/preceding-sibling::node(), '')"/>
+<!--  <key name="uebersichtszeileByTranscriptionNumber" match="text:p[@text:style-name='Uebersichtszeile']">
+    <value-of select="string-join(text:tab[1]/preceding-sibling::node(), '')"/>
+  </key>-->
+  <key name="uebersichtszeileByTranscriptionNumber" match="text:p[@text:style-name='Uebersichtszeile']">
+    <variable name="key">
+      <variable name="transcriptionNumberNodes" select="text:tab[1]/preceding-sibling::node()"/>
+      <value-of select="string-join($transcriptionNumberNodes/descendant-or-self::text()[not(ancestor::text:span[key('subscript', @text:style-name)])], '')"/>
+      <value-of select="'_'"/>
+      <value-of select="string-join($transcriptionNumberNodes//text()[ancestor::text:span[key('subscript', @text:style-name)]], '')"/>
+    </variable>
+    <value-of select="string-join($key, '')"/>
+  </key>
+  <key name="work" match="mei:work/@n" use="'nAttribute'"/>
+  
+  
   <output method="text"/>
   
   <!-- When converting snippets for the apparatus that will eventually be compiled in InDesign,
@@ -58,10 +81,12 @@
   <param name="marginaliaP4" select="5"/>
   <param name="rubricP4" select="20"/>
   <param name="mainSourceHeadingP4" select="60"/>
+  <param name="headingLineDistance" select="5"/>
   <param name="secondarySourceHeadingP4" select="53"/>
   <param name="sourceDescriptionP4" select="48"/>
   <param name="P4distanceBetweenRubrics" select="4"/>
   <param name="uebersichtszeileP4" select="30"/>
+  <param name="P4distsanceBetweenUebersichtszeilen" select="4"/>
   <param name="lyricsP4" select="-5"/>
   <param name="hyphenP4" select="-4"/>
   <param name="hyphenP17" select="1"/>
@@ -77,6 +102,8 @@
   <param name="smallCapsFont" select="'_85'"/>
   <param name="corpusMonodicumFont" select="'_79'"/>
   <param name="corpusMonodicumSymbolFont" select="'_86'"/>
+  <param name="subscriptFont" select="'_34'"/>   <!-- This are not the actual super/subscript fonts -->
+  <param name="superscriptFont" select="'_34'"/> <!-- To alert us to places where the font is missing, use Dingbats -->
   
   <param name="standardAnnotP4" select="18"/>
   <param name="standardDiacriticalMarkingP4" select="$standardAnnotP4"/>
@@ -99,8 +126,10 @@
   <variable name="documents" select="document(/*[not(self::mei:mei)]/*) | /mei:mei/.."/>
   <variable name="sourcesTable" select="document($sourcesTableFile)"/>
   
-  <variable name="documentSourceIdAttributes" select="$documents/mei:mei/mei:meiHead[1]/mei:fileDesc[1]/mei:sourceDesc[1]/mei:source[1]/@label"/>
+  <variable name="meiSourceIdAttributes" select="$documents/mei:mei/mei:meiHead[1]/mei:fileDesc[1]/mei:sourceDesc[1]/mei:source[1]/@label"/>
+  <variable name="odtTabBeforeSourceId" select="$documents//text:p[@text:style-name='Uebersichtszeile'][1]/text:tab[2]"/>
   <variable name="listSourceIdAttributes" select="$sourcesTable//source/@id"/>
+  
   
   <template mode="mei2score" match="text()"/>
 
@@ -111,6 +140,8 @@
         <value-of select="concat('Source lacking ID attribute in source list file ', $sourcesTableFile)"/>
       </message>
     </if>
+    
+    <!-- TODO: Do a 3-way check among MEI document, text document and source list -->
 
     <for-each select="$listSourceIdAttributes">
       <!-- We also check for the correct format of the source number (two digits followed by one letter) -->
@@ -124,14 +155,26 @@
         </message>
       </if>
       
-      <if test="not($documentSourceIdAttributes[. = current()])">
+      <if test="not($meiSourceIdAttributes[. = current()])">
         <message terminate="yes">
           <value-of select="concat('ID ', ., ' present in the source list file ', $sourcesTableFile, ', but not in any supplied MEI document')"/>
         </message>
       </if>
+      
+      <!--<message>
+        First Übersichtszeile
+        <apply-templates select="$documents[key('odtBySourceId', string())]" mode="generate-namespaceless-xml"></apply-templates>
+      </message>
+      
+      <if test="not($documents[key('odtBySourceId', string())])">
+        <message terminate="yes">
+          No text document for source <value-of select="."/> found.
+          Make sure the right column in the first Übersichtszeile has the correct source ID in correct spelling. 
+        </message>
+      </if>-->
     </for-each>
     
-    <for-each select="$documentSourceIdAttributes">
+    <for-each select="$meiSourceIdAttributes">
       <if test="not($listSourceIdAttributes[. = current()])">
         <message terminate="yes">
           <value-of select="concat('ID ', ., ' present in an MEI document, but not in the the source list file ', $sourcesTableFile)"/>
@@ -143,11 +186,23 @@
   
   
   <template name="process-sources" match="/">
-    <param name="sourceIdAttributes" select="$listSourceIdAttributes | $documentSourceIdAttributes"/>
+    <param name="sourceIdAttributes" select="$listSourceIdAttributes | $meiSourceIdAttributes"/>
 
     <if test="$sourcesTableFile">
       <call-template name="check-source-id-consistency"/>
     </if>
+    
+<!--    <for-each select="$documents[contains(//text:p[@text:style-name='Uebersichtszeile'][1], 'Pro 12')]//text:p[@text:style-name='Uebersichtszeile'][text:tab[1]/preceding-sibling::node()[normalize-space()!='']]">
+      <message>
+        <variable name="transcriptionNumberNodes" select="text:tab[1]/preceding-sibling::node()"/>
+        "<apply-templates mode="generate-namespaceless-xml" select="$transcriptionNumberNodes"/>"
+        <value-of select="string-join($transcriptionNumberNodes/descendant-or-self::text()[not(ancestor::text:span[key('subscript', @text:style-name)])], '')"/>
+        <value-of select="'_'"/>
+        <value-of select="string-join($transcriptionNumberNodes//text()[ancestor::text:span[key('subscript', @text:style-name)]], '')"/>
+      </message>
+    </for-each>
+    
+    <message terminate="yes"></message>-->    
     
     <for-each select="$sourceIdAttributes">
       <apply-templates mode="process-source"
@@ -158,7 +213,7 @@
 
   <template name="process-source" mode="process-source" match="@*">
     <param name="sourceId" select="."/>
-    <param name="meiElements" select="$documentSourceIdAttributes[. = $sourceId]/ancestor::mei:mei"/>
+    <param name="meiElements" select="$meiSourceIdAttributes[. = $sourceId]/ancestor::mei:mei"/>
     
     <variable name="filenamPrefix">
       <choose>
@@ -175,6 +230,10 @@
          and "aa" for the edition, so we have 26^2=676 possible sequential names for the edition of this source. -->
         
     <variable name="idsWithAppAnnots" select="$meiElements[$target = 'apparatus']//@xml:id[key('appAnnotStart', .)]"/>
+    
+    <message>
+      "<value-of select="$sourceId"/>": <value-of select="count($documents[key('odtBySourceId', $sourceId)])"></value-of>
+    </message>
     
     <!-- Now we can step through all the <sb>s and generate the lines.
          For the edition ($meiElements[$target='edition']/...):
@@ -198,17 +257,19 @@
            before a colon, so we'd have something like 42:10 43:10P or the like, 
            so we're only taking care of the P just in case.
            As the sorting is stable, the <sb>s from the same document will still be in document order. -->
-      <sort select="substring-before(concat(ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n, ':'), ':')" data-type="number"/>
+      <sort select="replace(ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n, '[*:].*$', '')" data-type="number"/>
       <sort select="ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n"/>
       <with-param name="sourceId" select="$sourceId"/>
+      <with-param name="odtDocument" select="$documents[key('odtBySourceId', $sourceId)]"/>
     </apply-templates>
   </template>
   
   
   <template match="mei:sb[not(@source)]" mode="generate-line">
-    <param name="sourceId"/>
+    <param name="sourceId" as="xs:string"/>
+    <param name="odtDocument" as="node()"/>
     
-    <variable name="P2" select="$maxStaffsPerPage - ((position() - 1) mod $maxStaffsPerPage)"/>
+    <variable name="P2" select="xs:integer($maxStaffsPerPage - ((position() - 1) mod $maxStaffsPerPage))" as="xs:integer"/>
     <!-- If we have a base chant, we combine it with consequent base chant lines, unless we have a document 
          with a "P" transcription number, which indicates we have a base-chant-only document.
          In these documents, we don't combine base chants lines. -->
@@ -217,7 +278,7 @@
       and contains($capitalLetters, substring(concat(@n,' '), 1, 1))
       and not(contains(ancestor::mei:mei[1]/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n, 'P'))"/>
     
-    <if test="$P2 = $maxStaffsPerPage">
+    <if test="$P2 = xs:integer($maxStaffsPerPage)">
       <variable name="fileName">
         <call-template name="get-mus-filename">
           <with-param name="pageNumber" select="(position() - 1) div $maxStaffsPerPage"/>
@@ -226,30 +287,71 @@
       </variable>
       <value-of select="concat('&#10;RS&#10;SA ', $fileName, '&#10;')"/>
     </if>
-    
+
     <if test="$target='edition' and position() = 1">
-      <!-- We put titles and the source ID on the first page -->
-      <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $mainSourceHeadingP4, ' 0 2.5 0 -0.2&#10;')"/>
-      <value-of select="concat($standardFont, '#. Source provenance&#10;')"/>
-      <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $secondarySourceHeadingP4, ' 0 1.8 0 -0.3&#10;')"/>
-      <value-of select="concat($standardFont, 'Source location&#10;')"/>
-      <!-- We'll need at least two source description lines, so for convenience, create them right away -->
-      <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4, ' 0 0 0 -0.5&#10;')"/>
-      <value-of select="concat($standardFont, 'Source description line 1&#10;')"/>
-      <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', $sourceDescriptionP4 - 4, ' 0 0 0 -0.5&#10;')"/>
-      <value-of select="concat($standardFont, 'Source description line 2&#10;')"/>
-      
-      <value-of select="concat('t ', $maxStaffsPerPage, ' 200 ', $uebersichtszeileP4, ' 0 0 0 -1.9&#10;')"/>
-      <apply-templates mode="generate-score-escaped-string" select=".">
-        <with-param name="string" select="$sourceId"/>
+      <apply-templates select="$odtDocument//office:text/text:p[
+          @text:style-name=('Quellentitel', 'Quellenuntertitel', 'Quellenbeschreibung')
+        ]" mode="generate-titles">
+        <with-param name="P2" select="$P2"/>
       </apply-templates>
+      
+      <!--<message terminate="yes"></message>-->
     </if>
     
-    <!-- The first <sb> in a transcription gets an Übersichtszeile -->
-    <apply-templates mode="generate-uebersichtszeile"
-      select="self::mei:sb[$target = 'edition'][not(preceding-sibling::mei:sb)]">
-      <with-param name="P2" select="$P2"/>
-    </apply-templates>
+    <variable name="transcriptionNumber" select="replace(key('work', 'nAttribute'), '^[^:]+:', '')"/>
+    
+    <if test="$target='edition' and not(preceding-sibling::mei:sb)">
+      <!-- The first <sb> in a transcription gets an Übersichtszeile if we're generating output for the main edition -->
+      <!-- Transcription number: Text and box -->
+      <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$uebersichtszeileP4,' 0 0 0 -1.1 &#10;')"/>
+      <apply-templates select="." mode="generate-score-escaped-string">
+        <with-param name="string" select="$transcriptionNumber"/>
+      </apply-templates>
+      <value-of select="concat('12 ',$P2,' ',$lineNumberP3,' ',$uebersichtszeileP4,' 0 10&#10;')"/>
+      
+      <if test="position()=1">
+        <value-of select="concat('&#10;t ',$P2,' 200 ',$uebersichtszeileP4,' 0 0 0 -1.9 0 0&#10;')"/>
+        <apply-templates select="." mode="generate-score-escaped-string">
+          <with-param name="string" select="$sourceId"/>
+        </apply-templates>
+        <value-of select="'&#10;'"/>
+      </if>
+      
+      <choose>
+        <when test="$documents/office:document">
+          <variable name="odtUebersichtszeile" select="$odtDocument/key('uebersichtszeileByTranscriptionNumber', $transcriptionNumber)"/>
+          <!--        <message terminate="no">
+          transcriptionNumber: <value-of select="$transcriptionNumber"></value-of>
+          uebersichtszeilen:   <value-of select="count($odtUebersichtszeile)"></value-of>
+          uebersichtszeilen:   <value-of select="$odtUebersichtszeile"></value-of>
+        </message>-->
+          <if test="not($odtUebersichtszeile)">
+            <message terminate="yes">
+              No Übersichtszeile for transcription number "<value-of select="$transcriptionNumber"/>" found in text document for source <value-of select="$sourceId"/>
+              Text URI: <value-of select="base-uri($odtDocument)"/>
+              MEI URI:  <value-of select="base-uri()"/>
+            </message>
+          </if>
+          
+<!--          <message>
+            <value-of select="$transcriptionNumber"/>:
+            <apply-templates mode="generate-namespaceless-xml" select="$odtUebersichtszeile"></apply-templates>
+          </message>-->
+          
+          <apply-templates mode="generate-uebersichtszeile" select="$odtUebersichtszeile">
+            <with-param name="P2" select="$P2"/>
+          </apply-templates>
+        </when>
+        <otherwise>
+          <message terminate="yes">no odtÜbersichtszeile</message>
+          <!-- This is a fallback if we're not working with Word documents. -->
+          <apply-templates mode="generate-uebersichtszeile"
+            select="self::mei:sb[$target = 'edition'][not(preceding-sibling::mei:sb)]">
+            <with-param name="transcriptionNumber" select="$transcriptionNumber"/>
+          </apply-templates>
+        </otherwise>
+      </choose>
+    </if>
     
     <!-- If we have a <sb> of a base chant (with capital letter @n) with immediately following base chants,
            we combine them on one line, therefore in this case the next line start is not the next <sb> element. -->
@@ -261,7 +363,7 @@
     <variable name="syllablesInLine" select="$syllablesAndEditionSbsInLine/self::mei:syllable"/>
     <variable name="lineLabels" select="$syllablesAndEditionSbsInLine/self::mei:sb/@n"/>
     
-    <if test="$target = 'edition' and $lineLabels[string() != '']">
+    <if test="$target = 'edition' and $lineLabels[normalize-space() != '']">
       <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$marginaliaP4,' 0 0 0 -2.1 &#10;')"/>
       <apply-templates select="." mode="generate-score-escaped-string">
         <with-param name="string">
@@ -273,7 +375,7 @@
     </if>
 
     <apply-templates mode="create-apparatus-highlight-box"
-      select="$syllablesInLine//@xml:id[key('appAnnotStart', .)]"/>
+      select="$syllablesInLine[$target='apparatus']//@xml:id[key('appAnnotStart', .)]"/>
     
     <variable name="stafflessSyllables" select="$syllablesInLine[not($syllablesInLine//mei:ineume)]"/>
     
@@ -305,8 +407,10 @@
   </template> 
   
 
+  <!-- This template is used if we have no ODF documents to draw the Übersichtszeilen from -->
   <template match="mei:sb[not(@source)]" mode="generate-uebersichtszeile">
-    <param name="P2"/>
+    <param name="P2" as="xs:integer"/>
+    
     <variable name="mei" select="ancestor::mei:mei[1]"/>
     <variable name="workN" select="$mei/mei:meiHead[1]/mei:workDesc[1]/mei:work[1]/@n"/>
     <variable name="transcriptionNumber">
@@ -315,13 +419,6 @@
         <value-of select="$workN"/>
       </if>
     </variable>
-    
-    <!-- Transcription number: Text and box -->
-    <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$uebersichtszeileP4,' 0 0 0 -1.1 &#10;')"/>
-    <apply-templates select="." mode="generate-score-escaped-string">
-      <with-param name="string" select="$transcriptionNumber"/>
-    </apply-templates>
-    <value-of select="concat('12 ',$P2,' ',$lineNumberP3,' ',$uebersichtszeileP4,' 0 10&#10;')"/>
     
     <variable name="uebersichtszeile">
       <for-each select="
@@ -343,6 +440,37 @@
   </template>
 
 
+  <template match="text:p[@text:style-name='Uebersichtszeile']" mode="generate-uebersichtszeile">
+    <param name="P2" as="xs:integer"/>
+    
+    <for-each select="text:tab[1]|text:line-break">
+      <value-of select="concat('t ',$P2,' ',$lineNumberP3,' ',$uebersichtszeileP4 - (position() - 1) * $P4distsanceBetweenUebersichtszeilen, ' 0 0 0 -1.2 &#10;')"/>
+      <apply-templates select="following-sibling::node()[not(self::text:tab or self::text:line-break)][
+          count(current() | preceding-sibling::*[self::text:tab or self::text:line-break]) = 1
+        ]" mode="generate-score-escaped-string">
+        <with-param name="trailingLinewrap" select="false()"/>
+      </apply-templates>
+      <value-of select="'&#10;'"/>
+    </for-each>
+  </template>
+
+
+  <template match="text:p" mode="generate-titles">
+    <!-- We put titles and the source ID on the first page -->
+    <value-of select="concat('t ', $maxStaffsPerPage, ' ', $staffP3, ' ', 
+      $mainSourceHeadingP4 - count(preceding-sibling::text:p) * $headingLineDistance, ' 0 ')"/>
+    <choose>
+      <when test="@text:style-name='Quellentitel'"       >1.5 0 -0.2</when>
+      <when test="@text:style-name='Quellenuntertitel'"  >1.2 0 -0.3</when>
+      <when test="@text:style-name='Quellenbeschreibung'">1.0 0 -0.5</when>
+      <otherwise><message terminate="yes"/></otherwise>
+    </choose>
+    <value-of select="'&#10;'"/>
+    
+    <apply-templates mode="generate-score-escaped-string" select="."/>
+  </template>
+  
+  
   <template match="mei:sb[not(@source)]" mode="mei2score">
     <param name="P2"/>
     <param name="P3" select="$advance * position()"/>
@@ -504,12 +632,9 @@
     <param name="pageNumber"/>
     <param name="sourceId"/>
     
-    <if test="not($pageNumber &lt; 1000 and translate($pageNumber, '+-.', '') = $pageNumber)">
-      <message terminate="yes">
-        <value-of select="concat('Page number ', $pageNumber, ' is malformed or two high.')"/>
-      </message>
+    <if test="$pageNumber >= 1000">
+      <message terminate="yes">Too many pages.</message>
     </if>
-    <variable name="paddedPageNumber" select="substring(concat('00', $pageNumber), string-length($pageNumber), 3)"/>
     
     <choose>
       <when test="$sourcesTableFile">
@@ -524,7 +649,7 @@
             $sourcesTable//@abteilung,
             $sourcesTable//@band,
             $sourcesTable//source[@id=$sourceId]/@number,
-            $paddedPageNumber
+            format-number($pageNumber, '0000')
           )"/>
       </when>
 
@@ -539,7 +664,7 @@
           </message>
         </if>
         <value-of select="substring($asciiSourceId, 1, 5)"/>
-        <value-of select="$paddedPageNumber"/>
+        <value-of select="format-number($pageNumber, '000')"/>
       </otherwise>
     </choose>
     
@@ -550,7 +675,53 @@
   </template>
 
 
-  <template mode="generate-score-escaped-string" match="node()|@*">
+  <template match="text:tab" mode="generate-score-escaped-string">
+    <message terminate="yes">
+      Tab in line
+      <value-of select="ancestor::text:*[self::text:p or self::text:h]"/>
+      can not be converted to Score data.
+      <apply-templates select=".." mode="generate-namespaceless-xml"/>
+    </message>
+  </template>
+
+  <template mode="generate-score-escaped-string" match="text:*">
+    <param name="font" select="$standardFont"/>
+    <param name="trailingLinewrap" select="true()"/>
+
+    <!--<message>
+      Wrap:    <value-of select="$trailingLinewrap"/>
+      Element: <apply-templates select="." mode="generate-namespaceless-xml"/>
+    </message>-->
+
+    <apply-templates mode="generate-score-escaped-string">
+      <!-- As a <text:*> element will often contain multiple child nodes belonging to one line,
+         we musn't write a linewrap after each one. -->
+      <with-param name="trailingLinewrap" select="false()"/>
+      <with-param name="font">
+        <choose>
+          <when test="key('superscript', @text:style-name)">
+            <value-of select="$superscriptFont"/>
+          </when>
+          <when test="key('subscript', @text:style-name)">
+            <value-of select="$subscriptFont"/>
+          </when>
+          <otherwise>
+            <value-of select="$font"/>
+          </otherwise>
+        </choose>
+      </with-param>
+    </apply-templates>
+    
+    <if test="$trailingLinewrap">
+<!--      <message>
+        trailing wrap on
+        element: <apply-templates select="." mode="generate-namespaceless-xml"></apply-templates>
+      </message>-->
+      <value-of select="'&#10;'"/>
+    </if>
+  </template>
+  
+  <template mode="generate-score-escaped-string" match="node()|@*" name="generate-score-escaped-string">
     <!-- TODO: Improve support for Symbol font characters, i.e. complete conversion of the available character set. -->
     <!-- TODO: Check whether straightforward output of unproblematic strings can significantly speed up the whole transformation.
               Unproblematic characters are: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,():;+-*=@$&amp;`'" 
@@ -562,6 +733,13 @@
     <param name="allCaps" select="false()"/>
     <param name="font" select="$standardFont"/>
     <param name="firstIteration" select="true()"/>
+    <param name="trailingLinewrap" select="true()"/>
+    
+    <!--<message>
+      Element: <apply-templates select="." mode="generate-namespaceless-xml"/>
+      String:  <value-of select="$string"></value-of>
+      Wrap:    <value-of select="$trailingLinewrap"/>
+    </message>-->
     
     
     <if test="$firstIteration">
@@ -574,7 +752,7 @@
     
     <value-of select="$leadingUntreatedStringPart"/>
     <if test="not($firstTreatedChar)">
-      <value-of select="concat($string, '&#10;')"/>
+      <value-of select="$string"/>
     </if>
     
     <if test="$firstTreatedChar">
@@ -712,7 +890,16 @@
         <with-param name="allCaps" select="$allCaps"/>
         <with-param name="font" select="$font"/>
         <with-param name="firstIteration" select="false()"/>
+        <with-param name="trailingLinewrap" select="$trailingLinewrap"/>
       </apply-templates>
+    </if>
+    <if test="$trailingLinewrap">
+<!--      <message>
+        trailing wrap on
+        string:  <value-of select="$string"></value-of>
+        element: <apply-templates select="." mode="generate-namespaceless-xml"></apply-templates>
+      </message>-->
+      <value-of select="'&#10;'"/>
     </if>
   </template>
   
@@ -809,7 +996,7 @@
     <param name="P2"/>
     <!-- If a break marker is the first element in a syllable, it must not coincide with the syllable.
          Therefore, we move it to the left by half a p3 advance step. -->
-    <param name="P3" select="$advance * (position() - 1.5 + 0.5*count(preceding-sibling::mei:*[not(self::mei:syl)][1]))"/>
+    <param name="P3" select="$advance * (position() - 1.4 + 0.5*count(preceding-sibling::mei:*[not(self::mei:syl)][1]))"/>
     
     <apply-templates mode="handle-typesetter-annotations" select="@xml:id">
       <with-param name="P2" select="$P2"/>
@@ -902,4 +1089,24 @@
          so all <pb>s without @source start a new system -->
     <copy-of select="$advance"/>
   </template>
+  
+
+  <!-- mode "generate-namespaceless-xml" is useful for debugging when some XML is to be reported in a <message>
+    Namespace declarations are obscuring the actual structure. -->
+  <template mode="generate-namespaceless-xml" match="*">
+    <element name="{local-name()}" namespace="">
+      <apply-templates select="node()|@*" mode="generate-namespaceless-xml"/>
+    </element>
+  </template>
+  
+  <template mode="generate-namespaceless-xml" match="@*">
+    <attribute name="{local-name()}">
+      <value-of select="."/>
+    </attribute>
+  </template>
+  
+  <template match="text()" mode="generate-namespaceless-xml">
+    <copy-of select="."/>
+  </template>
+  
 </stylesheet>
