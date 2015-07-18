@@ -120,7 +120,7 @@ function generateTOC(toc) {
 </tr>
 </tbody>
 </table>
-<table class="key-command-table">
+<table class="key-command-table" border="0">
 <caption>Delete an editorial line break</caption> 
 <tbody>
 <tr>
@@ -129,7 +129,7 @@ function generateTOC(toc) {
 </tr>
 </tbody>
 </table>
-<table class="key-command-table">
+<table class="key-command-table" border="0">
 <caption>Navigating syllables</caption> 
 <tbody>
 <tr>
@@ -330,7 +330,10 @@ This kind of annotation should not be over-used. Like internal  annotations, typ
 <li>label field: App</li>
 <li>comment text:&nbsp; et ] <em>korrigiert aus</em> que</li>
 </ul>
-</dd> <dt>4. Diacritical marking</dt> <dd>So-called diacritical markings carry references to the printed edition's Zeichentabelle. To apply a  diacritical marking to a group of notes, select one note of that group,  create an annotation of the diacritical-marking type and enter the marking  in the label field. The multi-line text field should usually be kept  empty.</dd> <dt>5. Special pitch property</dt> <dd>This annotation type was created  for two purposes:                                                                                                                                                         
+</dd> <dt>4. Diacritical marking</dt> <dd>
+<p>So-called diacritical markings carry references to the printed edition's Zeichentabelle. To apply a  diacritical marking to a group of notes, select one note of that group,  create an annotation of the diacritical-marking type and enter the marking  in the label field. The multi-line text field should usually be kept  empty.</p>
+<p>If the diacritical marking only refers to a single pitch, it must be associated with that pitch only. If it refers to all pitches under a slur, anchor the start and end of the diacritical marking annotation to the start and end notes of the slur. If it refers to an entire group, anchor the start and end of the annotation on the start and end notes of the group.</p>
+</dd> <dt>5. Special pitch property</dt> <dd>This annotation type was created  for two purposes:  
 <ul>
 <li>to indicate that a pitch was written on a dry point line. In this case, "dp" is recorded in the annotation's label field.</li>
 <li>to indicate that a pitch was depicted with a modified sign, signaling  its pitch content as "mi." In this case, "mi" is recorded in the label  field.</li>
@@ -352,9 +355,19 @@ This kind of annotation should not be over-used. Like internal  annotations, typ
 <p>These fields are for CM&rsquo;s volumes of ordinary genres, which have  catalogues of base       chant melodies and trope incipits (such as  Schildbach)</p>
 </dd></dl>
 <h2>Managing files&mdash;Management page</h2>
-<h3>File names</h3>
+<p>When a user moves from a document to the management page, the  document  is still open and can       be accessed by clicking &ldquo;Document.&rdquo;</p>
+<h3>Saving files</h3>
+<h4>Document menu: "Save" and "Save as"</h4>
+<dl id="save_unnamed"><dt>Saving unnamed documents</dt><dd>
+<p>To save an unnamed document, use either the "Save" or "Save as" menu  items.&nbsp; Enter a name and navigate to the folder the document shall be  saved in.&nbsp; Click the "save document here" button that appears below the  folder when the mouse pointer hovers over the folder name.</p>
+</dd></dl><dl><dt>Saving named documents</dt><dd>
+<p>To save changes to a named document, simply use the "Save" menu item.</p>
+</dd></dl><dl><dt>Moving, renaming or saving copies of  documents</dt><dd>
+<p>To save a copy of a document, use the "Save as" menu item.&nbsp; If you want to save a copy in the same folder, the file name has to be changed, otherwise changing the file name is optional.&nbsp; In any case, you have to navigate to the folder you want to save the file in and proceed <a href="#save_unnamed">as described above in section "Saving unnamed documents"</a>.</p>
+<p>Currently, mono:di has no built-in functionality for renaming or moving documents.&nbsp; To rename a document, open it and use the "Save as" menu item to save it under the desired name.&nbsp; Afterwards, delete the original document.&nbsp; To move a document to a different folder, the same procedure has to be used, i.e. a copy has to be saved in the desired folder using "Save as" and the original document has to be deleted.</p>
+</dd></dl>
+<h4>File names</h4>
 <p>File names may only contain letters, numbers, "-" and "_" characters. No spaces can be used.</p>
-<p>When a user moves from a document to the management page, the  document is still open and can       be accessed by clicking &ldquo;Document.&rdquo;</p>
 <h3>Batch functions</h3>
 <p>The actions that are offered by the buttons on the right hand side in  management view can also be applied simultaneously to multiple  documents using the batch functions. Place check marks in front of the names of the documents you want to apply the action to and select  the respective action.</p>
 <p>The batch function "print" plays a special role. It allows all selected documents to be printed consecutively.</p>
