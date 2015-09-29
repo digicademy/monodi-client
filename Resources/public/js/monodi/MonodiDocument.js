@@ -1316,6 +1316,9 @@
       element = element ? $MEI(element) : selectedElement;
 
       if (!element) {return;}
+      // We mustn't delete the very first <sb> as every line must start with a <sb>.
+      // TODO: If the line has no content, we should remove the entire line.
+      if (evaluateXPath(element, "self::mei:sb[not(@source)][not(preceding-sibling::mei:sb)]")[0]) {return;}
       var parent = element.parentNode;
       if (parent && checkIfElementCanBeDeleted(element) && element.getAttribute("label") !== "dummy") {
         if (!leaveFocus) {
