@@ -120,7 +120,7 @@ function generateTOC(toc) {
 </tr>
 </tbody>
 </table>
-<table class="key-command-table" border="0">
+<table class="key-command-table">
 <caption>Delete an editorial line break</caption> 
 <tbody>
 <tr>
@@ -129,7 +129,7 @@ function generateTOC(toc) {
 </tr>
 </tbody>
 </table>
-<table class="key-command-table" border="0">
+<table class="key-command-table">
 <caption>Navigating syllables</caption> 
 <tbody>
 <tr>
@@ -194,11 +194,15 @@ function generateTOC(toc) {
 <dl><dt>Entering multiple rubrics without intervening music</dt><dd>The  rubric field can only contain a single line of text. To  enter  multiple rubrics, which will appear in multiple lines in the print  edition, type the rubrics in one line and separate them using  the  symbol <em>#</em>.</dd><dt>Line and page break markers in Rubrics<br /></dt><dd>Enter the break marker as single or double "pipe" characters, like "|| PSALMUS" or "| TROPUS". Folio numbers for such break markers can currently not be input and should be supplied to the typesetter in the separate text document.<br /></dd><dt>Non-sung text below a line of music<br /></dt><dd>Rubric-like text (i.e. text that shall be typeset similarly to rubrics) appearing below a line without following music should be input in the rubric field of an empty line following the last line of music.<br /></dd></dl>
 <h4>Entering special characters</h4>
 <dl><dt>Windows</dt><dd>Use Windows' <a href="http://windows.microsoft.com/en-us/windows/using-special-characters-character-map-faq">Character Map</a> to choose the symbol. Even though the font will be a different one in mono:di and the printout, best choose Arial in the Font dropdown list. Characters can be searched by name if the "Advanced view" check box is selected. For inputting ę (e-caudata), you can search for "ogonek" in the search field.<br /></dd><dt>Mac</dt><dd>Use OS X' <a href="http://support.apple.com/kb/HT1518">Character Viewer</a>. Characters can be searched. For inputting ę (e-caudata), you can search for "ogonek" in the search field.</dd></dl>
-<h3>Music level</h3>
-<p>Use these commands when a pitch or line/folio break is selected.</p>
+<h3 id="musicInput">Music level</h3>
+<p>Use these commands when a pitch or line/folio break is selected. Note that pressing any of the keys in the "New pitches" table while a ghost note is displayed will make the ghost note persistent. <span class="key">shift</span>, <span class="key">space</span> and <span class="key">return</span> will work both on ghost notes and persistent notes. They leave the selected note persistent and create an additional pitch.</p>
 <table id="newPitchKeys" class="key-command-table">
 <caption>New pitches</caption> 
 <tbody>
+<tr>
+<td>make ghost note persistent</td>
+<td><span class="key">.</span></td>
+</tr>
 <tr>
 <td>under a slur</td>
 <td><span class="key">shift</span></td>
@@ -433,6 +437,16 @@ This kind of annotation should not be over-used. Like internal  annotations, typ
 <h2>Special conventions</h2>
 <h3>Antiphon initials</h3>
 <p>If an antiphon initial does not have a letter or number as line label, it shall be marked with an exclamation mark in the label field.&nbsp; This exclamation mark will not be transferred to the printed edition, but the sung text will be printed in small caps.</p>
+<h2>Printing at different zoom levels</h2>
+<p>Unfortunately, changing the zoom level for printout is handled differently by different browsers and operating systems. It is to our knowledge currently <strong>only supported by Firefox on Windows and Linux</strong>.</p>
+<ul>
+<li>Document =&gt; Print</li>
+<li>Cancel the appearing print window</li>
+<li>Click Firefox' menu button (top right, the "three stripes" button)</li>
+<li>Click "Print", the print preview Window appears</li>
+<li>Change scaling (dropdown menu in the menu bar)</li>
+<li>Click "Print" </li>
+</ul>
 <h2>Troubleshooting</h2>
 <h3>Editing</h3>
 <h4 id="deleteEmptySyllable">Empty syllable can not be deleted</h4>
@@ -453,7 +467,7 @@ This kind of annotation should not be over-used. Like internal  annotations, typ
 <li>select Batch functions =&gt; delete locally</li>
 </ul>
 <p>If you require a large amount of documents to be available for offline work, use Firefox and  <a href="#increaseQuota">increase the local storage quota</a>.</p>
-<h3>Printing</h3>
+<h3 id="printsolutions">Printing</h3>
 <h4>Staffs become solid black rectangles</h4>
 <p>This problem likely stems from problems with the printer driver. Try to increase the print resolution. If that does not succeed, try creating a PDF with Chrome's built-in PDF print:</p>
 <ul>
