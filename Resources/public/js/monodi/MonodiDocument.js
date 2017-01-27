@@ -20,9 +20,6 @@
          one for changing CSS for highlighting/selection etc.
          (Optional, but required if document is to be rendered)
        - one of xsltUrl, xsltString, xsltDOM
-       - renderingParameters: A JSON sub-object with all the parameters
-         that shall be supplied to the XSLT transformation
-         (see the .xsl file for all the available parameters)
        - idPrefix: An optional prefix that will be added to all IDs by
          mono:di.js to prevent ID clashes.
        - xsltParameters: A sub-object that lists any parameters accepted
