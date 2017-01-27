@@ -166,6 +166,7 @@ function AppCtrl($scope, $http) {
             } else {
               alert("The mono:di demo data could not be loaded");
             }
+            alert("Mono:di was designed to work with Chrome and Firefox. Other browsers may work but are not officially supported.");
         }
     };
 
